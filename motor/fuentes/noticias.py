@@ -114,6 +114,35 @@ MEDIOS = {
     # que si funciona es fuentes/oficiales.py, que entra por el indice de Tavily.
     "cronista":    dict(nombre="El Cronista", pais="Argentina", economia=True,
                         url="https://www.cronista.com/files/rss/economia-politica.xml"),
+
+    # LISTA DE JEFATURA EDITORIAL (Pablo Quintero), 25/08/2026. De 27 medios
+    # pedidos, 11 ya estaban y 7 se verificaron y entran aqui. Los 9 que faltan
+    # y por que, al final de este bloque.
+    "contrapunto": dict(nombre="Contrapunto", pais="Venezuela", economia=False,
+                        url="https://contrapunto.com/feed/"),
+    # Responde con un 301 y feedparser falla en ese salto de vez en cuando: una
+    # corrida devuelve cero y la siguiente trae veinte. No es que este caida.
+    "lapatilla":   dict(nombre="La Patilla", pais="Venezuela", economia=False,
+                        url="https://www.lapatilla.com/feed/"),
+    # ESTATAL: Telesur es financiado por el Estado venezolano. Lo pide Jefatura
+    # Editorial y por tanto entra, pero marcado: sirve para conocer la posicion
+    # oficial —que a veces ES la noticia— y eso hay que decirlo al citarlo.
+    "telesur":     dict(nombre="Telesur", pais="Venezuela", economia=False,
+                        estatal=True,
+                        url="https://www.telesurtv.net/feed/"),
+    "euronews":    dict(nombre="Euronews", pais="Unión Europea", economia=False,
+                        url="https://es.euronews.com/rss?level=theme&name=news"),
+    "vanguardia":  dict(nombre="La Vanguardia", pais="España", economia=True,
+                        url="https://www.lavanguardia.com/rss/economia.xml"),
+    # INGLES y con MURO DE PAGO, como Bloomberg: parafrasear y atribuir, nunca
+    # entrecomillar una traduccion propia, y avisar de que el lector no podra
+    # abrir la nota sin suscripcion.
+    "nytimes":     dict(nombre="The New York Times", pais="EE. UU.", economia=True,
+                        idioma="en", muro_de_pago=True,
+                        url="https://rss.nytimes.com/services/xml/rss/nyt/Economy.xml"),
+    "nytbusiness": dict(nombre="The New York Times", pais="EE. UU.", economia=True,
+                        idioma="en", muro_de_pago=True,
+                        url="https://rss.nytimes.com/services/xml/rss/nyt/Business.xml"),
     # FUENTE PRIMARIA, no prensa: comunicados del propio Mercosur. Los acuerdos
     # comerciales los anuncia el bloque, no un diario, y ahi la fuente original
     # vale mas que cualquier reseña.
@@ -171,14 +200,27 @@ MEDIOS = {
 # mira ahi: la primera version de este archivo se salto ese paso y repitio dos
 # errores que el bot ya tenia resueltos y documentados.
 
-# PENDIENTES DE DECISION EDITORIAL — responden, pero NO se agregan sin que lo
-# apruebe Jefatura Editorial, porque son medios de Estado:
+# DE LA LISTA DE JEFATURA EDITORIAL, LOS QUE NO SE PUDIERON AÑADIR (25/08/2026).
+# Probados con su direccion habitual y con las alternativas de ARC y /rss/:
+#   Ultimas Noticias   202 sin contenido (Cloudflare). Via: fuente manual.
+#   El Universal (VE)  404 en las cuatro direcciones probadas
+#   Globovision        301 sin entradas, en tres direcciones
+#   Noticiero Digital  202 sin contenido
+#   AVN / VTV          no responde
+#   NTN24              404 en tres direcciones
+#   Reuters            301: retiraron los feeds publicos. Se busca, no se lee
+#   CNN en Español     no responde
+#   Banca y Negocios   corta la conexion (ya estaba anotado como caido en el bot)
+# Para todas ellas hay dos vias que si funcionan: buscarlas con buscador.py, o
+# registrar una nota concreta con agregar_fuente.py. Lo que no hay es feed.
+
+# MEDIOS ESTATALES PENDIENTES DE DECISION — responden, pero no se agregan sin
+# que lo pida Jefatura Editorial:
 #   RT en Español   https://actualidad.rt.com/feeds/all.rss   (Estado ruso)
 #   Prensa Latina   https://www.prensa-latina.cu/feed/        (Estado cubano)
-# Sirven para conocer la posicion oficial de esos gobiernos, que a veces ES la
-# noticia. Pero un medio que presume de verificar no mete medios estatales en su
-# lista blanca sin decidirlo, y si los mete tiene que etiquetarlos como tales.
-# Que diarios cita el medio es decision editorial, no tecnica.
+# Telesur sí entra porque Pablo lo pidio expresamente, y va marcado estatal=True.
+# El criterio es el mismo para los tres: sirven para conocer la posicion oficial
+# de esos gobiernos, y si se citan hay que decir lo que son.
 
 # Comprobados el 24/08/2026 y NO funcionan: no volver a agregarlos sin verificar.
 #   Infobae https://www.infobae.com/feeds/rss/            -> 404 (usar la de ARC)
@@ -331,6 +373,15 @@ def extraer(medios=None, horas=24, limite=6, tema=None):
                     f"FUENTE EN INGLÉS: {medio['nombre']} publica en ingles. NO "
                     f"entrecomilles una traduccion tuya: una cita traducida ya "
                     f"no es textual. Parafrasea y atribuye."
+                )
+            if medio.get("estatal"):
+                paquete.advertencias.append(
+                    f"MEDIO ESTATAL: {medio['nombre']} está financiado por el "
+                    f"Estado. Se cita diciendo lo que es —«el canal estatal "
+                    f"{medio['nombre']}»— porque su versión de un hecho es la "
+                    f"posición oficial, y eso el lector tiene derecho a saberlo. "
+                    f"No lo presentes como un medio independiente ni des su "
+                    f"versión por contrastada."
                 )
             paquetes.append(paquete)
             if len(paquetes) >= limite:
