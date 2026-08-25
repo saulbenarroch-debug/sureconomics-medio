@@ -1,0 +1,464 @@
+"""El auditor (A8): compara la pieza redactada contra el paquete de datos.
+
+Es codigo determinista y NO usa IA, a proposito. Un modelo revisando a otro
+modelo no garantiza nada: comparte sus mismos puntos ciegos y ademas falla de
+forma distinta cada vez. Aqui, la misma pieza con el mismo paquete da siempre el
+mismo veredicto, y cualquiera puede reproducirlo.
+
+Lo que audita se divide en dos, y la diferencia importa:
+
+  BLOQUEO — comprobable sin opinar. Si falla, la pieza no llega al editor.
+  AVISO   — necesita criterio humano. Se le marca al editor, no se bloquea.
+
+No se inventan bloqueos sobre cosas que exigen juicio: un auditor que da falsos
+positivos se desactiva a la semana, y entonces no audita nada.
+"""
+
+import re
+from dataclasses import dataclass
+
+# Numero en norma española (1.234.567,89) o entero suelto.
+_NUM_ES = r"\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+,\d+|\d+"
+NUMERO = re.compile(_NUM_ES)
+# Decimal a la inglesa: punto seguido de 1 o 2 digitos. Con 3 seria un millar.
+DECIMAL_INGLES = re.compile(r"\b\d+\.\d{1,2}\b")
+URL = re.compile(r"https?://[^\s)>\]\"']+")
+# Comillas de todo tipo: el modelo mezcla rectas, tipograficas y angulares.
+ENTRECOMILLADO = re.compile("[\"«“]([^\"»”]{10,300})[\"»”]")
+
+# Valores validos del eje 'pais'. Latinoamerica completa mas los paises que el
+# medio cubre por su peso economico. Se amplia cuando Edicion lo pida; lo que no
+# se admite es texto libre, porque el corte por pais es como se mide el medio.
+PAISES_VALIDOS = {
+    "Argentina", "Bolivia", "Brasil", "Chile", "Colombia", "Costa Rica", "Cuba",
+    "República Dominicana", "Ecuador", "El Salvador", "Guatemala", "Haití",
+    "Honduras", "México", "Nicaragua", "Panamá", "Paraguay", "Perú", "Uruguay",
+    "Venezuela", "Latam",
+    "EE. UU.", "Canadá", "China", "Japón", "India", "Reino Unido", "Alemania",
+    "Francia", "Italia", "España", "Rusia", "Unión Europea", "Sudáfrica",
+    "Australia", "Suiza", "Corea del Sur",
+    # Añadidos el 24/08/2026: sin Irán en la lista, una pieza sobre
+    # sanciones a Teherán quedó clasificada con país "EE. UU." y
+    # subregión "Asia". Un país ausente no da error: da una
+    # clasificación falsa, que es peor que un hueco.
+    "Irán", "Israel", "Arabia Saudita", "Turquía", "Egipto", "Nigeria",
+    "Emiratos Árabes Unidos", "Catar", "Indonesia", "Vietnam",
+    "Países Bajos", "Bélgica", "Suecia", "Noruega", "Polonia",
+    "Portugal", "Ucrania", "Sudán", "Etiopía", "Kenia", "Marruecos",
+    "Nueva Zelanda", "Global",
+}
+
+TAXONOMIA = {
+    "region": {"Latinoamérica", "Mundo"},
+    "subregion": {"Centroamérica", "Norteamérica", "Región Andina", "Caribe",
+                  "Cono Sur", "América Latina", "América", "Europa", "Asia",
+                  "África", "Oceanía"},
+    "topico": {"Economía", "Finanzas", "Política"},
+    "vigencia": {"Perecedero", "Permanente"},
+    "idioma": {"ES", "EN"},
+}
+
+# Frases donde el modelo nombra la instruccion que recibio en vez de cumplirla.
+# Un medio no anuncia su linea editorial, la ejerce; y "para el lector normal" es
+# literalmente el prompt asomandose en la prosa. Aparecio tres veces seguidas en
+# las pruebas, asi que se bloquea en vez de confiar en que el prompt lo evite.
+FUGA_DE_PROMPT = re.compile(
+    r"desde nuestra perspectiva progresista|"
+    r"(nuestra|esta|la) (perspectiva|l[ií]nea|visi[oó]n) editorial|"
+    r"l[ií]nea editorial (progresista )?(de este medio|del medio)|"
+    r"para (el lector|una persona|el p[uú]blico) (normal|com[uú]n)|"
+    r"como medio progresista|este medio progresista", re.IGNORECASE)
+
+# Siglas mal escritas que ya aparecieron publicadas. La izquierda es el error.
+# Se agregan a medida que edicion detecte otras; cada una es un error que no
+# vuelve a ocurrir.
+SIGLAS_MAL = {"MFI": "FMI", "FMI Internacional": "FMI", "BCV Central": "BCV"}
+
+
+@dataclass
+class Hallazgo:
+    nivel: str      # 'bloqueo' o 'aviso'
+    codigo: str
+    mensaje: str
+
+    def __str__(self):
+        marca = "X" if self.nivel == "bloqueo" else "!"
+        return f"  {marca} [{self.codigo}] {self.mensaje}"
+
+
+def _texto_de(pieza):
+    """Todo el texto publicable de la pieza, para buscar cifras y enlaces."""
+    return "\n".join(str(pieza.get(c, "") or "") for c in
+                     ("titulo", "cuerpo", "bloque_sureconomics"))
+
+
+def _es_anio(token):
+    """Un 4 digitos entre 1900 y 2100 suelto es casi siempre un año.
+
+    Heuristica deliberada: sin ella el auditor bloquearia toda pieza que diga
+    'en 2016'. El riesgo asumido es que una cifra real de ese rango (por ejemplo
+    '2.000 empleos' escrito sin punto) pase sin verificar. Se prefiere ese falso
+    negativo raro a un falso positivo constante, que desactivaria el auditor.
+    """
+    return token.isdigit() and 1900 <= int(token) <= 2100
+
+
+# Cuanto puede alejarse un redondeo del dato real. Al 1 %, 219,9 -> 220 pasa
+# (se desvia 0,05 %) y 219,9 -> 200 no pasa (se desvia 9 %). Esa segunda no es un
+# redondeo sino una cifra redonda de titular, y es decision editorial, no tecnica.
+TOLERANCIA_REDONDEO = 0.01
+
+
+def _a_numero(token):
+    """Convierte '1.234.567,89' (norma española) a float, o None."""
+    try:
+        return float(token.replace(".", "").replace(",", "."))
+    except ValueError:
+        return None
+
+
+def _es(valor):
+    """El float otra vez en norma española, para el mensaje al editor."""
+    t = f"{valor:,.2f}".replace(",", "\x00").replace(".", ",").replace("\x00", ".")
+    return t.rstrip("0").rstrip(",") if "," in t else t
+
+
+def _redondeo_de(token, crudos):
+    """Si el numero del texto es un redondeo aceptable de alguno del paquete, lo
+    devuelve; si no, None.
+
+    Un medio escribe "220 %" donde la fuente dice 219,9 %, y eso es correcto y
+    normal. Bloquearlo seria un falso positivo. Lo que no vale es pasar de 219,9
+    a 200: ahi ya no se redondea, se cambia la cifra.
+    """
+    n = _a_numero(token)
+    if n is None:
+        return None
+    mejor = None
+    for real in crudos:
+        if real == 0:
+            continue
+        # Se comparan tambien las escalas: la fuente guarda 21645000000 y el
+        # texto dice "21.645 millones".
+        for escala in (1, 1e3, 1e6, 1e9, 1e12):
+            candidato = real / escala
+            if candidato == 0:
+                continue
+            desvio = abs(n - candidato) / abs(candidato)
+            if desvio <= TOLERANCIA_REDONDEO and (mejor is None or desvio < mejor[1]):
+                mejor = (candidato, desvio)
+    return mejor[0] if mejor else None
+
+
+def _partes_del_nombre(institucion):
+    """Trocea el nombre de una fuente en las instituciones que hay que nombrar.
+
+    'J.P. Morgan (EMBIG), vía Banco Central de Reserva del Perú'
+        -> ['J.P. Morgan', 'Banco Central de Reserva del Perú']
+
+    Se quitan los parentesis (siglas del indice, aclaraciones) y se parte por
+    coma y por 'via': cada trozo es una institucion distinta a la que hay que
+    dar credito por separado.
+    """
+    limpio = re.sub(r"\([^)]*\)", " ", institucion)
+    trozos = re.split(r",|\bv[ií]a\b", limpio, flags=re.IGNORECASE)
+    return [t.strip(" .-") for t in trozos if len(t.strip(" .-")) > 3]
+
+
+def auditar(pieza, paquete, encargo=""):
+    """Devuelve la lista de hallazgos. Sin bloqueos = puede ir al editor.
+
+    'pieza' es el objeto que devuelve el redactor (A5); 'paquete' es el que
+    produjo el extractor (A4). 'encargo' es la instruccion que escribio edicion.
+
+    Las cifras que vengan del encargo se admiten: ahi hay una persona de la
+    redaccion aportando un hecho, que es una fuente legitima. Pero se avisa, para
+    que quede constancia de que ese dato no salio de ninguna fuente automatica y
+    responde quien lo escribio.
+    """
+    h = []
+    texto = _texto_de(pieza)
+
+    # --- 1. Cifras: toda cifra del texto tiene que venir del paquete ---------
+    permitidas = set()
+    for c in paquete.cifras:
+        for token in NUMERO.findall(str(c.valor)):
+            permitidas.add(token)
+        if c.valor_crudo is not None:
+            permitidas.add(str(int(c.valor_crudo)))
+    for periodo in {str(c.periodo) for c in paquete.cifras}:
+        permitidas.update(NUMERO.findall(periodo))
+
+    # Los ceros a la izquierda cuentan como el mismo numero. Una fecha guardada
+    # como '2026-01-01' se escribe "al 1 de enero de 2026": el texto dice '1' y
+    # el paquete tiene '01', y sin esto el auditor bloqueaba una fecha correcta.
+    for token in list(permitidas):
+        if token.isdigit():
+            permitidas.add(token.lstrip("0") or "0")
+    # Los numeros que vienen dentro del propio material del paquete tambien son
+    # del paquete: el titular y el resumen que publico el diario son la fuente.
+    # Sin esto se bloqueaba "48 trimestres" o "12 años", que estaban en la nota
+    # citada pero no llevaban una unidad que el extractor supiera reconocer.
+    material = [paquete.hecho, paquete.fecha_hecho]
+    material += [str(c.get("texto", "")) for c in paquete.citas]
+    material += [f.documento for f in paquete.fuentes]
+    # La 'nota' de cada cifra tambien es material del paquete: ahi vive el nombre
+    # del indicador, y algunos llevan numero dentro ("CDS soberano a 10 años").
+    # Sin esto se bloqueaba el 10 de un nombre que venia de la propia fuente.
+    material += [c.nota for c in paquete.cifras if c.nota]
+
+    del_encargo = set(NUMERO.findall(encargo)) if encargo else set()
+    if del_encargo & set(NUMERO.findall(texto)):
+        h.append(Hallazgo("aviso", "cifra-del-encargo",
+                          "hay cifras que vienen del encargo de edición, no de una "
+                          "fuente automática: responde quien lo escribió"))
+    permitidas |= del_encargo
+    for trozo in material:
+        permitidas.update(NUMERO.findall(str(trozo)))
+
+    # Las cifras hipoteticas ("supongamos un salario de 100 unidades") son
+    # legitimas en Educacion, pero solo si la pieza las DECLARA. Asi el editor ve
+    # cuales son inventadas a proposito, y el auditor no bloquea de mas: un
+    # auditor que da falsas alarmas se desactiva, y entonces no audita nada.
+    hipoteticas = set()
+    for h_txt in pieza.get("cifras_hipoteticas", []) or []:
+        hipoteticas.update(NUMERO.findall(str(h_txt)))
+
+    # Las cifras DE DEFINICION son constantes de manual, no datos: la
+    # hiperinflacion se define por subidas mensuales sobre el 50 %, un punto
+    # basico es una centesima de punto. El auditor no puede comprobarlas contra
+    # el paquete porque no salen de ninguna fuente, salen del diccionario de la
+    # disciplina. Se admiten DECLARADAS, para que el editor las vea y confirme
+    # que la definicion es correcta.
+    definiciones = set()
+    for d_txt in pieza.get("cifras_de_definicion", []) or []:
+        definiciones.update(NUMERO.findall(str(d_txt)))
+    if definiciones:
+        h.append(Hallazgo("aviso", "cifra-de-definicion",
+                          f"la pieza usa {len(pieza['cifras_de_definicion'])} cifra(s) "
+                          f"de definición ({', '.join(pieza['cifras_de_definicion'])}): "
+                          f"comprobar que la definición es correcta"))
+    if hipoteticas:
+        h.append(Hallazgo("aviso", "cifra-hipotetica",
+                          f"la pieza declara {len(pieza['cifras_hipoteticas'])} cifra(s) "
+                          f"hipotetica(s): comprobar que el texto las presenta como tales"))
+
+    crudos = [c.valor_crudo for c in paquete.cifras if c.valor_crudo is not None]
+    redondeos = []
+    for token in NUMERO.findall(texto):
+        if (token in permitidas or token in hipoteticas
+                or token in definiciones or _es_anio(token)):
+            continue
+        original = _redondeo_de(token, crudos)
+        if original is not None:
+            redondeos.append((token, original))
+            continue
+        h.append(Hallazgo("bloqueo", "cifra-inventada",
+                          f"el numero '{token}' aparece en el texto pero no esta "
+                          f"en el paquete de datos"))
+    if redondeos:
+        detalle = "; ".join(f"'{t}' por {_es(o)}" for t, o in redondeos)
+        h.append(Hallazgo("aviso", "redondeo",
+                          f"el texto redondea cifras de la fuente ({detalle}). "
+                          f"Dentro de la tolerancia, pero conviene mirarlo"))
+
+    # --- 2. Lo declarado tiene que existir ----------------------------------
+    claves = {c.clave for c in paquete.cifras}
+    for clave in pieza.get("cifras_usadas", []) or []:
+        if clave not in claves:
+            h.append(Hallazgo("bloqueo", "clave-inexistente",
+                              f"la pieza declara la cifra '{clave}', que no esta "
+                              f"en el paquete"))
+
+    # --- 3. Formato numerico ------------------------------------------------
+    for mal in DECIMAL_INGLES.findall(texto):
+        h.append(Hallazgo("bloqueo", "decimal-ingles",
+                          f"'{mal}' usa punto decimal. La norma del medio es coma"))
+    # La norma del medio pide espacio antes del %. Es mecanico, asi que se
+    # comprueba en codigo en vez de confiarlo al prompt.
+    sin_espacio = set(re.findall(r"\d+(?:[.,]\d+)?%", texto))
+    for mal in sin_espacio:
+        h.append(Hallazgo("bloqueo", "porcentaje-sin-espacio",
+                          f"'{mal}' va sin espacio antes del %. La norma del "
+                          f"medio es '{mal[:-1]} %'"))
+
+    if re.search(r"trillon|trillón|trillones", texto, re.IGNORECASE):
+        h.append(Hallazgo("bloqueo", "trillon",
+                          "'trillon' traduce mal 'trillion': en español billon = "
+                          "10^12 y el error es de un factor de un millon"))
+    for mal, bien in SIGLAS_MAL.items():
+        if mal != bien and re.search(rf"\b{mal}\b", texto):
+            h.append(Hallazgo("bloqueo", "sigla",
+                              f"'{mal}' esta mal escrito: es '{bien}'"))
+
+    for fuga in set(FUGA_DE_PROMPT.findall(texto)):
+        frase = fuga if isinstance(fuga, str) else " ".join(x for x in fuga if x)
+        h.append(Hallazgo("bloqueo", "fuga-de-prompt",
+                          f"el texto nombra la instruccion en vez de cumplirla "
+                          f"('{frase.strip()}'). El medio ejerce su linea, no la anuncia"))
+
+    # --- 3b. Citas textuales ------------------------------------------------
+    # Toda frase entrecomillada tiene que estar en el material del paquete. Es
+    # lo mismo que la regla de las cifras, aplicada a las palabras: si no lo dijo
+    # la fuente, no lo escribimos.
+    #
+    # LIMITE CONOCIDO: esto comprueba que la frase existe, NO que se le atribuya
+    # a quien la dijo. En una prueba el sistema le adjudico la misma cita a dos
+    # personas opuestas en dos corridas. Un resumen de RSS no suele decir quien
+    # habla, asi que eso no es comprobable aqui y va como aviso al editor.
+    material_txt = " ".join(str(x) for x in material).lower()
+    for cita in ENTRECOMILLADO.findall(texto):
+        limpia = re.sub(r"\s+", " ", cita).strip().lower()
+        if len(limpia) < 25:      # frases cortas dan falsos positivos
+            continue
+        if limpia not in material_txt:
+            h.append(Hallazgo("bloqueo", "cita-ajena",
+                              f"la frase entrecomillada «{cita[:60]}…» no aparece "
+                              f"en el material del paquete"))
+    if ENTRECOMILLADO.search(texto):
+        h.append(Hallazgo("aviso", "quien-lo-dijo",
+                          "hay citas textuales: comprobar CONTRA LA NOTA ORIGINAL "
+                          "a quien se le atribuyen. El sistema no puede verificarlo"))
+
+    # --- 4. Fuentes ---------------------------------------------------------
+    del_paquete = {f.url for f in paquete.fuentes}
+    for u in URL.findall(texto):
+        if u.rstrip(".,;") not in del_paquete:
+            h.append(Hallazgo("bloqueo", "fuente-ajena",
+                              f"el enlace {u[:60]} no esta en el paquete"))
+    if "sureconomics" in texto.lower() and any(
+            "sureconomics" in u for u in URL.findall(texto)):
+        h.append(Hallazgo("bloqueo", "autocita",
+                          "SurEconomics no puede citarse a si mismo como fuente"))
+    for f in paquete.fuentes:
+        h.extend(Hallazgo("bloqueo", "fuente-invalida", p) for p in f.problemas())
+
+    # --- 5. Etiquetas -------------------------------------------------------
+    etiquetas = pieza.get("etiquetas", {}) or {}
+    for eje, validos in TAXONOMIA.items():
+        valor = etiquetas.get(eje)
+        if not valor:
+            h.append(Hallazgo("bloqueo", "etiqueta-falta",
+                              f"falta la etiqueta '{eje}'"))
+        elif valor not in validos:
+            h.append(Hallazgo("bloqueo", "etiqueta-invalida",
+                              f"'{valor}' no es un valor valido de '{eje}'"))
+    pais = etiquetas.get("pais")
+    if not pais:
+        h.append(Hallazgo("bloqueo", "etiqueta-falta", "falta la etiqueta 'pais'"))
+    elif pais not in PAISES_VALIDOS:
+        # Sin esta comprobacion el modelo pone cosas como pais='Mundo', y el
+        # corte por pais -que es como se mide el medio entero- deja de servir.
+        h.append(Hallazgo("bloqueo", "pais-invalido",
+                          f"'{pais}' no es un pais. Use un pais concreto o 'Latam'"))
+
+    # --- 6. Reglas por tipo de escrito --------------------------------------
+    tipo = pieza.get("tipo", "")
+    if tipo == "Noticia" and not (pieza.get("bloque_sureconomics") or "").strip():
+        h.append(Hallazgo("bloqueo", "sin-bloque",
+                          "una noticia sin bloque 'SurEconomics:' no cumple la "
+                          "estructura del medio"))
+    # Solo opinion e investigacion exigen persona con nombre: una opinion sin
+    # firma es un editorial anonimo, y una investigacion sin autor no se puede
+    # defender. Educacion si puede ir firmada por la redaccion.
+    if tipo in ("Opinión", "Investigación"):
+        autor = (pieza.get("autor") or "").strip()
+        if not autor or autor.upper() in {"XXX", "N/A", "REDACCIÓN SURECONOMICS",
+                                          "REDACCION SURECONOMICS"}:
+            h.append(Hallazgo("bloqueo", "sin-autor",
+                              f"un texto de tipo '{tipo}' necesita autor con "
+                              f"nombre; llego '{autor or 'vacio'}'"))
+    elif tipo == "Educación" and not (pieza.get("autor") or "").strip():
+        h.append(Hallazgo("bloqueo", "sin-autor",
+                          "falta la firma (puede ser 'Redacción SurEconomics')"))
+
+    # --- 7. Las advertencias del paquete son obligatorias --------------------
+    for aviso in paquete.advertencias:
+        anios = re.findall(r"\b(19\d{2}|20\d{2})\b", aviso)
+        # Si el extractor avisa que el dato es viejo, el año TIENE que aparecer
+        # en el texto: es lo que impide presentar un dato de 2016 como de hoy.
+        if "NO puede presentarse como actual" in aviso:
+            if not any(a in texto for a in anios):
+                h.append(Hallazgo("bloqueo", "dato-viejo",
+                                  f"el paquete avisa que el dato es de {anios[0] if anios else '?'} "
+                                  f"y el texto no lo dice en ninguna parte"))
+        elif "ATRIBUCIÓN OBLIGATORIA" in aviso:
+            # Publicar la cifra de un diario esta bien; publicarla sin decir de
+            # quien es, no. La atribucion es lo que separa citar de apropiarse,
+            # y se comprueba: el nombre del medio tiene que estar en el texto.
+            # Solo se exige nombrar las fuentes que la pieza REALMENTE usa. Una
+            # fuente de contexto que el redactor decidio no usar no tiene por que
+            # aparecer: exigirlo bloqueaba piezas correctas, que es como se pierde
+            # la confianza en el auditor.
+            # Se mira si la cifra APARECE EN EL TEXTO, no si el modelo la declaro:
+            # declara de mas con frecuencia, y entonces se exigia nombrar a una
+            # fuente cuyo dato nunca llego a escribirse. Atribuir un dato que no
+            # esta es tan raro como no atribuir uno que si.
+            # Se busca con limites de palabra y se ignoran los valores de uno o
+            # dos caracteres: la calificacion de Damodaran es "C", y un "in texto"
+            # a secas la encontraba en cualquier parte, asi que se exigia
+            # atribucion siempre.
+            usadas = set()
+            for c in paquete.cifras:
+                valor = str(c.valor).strip()
+                if len(valor) < 3:
+                    continue
+                if re.search(rf"(?<![\w,.]){re.escape(valor)}(?![\w])", texto):
+                    usadas.add(c.fuente_id)
+            # El medio de la noticia se nombra siempre: el hecho es suyo.
+            usadas |= {f.id for f in paquete.fuentes[:1]}
+            # Se comprueban las PARTES del nombre, no la cadena entera. Una
+            # fuente puede llamarse "J.P. Morgan (EMBIG), vía Banco Central de
+            # Reserva del Perú" y eso jamas aparece literal en un texto bien
+            # escrito: la prosa nombra a los dos por separado, que es lo
+            # correcto. Exigir la cadena completa bloqueaba piezas impecables.
+            faltan = []
+            for f in (f for f in paquete.fuentes if f.id in usadas):
+                for parte in _partes_del_nombre(f.institucion):
+                    if parte.lower() not in texto.lower():
+                        faltan.append(parte)
+            if faltan:
+                h.append(Hallazgo("bloqueo", "sin-atribucion",
+                                  f"la informacion es de {', '.join(faltan)} y el "
+                                  f"texto no lo nombra en ninguna parte"))
+            if "sacado de" not in (pieza.get("sacado_de") or "").lower():
+                h.append(Hallazgo("bloqueo", "sin-sacado-de",
+                                  "falta la linea «Sacado de: <medio>, <fecha> — "
+                                  "<enlace>» al cierre de la pieza"))
+        elif "redirector de Google News" in aviso:
+            h.append(Hallazgo("bloqueo", "enlace-redirector",
+                              "el enlace de la fuente es un redirector de Google "
+                              "News, no la nota del medio"))
+        else:
+            h.append(Hallazgo("aviso", "advertencia-paquete", aviso))
+
+    # --- 8. Lo que NO audita, y se le dice al editor -------------------------
+    # Estas dos exigen criterio. Marcarlas como bloqueo daria falsos positivos.
+    if tipo == "Noticia":
+        h.append(Hallazgo("aviso", "revision-humana",
+                          "revisar a mano: que el cuerpo no lleve postura (va solo "
+                          "en el bloque) y que el titular no afirme mas que el cuerpo"))
+
+    return h
+
+
+def bloqueada(hallazgos):
+    return any(x.nivel == "bloqueo" for x in hallazgos)
+
+
+def informe(hallazgos):
+    """Texto para consola. El editor no lee JSON."""
+    if not hallazgos:
+        return "APROBADA: sin hallazgos. Pasa a la cola editorial."
+    bloqueos = [x for x in hallazgos if x.nivel == "bloqueo"]
+    avisos = [x for x in hallazgos if x.nivel == "aviso"]
+    lineas = []
+    if bloqueos:
+        lineas.append(f"BLOQUEADA — {len(bloqueos)} motivo(s). No llega al editor:")
+        lineas += [str(x) for x in bloqueos]
+    else:
+        lineas.append("APROBADA para la cola editorial.")
+    if avisos:
+        lineas.append(f"\n{len(avisos)} aviso(s) para el editor:")
+        lineas += [str(x) for x in avisos]
+    return "\n".join(lineas)

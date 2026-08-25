@@ -1,0 +1,113 @@
+"""Llamada a los modelos de lenguaje, con cadena de respaldo.
+
+Extraido de redactor.py cuando aparecio el segundo agente que necesita IA (el
+economista). Dos copias de la logica de reintentos y fallback se desincronizan a
+la primera correccion.
+
+Orden al reves que en el bot de Telegram: aqui va primero el modelo de mas
+calidad. Son pocas llamadas al dia y en un medio la prosa ES el producto; en el
+bot, que manda dos resumenes diarios, pesa mas no agotar la cuota.
+"""
+
+import json
+import os
+import time
+
+# Los 2.5 dan 404 en proyectos nuevos ("no longer available to new users").
+# Se descubrio al migrar la clave a la cuenta de la empresa (24/08/2026).
+MODELOS_GEMINI = ["gemini-3.5-flash", "gemini-3.5-flash-lite"]
+# Groq retiro la familia llama-3.3 (404 "does not exist"). El respaldo
+# llevaba tiempo roto sin que se notara, porque solo se activa cuando
+# Gemini falla. Comprobado el 24/08/2026 desde Actions.
+MODELO_GROQ = "openai/gpt-oss-120b"
+
+
+def _gemini(prompt, temperatura, reintentos=2):
+    from google import genai
+
+    clave = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not clave:
+        raise RuntimeError("falta GEMINI_API_KEY")
+    cliente = genai.Client(api_key=clave)
+    ultimo = None
+    for modelo in MODELOS_GEMINI:
+        espera = 5
+        for intento in range(1, reintentos + 1):
+            try:
+                r = cliente.models.generate_content(
+                    model=modelo, contents=prompt,
+                    config={"response_mime_type": "application/json",
+                            "temperature": temperatura})
+                return r.text, modelo
+            except Exception as exc:  # noqa: BLE001
+                msg, ultimo = str(exc), exc
+                if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                    print(f"[aviso] {modelo}: cuota agotada, paso al siguiente")
+                    break
+                if any(s in msg for s in ("503", "500", "UNAVAILABLE", "overloaded")):
+                    if intento < reintentos:
+                        print(f"[aviso] {modelo} caido, reintento en {espera}s")
+                        time.sleep(espera)
+                        espera *= 2
+                        continue
+                    break
+                raise
+    raise ultimo
+
+
+def _groq(prompt, temperatura):
+    """Respaldo. NO usa response_format a proposito.
+
+    Los modelos actuales de Groq devuelven 400 con {"type": "json_object"}. En
+    vez de depender de una funcion que el respaldo puede no tener, se pide el
+    JSON en el propio prompt y se parsea: pedir_json ya sabe desenvolver una
+    respuesta metida en ```json. Un plan B tiene que exigir lo minimo posible.
+    """
+    import requests
+
+    clave = os.environ.get("GROQ_API_KEY", "").strip()
+    if not clave:
+        raise RuntimeError("falta GROQ_API_KEY")
+    r = requests.post(
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {clave}",
+                 "Content-Type": "application/json"},
+        json={"model": MODELO_GROQ,
+              "messages": [{"role": "user", "content": prompt}],
+              "temperature": temperatura},
+        timeout=90)
+    if not r.ok:
+        # La clave va en la cabecera, no en la URL, pero el cuerpo del error
+        # puede reflejar la peticion: se recorta antes de imprimirlo.
+        raise RuntimeError(f"Groq respondio {r.status_code}")
+    return r.json()["choices"][0]["message"]["content"], MODELO_GROQ
+
+
+def pedir_json(prompt, etiqueta="ia", temperatura=0.4):
+    """Devuelve el objeto que responda el modelo, o None si nadie contesta.
+
+    Degradacion suave: si ningun modelo responde, no hay resultado. Nunca se
+    devuelve algo inventado para rellenar.
+    """
+    try:
+        crudo, modelo = _gemini(prompt, temperatura)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[aviso] Gemini no disponible ({str(exc)[:70]}); uso Groq")
+        try:
+            crudo, modelo = _groq(prompt, temperatura)
+        except Exception as exc2:  # noqa: BLE001
+            print(f"[error] tampoco Groq ({str(exc2)[:70]}).")
+            return None
+    print(f"[{etiqueta}] {modelo}")
+
+    try:
+        return json.loads(crudo)
+    except json.JSONDecodeError:
+        # A veces el modelo envuelve el JSON en ```json ... ```
+        limpio = (crudo.strip().removeprefix("```json").removeprefix("```")
+                  .removesuffix("```"))
+        try:
+            return json.loads(limpio)
+        except json.JSONDecodeError:
+            print(f"[error] {etiqueta}: la IA no devolvio JSON valido.")
+            return None

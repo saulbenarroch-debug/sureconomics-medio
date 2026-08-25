@@ -1,0 +1,13 @@
+# Librerias descargadas con pip --target
+.libs/
+# Cache de descargas (el Excel de Damodaran)
+.cache/
+# Borradores y entregas: se regeneran
+borradores/
+hoy/
+final/
+entrega/
+*.docx
+~$*
+__pycache__/
+*.pyc
