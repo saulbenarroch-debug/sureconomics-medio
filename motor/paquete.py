@@ -207,7 +207,16 @@ def componer(principal, *contextos):
 
         claves = {c.clave for c in cifras}
         for c in ctx.cifras:
-            clave = c.clave if c.clave not in claves else f"ctx{i}_{c.clave}"
+            # Se busca un nombre libre de verdad, no solo se pone el prefijo. El
+            # contador `i` se reinicia en cada llamada a componer(), y como la
+            # cadena compone dos veces -el expediente del documentalista primero
+            # y el contexto del economista despues- la segunda vuelta generaba
+            # otra vez 'ctx1_cifra_1' y el paquete quedaba invalido.
+            clave = c.clave
+            sufijo = i
+            while clave in claves:
+                clave = f"ctx{sufijo}_{c.clave}"
+                sufijo += 1
             claves.add(clave)
             cifras.append(replace(
                 c, clave=clave, rol="contexto",
