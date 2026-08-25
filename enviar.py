@@ -49,7 +49,10 @@ def _pieza_html(texto, veredicto, hallazgos):
         elif linea.startswith("Sacado de:"):
             partes.append(f'<p style="margin:2px 0;font:11px Arial;color:{GRIS};'
                           f'word-break:break-all">{e}</p>')
-        elif linea.startswith("—"):
+        # El pie de la pieza («Perecedero · ES»). Antes empezaba con un guion
+        # largo y se reconocia por ahi; ya no lleva guion, asi que se reconoce
+        # por lo que es: una linea corta con el separador de metadatos.
+        elif " · " in linea and len(linea) < 60:
             partes.append(f'<p style="margin:8px 0 0;font:11px Arial;color:{GRIS}">{e}</p>')
         else:
             partes.append(f'<p style="margin:0 0 10px;font:14px/1.55 Georgia,serif;'
@@ -115,7 +118,11 @@ def main():
       </td></tr>
     </table></body>"""
 
-    asunto = f"SurEconomics · {len(piezas)} borradores del {hoy}"
+    # El nombre de la carpeta entra en el asunto cuando no es la del dia. Dos
+    # tandas del mismo dia salian con el asunto identico ("6 borradores del 25
+    # de agosto") y en la bandeja no habia forma de saber cual era cual.
+    tanda = "" if carpeta.name == "hoy" else f" ({carpeta.name})"
+    asunto = f"SurEconomics · {len(piezas)} borradores del {hoy}{tanda}"
 
     # CUIDADO AQUI. correo.enviar() lee los destinatarios de la variable de
     # entorno DESTINATARIOS, que en el .env de La Campana tiene CINCO personas de

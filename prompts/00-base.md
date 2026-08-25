@@ -101,6 +101,27 @@ las cifras como excusa para no explicar.
 5. **Todo lo que atribuyas a una institución tiene que estar en su fuente.**
 6. **Original.** No copias ni parafraseas de cerca ninguna fuente.
 
+## Puntuación: NO ESCRIBIR NI USAR LOS GUIONES LARGOS
+
+Norma del medio. Prohibido el guion largo (—) y el mediano (–) en cualquier
+parte de la pieza: título, cuerpo, bloque SurEconomics, pie de foto, todo.
+
+Usa la puntuación normal del español, que para eso está:
+
+- Pausa fuerte dentro de la frase: **coma**, **punto y coma** o **dos puntos**.
+  - Mal: *"la deuda creció — y nadie lo frenó"*
+  - Bien: *"la deuda creció, y nadie lo frenó"*
+- Inciso o aclaración: **paréntesis** o dos comas.
+  - Mal: *"el bono samurái —el primero desde 2024— se coloca esta semana"*
+  - Bien: *"el bono samurái (el primero desde 2024) se coloca esta semana"*
+- Palabras compuestas o pares de países: **guion corto**, sin espacios.
+  - Mal: *"aranceles Canadá–EE. UU."*
+  - Bien: *"aranceles Canadá-EE. UU."*
+
+Si aun así se te escapa uno, el código lo sustituye antes de publicar. Pero
+lo que sale de esa sustitución nunca queda tan bien como la frase que habrías
+escrito tú con la puntuación correcta desde el principio.
+
 ## Cifras: formato
 
 - Decimales con **coma**: `25,8 %`. Miles con **punto**: `1.000.000`.

@@ -127,6 +127,15 @@ def _viene_al_caso(candidata, objetivo, terminos_originales):
     """
     texto = candidata.hecho + " " + (candidata.citas[0]["texto"] if candidata.citas else "")
 
+    # Antes que nada, la basura. El expediente de la pieza sobre las sanciones a
+    # Cuba se llevo los numeros ganadores del Powerball: hablaba de Estados
+    # Unidos, decia "81 millones de dolares" y compartia palabras con la nota.
+    # Los dos filtros de abajo lo dejaron pasar porque los dos miran el sentido,
+    # y esa nota tenia sentido. Lo que no tenia era nada que ver.
+    url = candidata.fuentes[0].url if candidata.fuentes else ""
+    if criterio.JUNK.search(texto) or (url and criterio.JUNK_URL.search(url)):
+        return False
+
     if objetivo:
         pais_candidata = _pais_del_texto(texto)
         medio = candidata.entidades[1] if len(candidata.entidades) > 1 else ""

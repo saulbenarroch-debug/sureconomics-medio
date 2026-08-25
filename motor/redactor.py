@@ -118,10 +118,24 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
         # pie deja sin credito a dos de ellos.
         texto_pieza = " ".join(str(pieza.get(c) or "") for c in
                                ("titulo", "cuerpo", "bloque_sureconomics"))
-        lineas = []
+        # SENSIBLE A MAYUSCULAS Y CON LIMITES DE PALABRA, a proposito. El nombre
+        # de un medio es un nombre propio, y buscarlo en minusculas acredita
+        # cualquier frase que lo contenga: la pieza sobre las sanciones a Cuba
+        # decia "el comercio exterior" y el pie salio acreditando a El Comercio,
+        # de Peru, con dos enlaces que la pieza jamas uso. "El Comercio" con
+        # mayusculas solo aparece cuando de verdad se nombra al diario.
+        lineas, acreditadas = [], set()
         for f in paquete.fuentes:
-            if f.institucion.lower() in texto_pieza.lower() or not lineas:
-                lineas.append(f"{f.institucion}, {paquete.fecha_hecho or 's/f'} — {f.url}")
+            nombrada = re.search(r"\b" + re.escape(f.institucion) + r"\b",
+                                 texto_pieza)
+            # Un medio se acredita una vez. Si el paquete trae tres notas del
+            # mismo diario, nombrarlo no dice cual de las tres se uso, y colgar
+            # las tres es peor que colgar la primera.
+            if f.institucion in acreditadas:
+                continue
+            if nombrada or not lineas:
+                acreditadas.add(f.institucion)
+                lineas.append(f"{f.institucion}, {paquete.fecha_hecho or 's/f'} · {f.url}")
         pieza["sacado_de"] = "Sacado de: " + "\nSacado de: ".join(lineas)
         # El modelo tambien la escribe aunque el prompt ya no se la pida, y
         # entonces sale dos veces. La linea es del codigo: se limpia del cuerpo.
@@ -133,7 +147,64 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
                             flags=re.IGNORECASE)
             pieza[campo] = re.sub(r"\n{3,}", "\n\n", limpio).strip()
 
+    # Ultimo paso, sobre TODO lo que sale publicado: fuera los guiones largos.
+    for campo, valor in list(pieza.items()):
+        if isinstance(valor, str):
+            pieza[campo] = sin_guiones_largos(valor)
+        elif isinstance(valor, list):
+            pieza[campo] = [sin_guiones_largos(v) if isinstance(v, str) else v
+                            for v in valor]
+
     return pieza
+
+
+# NO ESCRIBIR NI USAR LOS GUIONES LARGOS. Ni el largo (—) ni el mediano (–), ni
+# en la prosa que escribe el modelo ni en las plantillas que escribe el codigo.
+# Es norma de estilo del medio, decidida por el dueño el 25/08/2026.
+#
+# Se aplica AQUI, con codigo, ademas de pedirse en el prompt. El prompt lo cumple
+# "casi siempre" y "casi" no sirve: de las seis piezas del 25 de agosto, las seis
+# traian guiones largos sin que nadie los hubiera pedido. La norma la aplica el
+# codigo; el prompt solo evita que haya que arreglar tanto despues.
+GUIONES_LARGOS = "—–"
+
+
+def sin_guiones_largos(texto):
+    """Cambia los guiones largos por puntuacion normal en español.
+
+    No se borran a secas, porque un guion largo esta haciendo un trabajo en la
+    frase y quitarlo deja la prosa coja. Se traduce a lo que corresponde:
+
+        Canadá–EE.UU.        ->  Canadá-EE.UU.      (compuesto: guion corto)
+        texto —inciso— mas   ->  texto (inciso) mas (inciso: parentesis)
+        texto — mas texto    ->  texto, mas texto   (pausa: coma)
+        «— Perecedero · ES»  ->  «Perecedero · ES»  (pie de pieza: sobra)
+    """
+    if not texto:
+        return texto
+    clase = "[" + GUIONES_LARGOS + "]"
+    fuera = []
+    for linea in texto.split("\n"):
+        # 1. Pegado entre dos palabras no es una pausa sino un compuesto.
+        linea = re.sub(r"(?<=[\w.])" + clase + r"(?=\w)", "-", linea)
+        # 2. Al principio de la linea es la firma o el pie: sobra.
+        linea = re.sub(r"^\s*" + clase + r"\s*", "", linea)
+        # 3. Un inciso entre dos guiones se vuelve parentesis.
+        while sum(linea.count(g) for g in GUIONES_LARGOS) >= 2:
+            m = re.search(r"\s*" + clase + r"\s*([^" + GUIONES_LARGOS + r"]+?)"
+                          r"\s*" + clase + r"\s*", linea)
+            if not m:
+                break
+            linea = linea[:m.start()] + " (" + m.group(1) + ") " + linea[m.end():]
+        # 4. El que quede suelto era una pausa: coma.
+        linea = re.sub(r"\s*" + clase + r"\s*", ", ", linea)
+        # 5. Las costuras que dejan los pasos anteriores.
+        linea = re.sub(r"\s+([,.;:)])", r"\1", linea)
+        linea = re.sub(r"\(\s+", "(", linea)
+        linea = re.sub(r",\s*,", ",", linea)
+        linea = re.sub(r"[ \t]{2,}", " ", linea)
+        fuera.append(re.sub(r",\s*$", "", linea.rstrip()))
+    return "\n".join(fuera)
 
 
 def _bloque_critica(critica):

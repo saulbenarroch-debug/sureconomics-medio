@@ -29,7 +29,22 @@ JUNK = re.compile(
     r"selecci[oó]n nacional|clima|lluvia|hurac[aá]n|visa|pasaporte|migrator|"
     r"migrante|turismo|viral|tiktok|belleza|dieta|bicarbonato|limpieza|truco|"
     r"ciudad flotante|anses|jubilad|loter[íi]a|netflix|serie|pel[íi]cula|famoso|"
-    r"astrolog|zodiac)", re.IGNORECASE)
+    r"astrolog|zodiac|"
+    # Los sorteos entraban por la puerta de atras: el titular del Powerball no
+    # dice "loteria" en ninguna parte, dice "premio mayor de 81 millones de
+    # dolares", que a ECON le parece economia pura. Se colo en el expediente de
+    # la pieza sobre las sanciones a Cuba el 25/08/2026.
+    r"powerball|jackpot|sorteo|quiniela|baloto|melate|mega ?millions|raspadit|"
+    r"premio mayor|n[uú]meros ganadores)", re.IGNORECASE)
+
+# La basura tambien viene marcada en la direccion, y ahi es mas fiable que en el
+# titular. /branded/ es publicidad pagada con forma de reportaje: nunca es
+# fuente. /mag/ y /loterias/ son las secciones de entretenimiento que los
+# diarios cuelgan del mismo dominio que la seccion de economia.
+JUNK_URL = re.compile(
+    r"/(branded|publirreportaje|contenido-patrocinado|loterias|loteria|mag|"
+    r"horoscopo|farandula|espectaculos|deportes|viral|recetas|zodiaco)/",
+    re.IGNORECASE)
 
 ECON = re.compile(
     r"(econom|inflaci|ipc|pib|d[oó]lar|euro|peso|real |bolívar|bol[íi]var|"
@@ -115,11 +130,13 @@ def puntuar(titular, resumen="", url="", fecha=""):
     return p
 
 
-def sirve(titular, fecha="", exigir_economia=True):
+def sirve(titular, fecha="", exigir_economia=True, url=""):
     """Descarta lo que no debe pasar nunca. Copiado de filtrarNoticias()."""
     if not titular:
         return False
     if JUNK.search(titular):
+        return False
+    if url and JUNK_URL.search(url):
         return False
     if CLICKBAIT.search(titular):
         return False
@@ -137,7 +154,8 @@ def ordenar(candidatos, clave_titular="titular", clave_resumen="extracto",
     salida = []
     for c in candidatos:
         titular = c.get(clave_titular, "") or ""
-        if not sirve(titular, c.get(clave_fecha, ""), exigir_economia):
+        if not sirve(titular, c.get(clave_fecha, ""), exigir_economia,
+                     url=c.get(clave_url, "") or ""):
             continue
         c = dict(c)
         c["puntos"] = puntuar(titular, c.get(clave_resumen, "") or "",

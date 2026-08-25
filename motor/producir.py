@@ -19,7 +19,7 @@ from dotenv import load_dotenv  # noqa: E402
 from motor import auditor, documentalista, economista, redactor  # noqa: E402
 from motor import biblioteca  # noqa: E402
 from motor.paquete import componer  # noqa: E402
-from motor.fuentes import banco_mundial, noticias  # noqa: E402
+from motor.fuentes import banco_mundial, manual, noticias  # noqa: E402
 
 # Las claves viven en el .env del bot: es la misma maquina y no tiene sentido
 # duplicar secretos en dos sitios. Si algun dia se separan los despliegues, esto
@@ -49,7 +49,8 @@ def texto_legible(pieza):
     if pieza.get("sacado_de"):
         lineas += ["", pieza["sacado_de"]]
     extra = [f"{e.get('vigencia', '?')} · {e.get('idioma', '?')}"]
-    lineas += ["", "— " + " · ".join(extra)]
+    # Sin guion largo al frente: norma del medio (ver redactor.py).
+    lineas += ["", " · ".join(extra)]
     return "\n".join(lineas)
 
 
@@ -58,6 +59,9 @@ def main():
     ap.add_argument("--diarios", help="claves de la lista blanca separadas por coma, "
                                       "o 'todos'. Ej: elnacional,clarin")
     ap.add_argument("--tema", help="filtro adicional por palabra, ej. 'inflaci|dolar'")
+    ap.add_argument("--manual", help="nombre de una nota registrada a mano en "
+                    "fuentes_manuales/. Es la via para los medios que no se "
+                    "dejan leer por maquina y para lo que solo aparece en la web")
     ap.add_argument("--horas", type=int, default=24)
     ap.add_argument("--pais", help="ISO3, para el Banco Mundial")
     ap.add_argument("--indicador", help="indicador del Banco Mundial")
@@ -78,7 +82,13 @@ def main():
 
     print("=" * 70)
     print("1. EXTRACTOR — voy a la fuente")
-    if args.diarios:
+    if args.manual:
+        # Una nota verificada a mano puede ser la noticia, no solo el contexto.
+        # Es el unico camino para los temas que no estan en ningun feed: el 25 de
+        # agosto, siete de trece noticias del dia no aparecian en las 44 fuentes
+        # y solo se llegaba a ellas buscando y abriendo la nota.
+        paquete = manual.extraer(args.manual)
+    elif args.diarios:
         medios = None if args.diarios == "todos" else args.diarios.split(",")
         lote = noticias.extraer(medios, horas=args.horas, limite=1, tema=args.tema)
         paquete = lote[0] if lote else None
@@ -176,7 +186,12 @@ def main():
 
     carpeta = pathlib.Path(__file__).resolve().parent.parent / "borradores"
     carpeta.mkdir(exist_ok=True)
-    base = args.diarios.replace(",", "-") if args.diarios else f"{args.pais.lower()}_{args.indicador}"
+    if args.manual:
+        base = args.manual
+    elif args.diarios:
+        base = args.diarios.replace(",", "-")
+    else:
+        base = f"{args.pais.lower()}_{args.indicador}"
     nombre = f"{base}_{args.tipo.lower()}"
     (carpeta / f"{nombre}.json").write_text(
         json.dumps({"pieza": pieza,

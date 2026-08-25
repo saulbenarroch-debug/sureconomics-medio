@@ -1,0 +1,61 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "El Mercosur acelera su agenda de acuerdos comerciales bajo la presión de Argentina",
+    "autor": null,
+    "fecha_publicacion": "2026-08-25",
+    "cuerpo": "El bloque sudamericano avanza hacia una fase inédita de apertura externa, marcada por la búsqueda de pactos comerciales y negociaciones bilaterales que alteran la dinámica tradicional de la región, según informó el diario El Cronista el 24 de agosto de 2026.\n\nEl giro responde a la necesidad de encontrar previsibilidad en un entorno global cambiante donde el sistema multilateral de comercio enfrenta serias limitaciones operativas. Ante este escenario, los países miembros buscan alternativas mediante una ofensiva comercial sin precedentes recientes que incluye conversaciones con potencias y economías emergentes.\n\nDe acuerdo con la información publicada por El Cronista, las exportaciones del bloque representan actualmente menos del 20 % del Producto Bruto Interno combinado, un indicador de la baja integración comercial externa que estas iniciativas buscan revertir mediante una red de nuevos convenios estratégicos.\n\nLas gestiones abarcan desde el reciente lanzamiento de negociaciones con Japón hasta conversaciones avanzadas con Canadá, Vietnam, India y los Emiratos Árabes Unidos, además de la incorporación de socios al Tratado Integral y Progresista de Asociación Transpacífico y acuerdos con la Asociación Europea de Libre Comercio.",
+    "bloque_sureconomics": "Nos venden como una simple modernización lo que en realidad es una pulseada geopolítica donde las asimetrías pesan más que las intenciones. Mientras los grandes centros de poder exigen aperturas rápidas y sin red de protección para las economías domésticas, el bloque arriesga su capacidad de negociación conjunta frente a los intereses transnacionales. Lo que está en juego no es solo el acceso a nuevos mercados, sino si los beneficios de esa integración se quedan en el desarrollo local o terminan subordinando el aparato productivo a los vaivenes de la demanda externa.",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Cono Sur",
+      "pais": "Latam",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1"
+    ],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [
+      "Sectores específicos dentro del bloque que impulsan o resisten los cambios normativos"
+    ],
+    "sacado_de": "Sacado de: El Cronista, 2026-08-24 · https://www.cronista.com/financial-times/mercosur-va-por-nuevos-mercados-la-presion-de-milei-y-los-acuerdos-que-pueden-favorecer-a-argentina"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: El Cronista, por Michael Pooler y Ciara Nugent (Financial Times), 2026-08-24. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [advertencia-paquete] FUENTE PRIMARIA OFICIAL: La información proviene del comunicado directo de CEPAL. A diferencia de las fuentes secundarias de prensa, esta cifra se puede publicar como propia o citando directamente a la institución. Cierra la pieza con «Sacado de: CEPAL, Fri, 21 Au — https://www.cepal.org/es/comunicados/acelerada-profunda-transicion-demografica-america-latina-caribe-urgen-politicas-publicas».",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Inclusión de un bloque de contexto sobre Vaca Muerta y los 51.000 millones de dólares totalmente desconectado del tema central de la nota.",
+        "por_que": "La noticia trata sobre las negociaciones comerciales del Mercosur, la apertura externa y las tensiones del bloque. Meter una inversión gasífera de manera forzada solo porque estaba en el paquete de datos rompe la coherencia temática y no aporta a entender el fenómeno comercial.",
+        "sugerencia": "Eliminar por completo la mención a Vaca Muerta y la cifra de los 51.000 millones de dólares del cuerpo y del cierre."
+      },
+      {
+        "gravedad": "media",
+        "que": "Atribución incompleta de la cifra de exportaciones sobre el PBI.",
+        "por_que": "El texto menciona que las exportaciones representan menos del 20% del PBI, pero se omite atribuir claramente este dato a la fuente correspondiente (El Cronista), tal como lo exige la advertencia del paquete de datos para fuentes secundarias.",
+        "sugerencia": "Aclarar en el texto que este porcentaje de apertura comercial es señalado por el informe de El Cronista."
+      }
+    ],
+    "sobra": [
+      "La referencia final a los 51.000 millones de dólares de inversión en Vaca Muerta proveniente de El Nacional."
+    ],
+    "falta": [
+      "Una mención más clara sobre los sectores específicos dentro del bloque que impulsan o resisten estos cambios normativos más allá de la mención general a Argentina."
+    ]
+  }
+}

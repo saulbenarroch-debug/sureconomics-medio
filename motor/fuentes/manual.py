@@ -72,6 +72,14 @@ def extraer(nombre):
         + f", {d['fecha']}. Cítala por su nombre.",
         "Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando "
         "al medio, y sus cifras no se publican como propias.",
+        # Sin esta frase exacta el redactor no escribe la linea «Sacado de» al
+        # pie, porque es la que dispara ese paso. Faltaba, y la primera pieza
+        # hecha con fuente manual salio sin acreditar el enlace: la nota citaba
+        # a Bloomberg Linea en el cuerpo, pero el lector no tenia como ir a
+        # comprobarlo. Una fuente verificada a mano se acredita igual que
+        # cualquier otra, o el trabajo de verificarla no se ve.
+        f"ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la nota de "
+        f"{d['medio']}.",
     ]
     avisos += d.get("advertencias", [])
 

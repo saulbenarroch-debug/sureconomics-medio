@@ -1,0 +1,50 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "Estados Unidos endurece las sanciones contra Cuba y castiga a funcionarios y entidades clave",
+    "autor": null,
+    "fecha_publicacion": "2026-08-25",
+    "cuerpo": "Estados Unidos elevó la presión sobre Cuba el jueves 20 de agosto de 2026 con una nueva ronda de sanciones contra tres altos funcionarios y nueve entidades estatales de la economía, según informó el diario El País. Las medidas buscan forzar transformaciones políticas en la isla mediante la restricción de operaciones en áreas clave como la minería, la metalurgia y el comercio exterior.\n\nLa ofensiva castiga al presidente del Instituto Cubano de Amistad con los Pueblos (ICAP), Fernando González Llort; a la vicepresidenta primera, Noemí Rabaza Fernández; y a la directora para Norteamérica, Leima Martínez Freire. Asimismo, la orden bloquea a empresas como la Empresa de Níquel Comandante Ernesto Che Guevara y la importadora Metalcuba.\n\nEl secretario de Estado estadounidense, Marco Rubio, advirtió que cualquier banco extranjero o empresa que proporcione servicios a los actores sancionados corre el riesgo de ser penalizado, exigiendo el cese inmediato de su apoyo financiero.\n\nEsta política profundiza el aislamiento económico sobre un país que ya padece severas restricciones energéticas y comerciales, obstaculizando la adquisición de insumos básicos para la población.",
+    "bloque_sureconomics": "Las sanciones unilaterales contra Cuba buscan asfixiar el funcionamiento básico de la economía estatal bajo la falsa promesa de democratización. Quien pierde en este esquema es la población cubana, que ve obstaculizado el acceso a medicinas y alimentos, mientras Washington utiliza el poder del sistema financiero global como herramienta de castigo colectivo.",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Cuba",
+      "topico": "Política",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: El País, 2026-08-20 · https://elpais.com/america/2026-08-20/estados-unidos-eleva-la-presion-sobre-cuba-con-sanciones-a-tres-funcionarios-y-nueve-entidades-clave-de-la-economia.html"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: El País, por Agencias, 2026-08-20. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] USA ESTE CONTEXTO SOLO SI VIENE AL CASO, y casi nunca hace falta la cifra. En la mayoría de las piezas basta con «la alta prima de riesgo país encarece el crédito y ahuyenta la inversión»: es una realidad conocida que no necesita número ni fuente. Mete el número solo si el argumento se apoya en su magnitud.",
+    "  ! [advertencia-paquete] LA ATRIBUCIÓN VA CON LA CIFRA, NO SIN ELLA. Si escribes el número, nombra a Damodaran (NYU Stern) y di que es de 2026-01-01: es la estimación de un académico, no una cifra oficial, y presentarla sin dueño sería falsa precisión. Pero si solo haces la afirmación cualitativa, NO lo menciones: nombrar a un académico para decir que el riesgo es alto suena a nota al pie y estorba la lectura.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Confusión de fuentes y atribuciones obligatorias en el cierre y en el cuerpo de la pieza.",
+        "por_que": "El paquete de datos y las advertencias señalan que la noticia principal sobre Cuba proviene de El País del 2026-08-20, pero en las advertencias se mezclan exigencias de atribución de otras fuentes ajenas (como el artículo de Canadá en El País del 25 de agosto, Folha de S.Paulo y La Tercera). La pieza actual no incluye el enlace de cierre correcto requerido para la nota de Cuba.",
+        "sugerencia": "Asegúrate de que la pieza cierre estrictamente con la atribución y enlace de la nota fuente sobre Cuba («Sacado de: El País, 2026-08-20 — https://elpais.com/america/2026-08-20/estados-unidos-eleva-la-presion-sobre-cuba-con-sanciones-a-tres-funcionarios-y-nueve-entidades-clave-de-la-economia.html») y retira cualquier confusión con aranceles de Canadá o petróleo que no corresponden a esta noticia."
+      }
+    ],
+    "sobra": [],
+    "falta": [
+      "Incluir la atribución de cierre obligatoria con el enlace correcto de la fuente principal de El País."
+    ]
+  }
+}

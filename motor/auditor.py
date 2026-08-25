@@ -66,7 +66,8 @@ FUGA_DE_PROMPT = re.compile(
     r"desde nuestra perspectiva progresista|"
     r"(nuestra|esta|la) (perspectiva|l[ií]nea|visi[oó]n) editorial|"
     r"l[ií]nea editorial (progresista )?(de este medio|del medio)|"
-    r"para (el lector|una persona|el p[uú]blico) (normal|com[uú]n)|"
+    r"para (el lector|una persona|el p[uú]blico|el ciudadano|la gente) "
+    r"(normal|com[uú]n|de a pie|corriente)|"
     r"como medio progresista|este medio progresista", re.IGNORECASE)
 
 # Siglas mal escritas que ya aparecieron publicadas. La izquierda es el error.
@@ -423,7 +424,7 @@ def auditar(pieza, paquete, encargo=""):
                                   f"texto no lo nombra en ninguna parte"))
             if "sacado de" not in (pieza.get("sacado_de") or "").lower():
                 h.append(Hallazgo("bloqueo", "sin-sacado-de",
-                                  "falta la linea «Sacado de: <medio>, <fecha> — "
+                                  "falta la linea «Sacado de: <medio>, <fecha> · "
                                   "<enlace>» al cierre de la pieza"))
         elif "redirector de Google News" in aviso:
             h.append(Hallazgo("bloqueo", "enlace-redirector",
