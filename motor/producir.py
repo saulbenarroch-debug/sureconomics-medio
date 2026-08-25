@@ -65,6 +65,11 @@ def main():
     ap.add_argument("--horas", type=int, default=24)
     ap.add_argument("--pais", help="ISO3, para el Banco Mundial")
     ap.add_argument("--indicador", help="indicador del Banco Mundial")
+    ap.add_argument("--ranking", help="ordena a los paises de America Latina por un indicador del Banco Mundial, ej. pib. El puesto lo calcula el codigo")
+    ap.add_argument("--top", type=int, default=12,
+                    help="cuantos paises entran en el ranking. Doce, porque con "
+                         "diez Venezuela se queda fuera por un puesto y es el "
+                         "pais del que escribimos")
     ap.add_argument("--contexto", default="",
                     help="fuerza el contexto a mano y salta al economista. "
                          "Ej: VEN:inflacion,dam:Venezuela,embi:Argentina")
@@ -82,7 +87,18 @@ def main():
 
     print("=" * 70)
     print("1. EXTRACTOR — voy a la fuente")
-    if args.manual:
+    if args.ranking:
+        paquete = banco_mundial.ranking(args.ranking, top=args.top)
+        # Un ranking no es un hecho noticioso: es una tabla. No hay «que mas se
+        # sabe de esto» que buscar en la prensa, ni contexto que pedirle al
+        # economista, porque el contexto ES la tabla entera. Cuando se dejaron
+        # correr los dos pasos, el expediente devolvio NADA en cuatro de las
+        # cinco busquedas y el economista pidio la inversion extranjera en
+        # manufactura brasileña. Se apagan por defecto; --sin-expediente y
+        # --sin-contexto siguen ahi por si algun dia se quiere lo contrario.
+        args.sin_expediente = True
+        args.sin_contexto = True
+    elif args.manual:
         # Una nota verificada a mano puede ser la noticia, no solo el contexto.
         # Es el unico camino para los temas que no estan en ningun feed: el 25 de
         # agosto, siete de trece noticias del dia no aparecian en las 44 fuentes
@@ -186,7 +202,9 @@ def main():
 
     carpeta = pathlib.Path(__file__).resolve().parent.parent / "borradores"
     carpeta.mkdir(exist_ok=True)
-    if args.manual:
+    if args.ranking:
+        base = f"ranking_{args.ranking}"
+    elif args.manual:
         base = args.manual
     elif args.diarios:
         base = args.diarios.replace(",", "-")

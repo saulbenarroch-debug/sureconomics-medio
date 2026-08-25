@@ -46,6 +46,25 @@ JUNK_URL = re.compile(
     r"horoscopo|farandula|espectaculos|deportes|viral|recetas|zodiaco)/",
     re.IGNORECASE)
 
+# Palabras que salen en cualquier nota de economia y por tanto no prueban que
+# dos notas hablen de lo mismo. Se usan para exigir que el solape entre la
+# noticia y una candidata al expediente tenga al menos un termino con contenido.
+PALABRAS_DE_RELLENO = {
+    "segun", "según", "mundial", "mundiales", "durante", "tambien", "también",
+    "mientras", "cuando", "porque", "aunque", "despues", "después", "primera",
+    "primer", "primero", "ultimo", "último", "ultima", "última", "mayores",
+    "menores", "nuevos", "nuevas", "actual", "actuales", "pasado", "pasada",
+    "economia", "economía", "economico", "económico", "economica", "económica",
+    "mercado", "mercados", "crecimiento", "millones", "billones", "dolares",
+    "dólares", "precios", "precio", "region", "región", "regional", "paises",
+    "países", "gobierno", "nacional", "internacional", "informe", "informes",
+    "datos", "cifras", "sector", "sectores", "empresa", "empresas", "financiero",
+    "financiera", "comercio", "comercial", "aumento", "incremento", "america",
+    "américa", "latina", "latinoamerica", "latinoamérica", "semestre",
+    "trimestre", "anuales", "interanual", "respecto", "frente", "sobre",
+}
+
+
 ECON = re.compile(
     r"(econom|inflaci|ipc|pib|d[oó]lar|euro|peso|real |bolívar|bol[íi]var|"
     r"banco central|tasa|inter[eé]s|bono|deuda|d[eé]ficit|fiscal|export|import|"

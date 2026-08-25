@@ -121,6 +121,26 @@ def _contexto_de_prensa(busqueda, dias=30):
     # hoy", que no lleva ningun dato aprovechable, mientras la nota del BCV con
     # la inflacion de julio estaba dos puestos mas abajo. Para contexto vale mas
     # una nota con datos que una nota de hace una hora.
+    # SE QUITAN LAS ALTERNATIVAS DE RELLENO ANTES DE BUSCAR. El economista pide
+    # cosas como 'PIB|crecimiento|economia', y basta con que una nota diga
+    # "crecimiento" para que entre. Asi se colo en la pieza del ranking de PIB
+    # una nota de Folha sobre una empresa japonesa de pañales que "crecio 4,9 %
+    # a nivel global": cumplia el patron y traia muchas cifras, que es
+    # justamente lo que este contexto premia. Se busca solo por los terminos que
+    # dicen algo.
+    from motor import criterio
+    alternativas = [a for a in busqueda.split("|") if a.strip()]
+    utiles = [a for a in alternativas
+              if a.strip().lower() not in criterio.PALABRAS_DE_RELLENO]
+    if not utiles:
+        print(f"[aviso] '{busqueda}' es solo vocabulario generico de economia: "
+              f"cualquier nota lo cumple, asi que no busco nada")
+        return None
+    if len(utiles) < len(alternativas):
+        print(f"[aviso] busco por '{'|'.join(utiles)}' y dejo fuera "
+              f"{len(alternativas) - len(utiles)} termino(s) de relleno")
+    busqueda = "|".join(utiles)
+
     lote = noticias.extraer(None, horas=dias * 24, limite=8, tema=busqueda)
     if not lote:
         print(f"[aviso] sin notas recientes sobre '{busqueda}'")

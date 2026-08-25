@@ -56,6 +56,113 @@ def _pedir(url):
         return None
 
 
+def ranking(indicador="pib", paises=None, top=10):
+    """Ordena a los paises por un indicador y arma el paquete con la tabla.
+
+    Existe porque «Colombia es la cuarta economia de America Latina» es una
+    afirmacion que NADIE publica como noticia: es el resultado de ordenar una
+    tabla. La prensa la repite sin fuente y nosotros no podiamos escribirla
+    porque el buscador no encontraba de donde. La respuesta era no buscarla:
+    calcularla. Se piden los PIB al Banco Mundial y se ordenan aqui, que es
+    aritmetica y por tanto trabajo del codigo, no del modelo.
+
+    El puesto sale como cifra propia, con su fuente y su año, igual que
+    cualquier otra. Y como es nuestro calculo, el paquete lo dice.
+    """
+    if indicador not in INDICADORES:
+        raise ValueError(f"indicador no reconocido: {indicador}. "
+                         f"Disponibles: {', '.join(INDICADORES)}")
+    codigo, nombre, unidad, es_magnitud = INDICADORES[indicador]
+
+    # 'LCN' es el agregado regional, no un pais: ordenarlo junto a los demas
+    # pondria a America Latina primera en el ranking de America Latina.
+    objetivo = [p for p in (paises or PAISES) if p != "LCN"]
+
+    filas = []
+    for iso in objetivo:
+        url = (f"https://api.worldbank.org/v2/country/{iso}/indicator/{codigo}"
+               f"?format=json&mrnev=1")
+        crudo = _pedir(url)
+        if not crudo or len(crudo) < 2 or not crudo[1]:
+            print(f"[aviso] sin {indicador} para {PAISES.get(iso, iso)}")
+            continue
+        obs = crudo[1][0]
+        if obs.get("value") is None:
+            continue
+        filas.append((obs["value"], iso, obs["date"]))
+
+    if len(filas) < 3:
+        print(f"[aviso] el ranking de '{indicador}' se queda en {len(filas)} paises")
+        return None
+
+    filas.sort(reverse=True)
+    filas = filas[:top]
+    # Los años se cuentan DESPUES de recortar la tabla. Antes se contaban sobre
+    # todos los paises consultados y Cuba, cuyo ultimo PIB publicado es de 2020
+    # y que no entra ni en los ocho primeros, disparaba un aviso de «la tabla
+    # mezcla años» sobre una tabla que no la mezclaba.
+    anios = {f[2] for f in filas}
+    anio_comun = max(anios)
+
+    fuente = Fuente(
+        id="bm1",
+        institucion="Banco Mundial",
+        documento=f"Indicadores del desarrollo mundial, {nombre}",
+        url=f"https://data.worldbank.org/indicator/{codigo}",
+        url_datos=(f"https://api.worldbank.org/v2/country/all/indicator/{codigo}"
+                   f"?format=json&mrnev=1"),
+    )
+
+    cifras = []
+    for puesto, (valor, iso, anio) in enumerate(filas, start=1):
+        cifras.append(Cifra(
+            clave=f"{indicador}_{iso.lower()}",
+            valor=magnitud_es(valor) if es_magnitud else formato_es(valor),
+            unidad=unidad,
+            periodo=anio,
+            fuente_id=fuente.id,
+            valor_crudo=valor,
+            nota=f"{PAISES.get(iso, iso)}, puesto {puesto} de {len(filas)}",
+        ))
+
+    lider = filas[0]
+    paquete = Paquete(
+        hecho=(f"Ranking de {nombre} en América Latina según el Banco Mundial, "
+               f"datos de {anio_comun}: encabeza {PAISES.get(lider[1], lider[1])}"),
+        fecha_hecho=anio_comun,
+        cifras=cifras,
+        entidades=["Banco Mundial"] + [PAISES.get(f[1], f[1]) for f in filas],
+        fuentes=[fuente],
+    )
+    paquete.advertencias.extend(paquete.avisos_de_formato())
+    paquete.advertencias.append(
+        "EL PUESTO EN LA TABLA LO CALCULAMOS NOSOTROS ordenando los datos del "
+        "Banco Mundial. La cifra es del Banco Mundial y se le atribuye; el "
+        "orden es trabajo de la redacción y se puede decir como tal."
+    )
+    # Justo porque el orden lo ponemos nosotros, el enlace a la serie es
+    # obligatorio: es lo unico que le permite al lector rehacer la cuenta.
+    paquete.advertencias.append(
+        "ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la serie del "
+        "Banco Mundial."
+    )
+
+    # Los paises no publican a la vez. Si la tabla mezcla años, compararlos
+    # como si fueran el mismo momento es falso, y hay que decirlo.
+    if len(anios) > 1:
+        paquete.advertencias.append(
+            f"CUIDADO: la tabla mezcla datos de distintos años ({', '.join(sorted(anios))}). "
+            f"No los presentes como una foto del mismo momento."
+        )
+    antiguedad = date.today().year - int(anio_comun)
+    if antiguedad >= 2:
+        paquete.advertencias.append(
+            f"El dato más reciente es de {anio_comun}: tiene {antiguedad} años. "
+            f"El texto tiene que decir el año expresamente."
+        )
+    return paquete
+
+
 def extraer(pais, indicador, observaciones=3):
     """Arma el paquete de datos de un indicador para un pais.
 

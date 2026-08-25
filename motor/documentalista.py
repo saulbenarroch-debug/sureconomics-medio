@@ -108,7 +108,19 @@ def _pais_del_texto(texto):
 
 
 def _pais_objetivo(paquete):
-    """El pais de la noticia principal: primero por el texto, luego por el medio."""
+    """El pais de la noticia principal: primero por el texto, luego por el medio.
+
+    None cuando la pieza es REGIONAL. Un paquete que nombra a media docena de
+    paises no tiene uno solo del que hable, y elegirle uno hace daño: el ranking
+    de PIB de America Latina decia «encabeza Brasil», de ahi se dedujo que la
+    pieza era sobre Brasil, y el barrido entero quedo acotado a ese pais. De 400
+    notas sobrevivio una: una multinacional japonesa de pañales que se expande
+    en Brasil. Acabo de parrafo en una nota sobre el PIB de la region.
+    """
+    paises_nombrados = {e for e in paquete.entidades if e in PISTAS_PAIS}
+    if len(paises_nombrados) >= 3:
+        return None
+
     texto = paquete.hecho + " " + (paquete.citas[0]["texto"] if paquete.citas else "")
     del_texto = _pais_del_texto(texto)
     if del_texto:
@@ -150,7 +162,15 @@ def _viene_al_caso(candidata, objetivo, terminos_originales):
     # Solape de vocabulario con la noticia original: coincidir en una palabra
     # suelta del patron no basta para entrar al expediente.
     palabras = set(re.findall(r"\w{6,}", texto.lower()))
-    return len(palabras & terminos_originales) >= 2
+    comunes = palabras & terminos_originales
+    if len(comunes) < 2:
+        return False
+    # Y al menos una de las coincidencias tiene que decir algo. Dos palabras en
+    # comun suena a mucho hasta que se ve cuales son: la pieza sobre el ranking
+    # de PIB se trajo una nota de Folha sobre una empresa japonesa de pañales
+    # porque las dos decian «mundial» y «segun». Coincidir en el vocabulario
+    # generico de la economia no es coincidir en el tema.
+    return bool(comunes - criterio.PALABRAS_DE_RELLENO)
 
 
 def _parecidas(a, b):

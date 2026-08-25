@@ -106,7 +106,14 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
     cuerpo = (pieza.get("cuerpo") or "").strip()
     if bloque and len(bloque) > 40 and bloque[:60] in cuerpo:
         corte = cuerpo.index(bloque[:60])
-        pieza["cuerpo"] = re.sub(r"\n{3,}", "\n\n", cuerpo[:corte]).strip()
+        cuerpo = re.sub(r"\n{3,}", "\n\n", cuerpo[:corte]).strip()
+
+    # A veces deja el encabezado solo, sin el texto debajo, y la pieza salia con
+    # «SurEconomics:» dos veces seguidas: la linea huerfana del cuerpo y la de
+    # verdad. El corte de arriba no la ve porque compara contra el texto del
+    # bloque, y aqui no hay texto que comparar, solo el rotulo.
+    cuerpo = re.sub(r"\n*\s*SurEconomics\s*:\s*$", "", cuerpo).strip()
+    pieza["cuerpo"] = cuerpo
 
     # La linea de atribucion la escribe el codigo, no el modelo. Es puramente
     # mecanica -medio, fecha y enlace ya estan en el paquete- y pedirsela a la IA

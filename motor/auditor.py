@@ -68,7 +68,15 @@ FUGA_DE_PROMPT = re.compile(
     r"l[ií]nea editorial (progresista )?(de este medio|del medio)|"
     r"para (el lector|una persona|el p[uú]blico|el ciudadano|la gente) "
     r"(normal|com[uú]n|de a pie|corriente)|"
-    r"como medio progresista|este medio progresista", re.IGNORECASE)
+    r"como medio progresista|este medio progresista|"
+    # La maquinaria por su nombre. La pieza del ranking de PIB cerraba diciendo
+    # que «la falta de datos desagregados EN ESTE PAQUETE limita una lectura mas
+    # fina»: el lector no sabe que existe un paquete, y enterarse de que hay uno
+    # es enterarse de que la nota se escribio con lo que habia a mano.
+    r"(en |de |del )?(este|el) paquete( de datos)?|"
+    r"el paquete no (trae|tiene|incluye)|"
+    r"(los )?datos (disponibles |que manejamos )?no permiten|"
+    r"la (falta|ausencia) de datos [^.]{0,40}(limita|impide)", re.IGNORECASE)
 
 # Siglas mal escritas que ya aparecieron publicadas. La izquierda es el error.
 # Se agregan a medida que edicion detecte otras; cada una es un error que no
