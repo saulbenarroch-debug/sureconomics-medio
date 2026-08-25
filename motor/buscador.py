@@ -35,6 +35,17 @@ from motor.fuentes.noticias import MEDIOS
 
 API = "https://api.tavily.com/search"
 
+# Barrido tematico: consultas fijas para descubrir que hay de nuevo cuando nadie
+# ha pedido un tema concreto. Vienen de la revision externa del 25/08/2026.
+CONSULTAS_PREDETERMINADAS = [
+    "inflacion venezuela bcv colombia argentina mexico",
+    "banco central tasas interes latam banxico banrep bcra bcv",
+    "riesgo pais bonos soberanos deuda latinoamerica embi",
+    "pib crecimiento economico exportaciones comercio latam",
+    "petroleo pdvsa produccion venezuela exportacion crudo",
+    "inversion extranjera directa fusiones adquisiciones latam",
+]
+
 # Dominios que no estan en la lista blanca pero son referencia obligada para
 # comercio internacional y deuda soberana, que es donde nuestros feeds no llegan.
 # Van aqui y no en MEDIOS porque no tienen feed utilizable: solo se buscan.
@@ -127,3 +138,20 @@ def informe(consulta, candidatos):
     lineas.append("Ninguno es fuente todavía: hay que abrir la nota, verificarla y "
                   "registrarla con agregar_fuente.py.")
     return "\n".join(lineas)
+
+
+def barrido_tematico(dias=3, por_consulta=4):
+    """Recorre las consultas fijas y devuelve todo lo que encuentre, ordenado.
+
+    Sirve para el arranque del dia: en vez de esperar a que alguien traiga un
+    tema, se pregunta a la web que hay de nuevo en los asuntos que el medio
+    cubre siempre. Lo que salga son candidatos, como en cualquier busqueda.
+    """
+    vistos, todo = set(), []
+    for consulta in CONSULTAS_PREDETERMINADAS:
+        for c in buscar(consulta, dias=dias, maximo=por_consulta):
+            if c["url"] in vistos:
+                continue
+            vistos.add(c["url"])
+            todo.append(c)
+    return sorted(todo, key=lambda x: x.get("puntos", 0), reverse=True)

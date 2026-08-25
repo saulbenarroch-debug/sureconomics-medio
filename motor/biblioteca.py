@@ -11,7 +11,8 @@ Las fuentes de NOTICIAS (diarios) no estan aqui: eso es `fuentes/noticias.py` y
 es de donde sale el hecho. Aqui esta lo que el medio APORTA como contexto.
 """
 
-from motor.fuentes import banco_mundial, bcv, damodaran, embi, fmi, manual
+from motor.fuentes import (banco_mundial, bcv, damodaran, embi, fmi,
+                           manual, oficiales)
 
 # Cada entrada describe una fuente para que el economista pueda elegirla, y dice
 # como se le pide. 'cadencia' es lo mas importante de todo: una fuente anual no
@@ -28,6 +29,15 @@ FUENTES = {
                      "ser la única vía con datos del mes en curso",
         "opciones": lambda: "cualquier palabra clave; acepta alternativas con | "
                             "(ej. 'inflaci|precios|canasta')",
+    },
+    "Comunicados oficiales (FMI, BID, CEPAL, bancos centrales)": {
+        "forma": "oficial:ENTIDAD",
+        "ejemplo": "oficial:FMI",
+        "da": "el comunicado original del organismo, no la reseña de un diario",
+        "cadencia": "cuando publican. Entra por el índice de Tavily, porque estos "
+                    "organismos bloquean la lectura directa",
+        "cobertura": "FMI, BID, CEPAL, Banxico, DANE y otros bancos centrales",
+        "opciones": lambda: ", ".join(oficiales.ENTIDADES),
     },
     "BCV (Banco Central de Venezuela)": {
         "forma": "bcv:",
@@ -138,6 +148,14 @@ def traer(peticion, observaciones=3):
         return manual.extraer(peticion[7:])
     if peticion.startswith("prensa:"):
         return _contexto_de_prensa(peticion[7:])
+    if peticion.startswith("oficial:"):
+        lote = oficiales.buscar_comunicados_entidad(peticion[8:], dias=21, limite=1)
+        if not lote:
+            return None
+        paquetes = oficiales.extraer(dias=21, limite_por_entidad=1)
+        entidad = peticion[8:].upper()
+        return next((p for p in paquetes
+                     if entidad in p.fuentes[0].id.upper()), None)
     if peticion.startswith("bcv"):
         return bcv.extraer()
     if peticion.startswith("fmi:"):
@@ -164,8 +182,18 @@ def describir(peticion):
         return f"fuente verificada a mano: {peticion[7:]}"
     if peticion.startswith("prensa:"):
         return f"prensa reciente sobre «{peticion[7:]}»"
+    if peticion.startswith("oficial:"):
+        lote = oficiales.buscar_comunicados_entidad(peticion[8:], dias=21, limite=1)
+        if not lote:
+            return None
+        paquetes = oficiales.extraer(dias=21, limite_por_entidad=1)
+        entidad = peticion[8:].upper()
+        return next((p for p in paquetes
+                     if entidad in p.fuentes[0].id.upper()), None)
     if peticion.startswith("bcv"):
         return bcv.extraer()
+    if peticion.startswith("oficial:"):
+        return f"comunicado oficial de {peticion[8:]}"
     if peticion.startswith("bcv"):
         return "BCV, tasa oficial del día"
     if peticion.startswith("fmi:"):

@@ -108,6 +108,12 @@ MEDIOS = {
                         url="https://e00-expansion.uecdn.es/rss/economia.xml"),
     "oncuba":      dict(nombre="OnCuba", pais="Cuba", economia=False,
                         url="https://oncubanews.com/feed/"),
+    # Unica superviviente de una tanda de once propuestas el 25/08/2026: las
+    # otras diez eran fuentes ya verificadas como bloqueadas (FMI, DANE, BID,
+    # El Economista, EFE, Banxico, SHCP, Ultimas Noticias). Para esas, la via
+    # que si funciona es fuentes/oficiales.py, que entra por el indice de Tavily.
+    "cronista":    dict(nombre="El Cronista", pais="Argentina", economia=True,
+                        url="https://www.cronista.com/files/rss/economia-politica.xml"),
     # FUENTE PRIMARIA, no prensa: comunicados del propio Mercosur. Los acuerdos
     # comerciales los anuncia el bloque, no un diario, y ahi la fuente original
     # vale mas que cualquier reseña.
