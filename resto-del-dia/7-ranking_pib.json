@@ -1,0 +1,63 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "Brasil y México lideran el producto interno bruto en América Latina mientras Colombia consolida el cuarto puesto",
+    "autor": null,
+    "fecha_publicacion": "2026-08-25",
+    "cuerpo": "Según los datos del Banco Mundial correspondientes a 2025, Brasil encabeza el producto interno bruto (el valor total de los bienes y servicios producidos en un país) en América Latina con un volumen de 2,28 billones de dólares. En el segundo puesto se ubica México con 1,83 billones de dólares, seguido por Argentina en el tercer lugar con 683.098 millones de dólares.\n\nEn la cuarta posición regional se sitúa Colombia con un producto interno bruto de 457.410 millones de dólares para el año 2025. Detrás del país se encuentran economías como la de Chile con 357.371 millones de dólares en el quinto puesto y Perú con 334.855 millones de dólares en el sexto lugar.\n\nEl listado elaborado a partir de las cifras de la institución internacional también abarca a Ecuador con 130.321 millones de dólares, República Dominicana con 127.407 millones de dólares, Guatemala con 123.306 millones de dólares y Costa Rica con 102.905 millones de dólares para el año 2025. En el caso de Cuba, el último registro disponible en la serie corresponde al año 2020 con un monto de 107.352 millones de dólares.\n\nEn el extremo inferior de la tabla regional entre los doce países analizados se encuentra Venezuela, que registra un producto interno bruto de 99.661 millones de dólares según los datos de 2025 del Banco Mundial. La medición del tamaño agregado de la economía refleja la dimensión nominal de estos mercados, aunque no contempla por sí misma la distribución interna ni la escala de la población de cada territorio.",
+    "bloque_sureconomics": "Medir la región únicamente a través del producto interno bruto agregado invisibiliza las profundas brechas estructurales y la concentración de la riqueza que persisten en los grandes mercados. Mientras Brasil y México concentran el mayor volumen económico de América Latina, el desafío central para países como Colombia radica en transformar esa escala macroeconómica en fiscalidad progresiva y protección social efectiva, en lugar de depender de dinámicas externas que dejan intacta la desigualdad.",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "América Latina",
+      "pais": "Colombia",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "pib_bra",
+      "pib_mex",
+      "pib_arg",
+      "pib_col",
+      "pib_chl",
+      "pib_per",
+      "pib_ecu",
+      "pib_dom",
+      "pib_gtm",
+      "pib_cub",
+      "pib_cri",
+      "pib_ven"
+    ],
+    "fuentes_usadas": [
+      "bm1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [
+      "Datos de PIB per cápita de los países mencionados para dimensionar la escala de población frente al tamaño agregado de la economía."
+    ],
+    "sacado_de": "Sacado de: Banco Mundial, 2025 · https://data.worldbank.org/indicator/NY.GDP.MKTP.CD"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [cifra-del-encargo] hay cifras que vienen del encargo de edición, no de una fuente automática: responde quien lo escribió",
+    "  ! [advertencia-paquete] EL PUESTO EN LA TABLA LO CALCULAMOS NOSOTROS ordenando los datos del Banco Mundial. La cifra es del Banco Mundial y se le atribuye; el orden es trabajo de la redacción y se puede decir como tal.",
+    "  ! [advertencia-paquete] CUIDADO: la tabla mezcla datos de distintos años (2020, 2025). No los presentes como una foto del mismo momento.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Se mezclan periodos de tiempo sin la debida aclaración en el cuerpo del texto.",
+        "por_que": "Las advertencias del paquete de datos señalan explícitamente que la tabla incluye un dato de Cuba correspondiente al año 2020 mientras los demás son de 2025. Presentarlo como una foto homogénea del mismo momento induce a error al lector.",
+        "sugerencia": "Aclarar en el párrafo correspondiente que el dato de Cuba corresponde al año 2020 por disponibilidad de la fuente."
+      }
+    ],
+    "sobra": [],
+    "falta": [
+      "Una referencia a la escala de población (PIB per cápita) para evitar medir el tamaño agregado de forma aislada frente a países con menor población como Chile o Costa Rica."
+    ]
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "La banca venezolana supera medio billón de bolívares en utilidad neta semestral impulsada por la inflación y la devaluación",
+    "autor": null,
+    "fecha_publicacion": "2026-08-25",
+    "cuerpo": "Según un reporte publicado por La Nación Web con base en el informe de la consultora Aristimuño Herrera y Asociados, el sistema financiero venezolano alcanzó una utilidad neta interanual de 574.405,38 millones de bolívares al cierre del primer semestre de 2026. Esta cifra equivale a 1.246,19 millones de dólares al tipo de cambio oficial vigente. El estudio detalla un incremento interanual de 867,7 % en bolívares y de 65,28 % en términos reales entre junio de 2025 y junio de 2026.\n\nEl crecimiento de las ganancias bancarias superó el avance interanual del tipo de cambio promedio, que se ubicó en 485,50 %, en un contexto marcado por una depreciación del bolívar de 82,92 % en los últimos 12 meses. Según los datos del Banco Central de Venezuela, la tasa oficial de referencia se sitúa en 785,07 bolívares por dólar y 916,03 bolívares por euro para el 25 de agosto de 2026. En este escenario de contracción del poder adquisitivo, la intermediación financiera opera con márgenes nominales elevados que reflejan la pérdida de valor de la moneda nacional.\n\nLa concentración del mercado se mantiene como un rasgo estructural del sistema. Los tres principales bancos concentraron el 72,7 % de la utilidad neta acumulada al finalizar el semestre. El Banco de Venezuela lideró los registros con 253.462,86 millones de bolívares y un incremento de 843,9 %, alcanzando una participación de mercado de 44,1 %. Por su parte, Banesco reportó 90.336,88 millones de bolívares con un alza de 804,9 % y una cuota de 15,7 %, mientras que el BBVA Provincial sumó 73.968,11 millones de bolívares con un crecimiento de 658,6 %.\n\nOtras entidades del sistema mostraron variaciones expansivas acentuadas por el efecto inflacionario sobre los balances. El Banco Sofitasa alcanzó una utilidad neta acumulada de 2.914,77 millones de bolívares, con un aumento de 1.255,2 % en los últimos 12 meses. Asimismo, el informe señala que el Banco Digital de los Trabajadores, Mercantil, Bancamiga y el Banco del Tesoro registraron crecimientos superiores al 1.000 % interanual en su utilidad neta. En conjunto, los cinco bancos principales concentraron el 89,7 % de las ganancias del sector al cierre de junio de 2026.\n\nEn paralelo a la dinámica de los intermediarios financieros, el diario El Nacional aclaró recientemente que la tarifa del 2 % en los pagos móviles opera de forma exclusiva sobre la modalidad Comercio a Persona (C2P) y recae de manera directa sobre los establecimientos comerciales, desmintiendo aumentos generalizados en las comisiones para los usuarios de la red interbancaria.",
+    "bloque_sureconomics": "Las cifras récord de la banca venezolana no reflejan una expansión económica robusta, sino el resultado de operar en una economía dolarizada de facto donde la depreciación acelerada y la inflación erosionan los ingresos de los hogares mientras engordan los balances financieros. Mientras los cinco principales bancos concentran casi el noventa por ciento de las ganancias del sistema, la gran mayoría de la población enfrenta servicios financieros costosos y un crédito limitado que no alcanza para reactivar el tejido productivo real. El desafío para los próximos meses pasa por exigir una supervisión rigurosa que obligue a la intermediación a canalizar recursos hacia la economía productiva en lugar de depender de la especulación cambiaria.",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_3",
+      "cifra_2",
+      "cifra_4",
+      "cifra_5",
+      "cifra_6",
+      "cifra_7",
+      "bcv_usd",
+      "bcv_eur",
+      "cifra_8",
+      "cifra_9",
+      "cifra_10",
+      "cifra_11",
+      "cifra_12",
+      "cifra_13",
+      "cifra_15",
+      "cifra_16",
+      "cifra_18",
+      "cifra_19",
+      "cifra_20",
+      "ctx2_cifra_1"
+    ],
+    "fuentes_usadas": [
+      "man1",
+      "bcv1",
+      "elnacional"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: La Nación Web, 2026-08-01 · https://lanacionweb.com/economia/mas-de-medio-billon-de-bolivares-alcanzo-la-utilidad-neta-interanual-de-la-banca\nSacado de: Banco Central de Venezuela, 2026-08-01 · https://www.bcv.org.ve/\nSacado de: El Nacional, 2026-08-01 · https://www.elnacional.com/2026/08/corporacion-suiche-7b-desmintio-incrementos-en-los-porcentajes-de-cobro-por-pago-movil/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: La Nación Web, por Humberto Contreras, 2026-08-01. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] OJO CON LA FECHA: el BCV publica cada tarde la tasa que rige el DÍA SIGUIENTE. Esta rige el 2026-08-25. No escribas «la tasa de hoy» sin comprobar que hoy es esa fecha: se publicaría como vigente una tasa que todavía no lo está.",
+    "  ! [advertencia-paquete] Es la tasa OFICIAL. En Venezuela convive con el mercado paralelo, y si la pieza habla de precios o de poder de compra, decir solo la oficial da una imagen incompleta.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Atribución incompleta de la fuente principal en el cuerpo.",
+        "por_que": "El paquete de datos y las advertencias exigen citar explícitamente a Aristimuño Herrera y Asociados (vía La Nación Web) como la fuente del informe bancario, pero en el texto solo se menciona 'un reporte publicado por La Nación Web' sin nombrar la consultora que elaboró el ranking.",
+        "sugerencia": "Modificar el inicio del texto para atribuir el informe tanto a La Nación Web como a la firma Aristimuño Herrera y Asociados."
+      }
+    ],
+    "sobra": [],
+    "falta": [
+      "Mencionar explícitamente el origen del informe (Aristimuño Herrera y Asociados) para cumplir con el rigor de atribución exigido."
+    ]
+  }
+}

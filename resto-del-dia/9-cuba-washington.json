@@ -1,0 +1,54 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "Cuba atribuye al bloqueo estadounidense el freno a sus reformas económicas",
+    "autor": null,
+    "fecha_publicacion": "2026-08-25",
+    "cuerpo": "Cuba atraviesa un proceso de cambios comerciales y financieros mientras denuncia que las sanciones aplicadas por Estados Unidos bloquean sus esfuerzos por abrir la economía a la inversión privada. De acuerdo con una entrevista publicada por The Associated Press el 21 de agosto de 2026, el embajador cubano ante la Organización de las Naciones Unidas, Ernesto Soberón Guzmán, cuestionó la continuidad de las penalidades económicas frente a las recientes aperturas impulsadas por La Habana.\n\nLas medidas de presión implementadas desde Washington, que incluyen un bloqueo petrolero iniciado en enero, han profundizado la escasez de combustible, los apagones y la falta de suministros básicos en la isla. Estas dificultades operativas afectan la estabilidad cotidiana y reducen los márgenes de maniobra para cualquier actividad productiva en el territorio nacional.\n\nEn este escenario de restricciones financieras, el gobierno estadounidense sancionó a finales de junio a cinco empresas estatales, tres de ellas vinculadas al conglomerado empresarial de las Fuerzas Armadas Revolucionarias de Cuba, conocido como GAESA. Según la información difundida por The Associated Press, este grupo controla cerca del 40 % del producto interno bruto cubano, lo que evidencia el peso de las restricciones sobre los principales sectores económicos del Estado.\n\nAnalistas internacionales señalan que la presión externa busca limitar los recursos necesarios para que las reformas alcancen resultados efectivos. Mientras el gobierno cubano intenta ampliar el espacio para los negocios privados y la inversión extranjera, las sanciones operan como un obstáculo directo que condiciona la viabilidad de la transición económica en la isla.\n\nHacia adelante, será necesario observar si la administración estadounidense flexibiliza alguna de sus medidas para permitir la llegada de capitales o si, por el contrario, mantiene la estrategia de asfixia financiera que limita el alcance de las nuevas normas comerciales.",
+    "bloque_sureconomics": "Nos venden como una exigencia de apertura lo que en realidad es una estrategia de ahogo financiero. La Casa Blanca empuja a Cuba hacia la liberalización económica por pura necesidad, pero al mismo tiempo le corta los recursos para que esa transición funcione, demostrando que el objetivo no es la reforma sino el colapso político.",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Cuba",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1"
+    ],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: The Associated Press, 2026-08-21 · https://apnews.com/article/cuba-eeuu-sanciones-economia-reforma-inversion-d5b979f5c204ea9549d7ed132a364779"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: The Associated Press, por Edith M. Lederer, 2026-08-21. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] USA ESTE CONTEXTO SOLO SI VIENE AL CASO, y casi nunca hace falta la cifra. En la mayoría de las piezas basta con «la alta prima de riesgo país encarece el crédito y ahuyenta la inversión»: es una realidad conocida que no necesita número ni fuente. Mete el número solo si el argumento se apoya en su magnitud.",
+    "  ! [advertencia-paquete] LA ATRIBUCIÓN VA CON LA CIFRA, NO SIN ELLA. Si escribes el número, nombra a Damodaran (NYU Stern) y di que es de 2026-01-01: es la estimación de un académico, no una cifra oficial, y presentarla sin dueño sería falsa precisión. Pero si solo haces la afirmación cualitativa, NO lo menciones: nombrar a un académico para decir que el riesgo es alto suena a nota al pie y estorba la lectura.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Inclusión de datos totalmente ajenos a la noticia principal (Venezuela, Ecoanalítica, 10% y 3,2 millones de barriles)",
+        "por_que": "El paquete de datos incluye por error contexto de Venezuela (El Nacional / Alejandro Grisanti) que se coló en el análisis sobre Cuba. Esto destruye la pertinencia y confunde por completo al lector.",
+        "sugerencia": "Eliminar cualquier mención o cifra proveniente del contexto de El Nacional sobre petróleo en Venezuela, ya que no guarda relación con la reforma económica ni el bloqueo en Cuba."
+      }
+    ],
+    "sobra": [
+      "Cifras y proyecciones sobre el crecimiento de Venezuela y barriles de petróleo que aparecieron en el paquete de datos y provienen de El Nacional."
+    ],
+    "falta": [
+      "Atribución explícita de la cifra del 40% del PIB controlado por GAESA a The Associated Press en el cuerpo del texto, tal como exigen las advertencias del paquete de datos."
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "Colombia mantendrá un crecimiento del producto interno bruto de 2,6 % durante 2026 según la Cepal",
+    "autor": null,
+    "fecha_publicacion": "2026-08-25",
+    "cuerpo": "Según informó el diario La República el 21 de agosto de 2026, Colombia se proyecta como la sexta economía con mayor crecimiento en América Latina para 2026, con un aumento del producto interno bruto de 2,6 %, de acuerdo con los datos presentados por la Comisión Económica para América Latina y el Caribe (Cepal).\n\nEl indicador de Colombia supera la media proyectada para la región. Para 2026, América Latina y el Caribe cuenta con una estimación de aumento de 2,2 %, lo que representa una diferencia favorable de cuatro décimas para la economía colombiana frente al promedio regional.\n\nEsa diferencia sitúa a Colombia por encima de los resultados esperados para las mayores economías de la región, como Brasil con un 2,2 % y México con un 1,3 %. Para el año 2025, la estimación de crecimiento para Colombia se había fijado en 2,6 %, mientras que la proyección para 2026 registró un ajuste a la baja de una décima desde el 2,7 % estimado inicialmente.\n\nDentro de América del Sur, donde el promedio de crecimiento estimado se fija en 2,5 % para 2026, Colombia se ubica por encima de esa media y por detrás de países como Venezuela con un 6,5 %, Paraguay con un 4,3 %, Argentina con un 3,3 % y Perú con un 3,2 %, situándose por delante de Ecuador con un 2,4 % y Chile con un 1,6 %.\n\nSurEconomics:",
+    "bloque_sureconomics": "Estas proyecciones confirman que la economía colombiana mantiene un ritmo superior al promedio regional, pero operar en la media de América Latina significa seguir atrapados en el bajo crecimiento estructural que denuncian los organismos multilaterales. Quienes ganan con esta inercia son los sectores rentistas y el capital financiero internacional que busca retornos rápidos en economías emergentes, mientras que el empleo formal y la inversión productiva local siguen cargando con el peso de la falta de valor agregado. Lo que debe vigilar el país es si este crecimiento moderado logra traducirse en una expansión real de la protección social o si solo sirve para cumplir con las metas fiscales que imponen los mercados.",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Región Andina",
+      "pais": "Colombia",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1",
+      "cifra_2",
+      "cifra_3",
+      "cifra_4",
+      "cifra_5",
+      "cifra_6",
+      "cifra_7",
+      "cifra_8",
+      "cifra_9",
+      "cifra_10",
+      "cifra_11"
+    ],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [
+      "detalle de la medida de política económica local en Colombia frente a estas proyecciones de la Cepal"
+    ],
+    "sacado_de": "Sacado de: La República, 2026-08-21 · https://www.larepublica.co/globoeconomia/segun-la-cepal-colombia-mantendra-su-crecimiento-del-pib-en-2-6-durante-el-2026-4463241"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: La República, por Isabella Rodríguez Ángel, 2026-08-21. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] FUENTE PRIMARIA OFICIAL: La información proviene del comunicado directo de CEPAL. A diferencia de las fuentes secundarias de prensa, esta cifra se puede publicar como propia o citando directamente a la institución. Cierra la pieza con «Sacado de: CEPAL, Fri, 21 Au — https://www.cepal.org/es/comunicados/acelerada-profunda-transicion-demografica-america-latina-caribe-urgen-politicas-publicas».",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Inclusión de datos totalmente ajenos e impertinentes en el paquete de datos base.",
+        "por_que": "El paquete de datos incluye cifras sobre el turismo en España (12,6% y 13% del PIB por El País) que no tienen relación alguna con el crecimiento de Colombia ni con la nota de la Cepal. Aunque no se colaron en el cuerpo del borrador, hay que vigilar el origen de las fuentes.",
+        "sugerencia": "Descartar los datos y fuentes sobre España ya que rompen el foco estrictamente latinoamericano y colombiano de la pieza."
+      },
+      {
+        "gravedad": "media",
+        "que": "Atribución de la fuente y enlaces finales incorrectos según las advertencias del paquete.",
+        "por_que": "Las advertencias indican que el hecho proviene de La República y requiere una atribución específica y un enlace al final, pero el paquete también mezcla directrices de fuentes primarias (Cepal) y secundarias ajenas (El País).",
+        "sugerencia": "Verificar que la pieza atribuya correctamente a La República en el texto y cumpla de forma estricta con los enlaces y formatos de cierre exigidos para la fuente principal."
+      }
+    ],
+    "sobra": [
+      "Cualquier referencia o dato importado sobre la economía española o el turismo que no pinta nada en una noticia sobre el PIB de Colombia y la Cepal."
+    ],
+    "falta": [
+      "Un anclaje a la contraparte o medida de política económica local en Colombia frente a estas proyecciones de la Cepal, para evitar que el bloque editorial quede flotando en generalidades sobre el subdesarrollo."
+    ]
+  }
+}
