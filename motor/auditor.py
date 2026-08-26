@@ -254,7 +254,13 @@ def auditar(pieza, paquete, encargo=""):
 
     crudos = [c.valor_crudo for c in paquete.cifras if c.valor_crudo is not None]
     redondeos = []
-    for token in NUMERO.findall(texto):
+    # LOS NUMEROS DE LOS ENLACES NO SON CIFRAS DE LA PIEZA. Un enlace lleva
+    # dentro el titular convertido en direccion, y ahi «4,6 puntos» viaja como
+    # «-46-puntos-». El articulo del PIB se bloqueo por un «46» que solo existia
+    # dentro de la URL de su propia fuente: nadie lo habia escrito ni lo iba a
+    # leer nadie. Se quitan las direcciones antes de buscar cifras.
+    texto_sin_enlaces = re.sub(r"https?://\S+", " ", texto)
+    for token in NUMERO.findall(texto_sin_enlaces):
         if (token in permitidas or token in hipoteticas
                 or token in definiciones or _es_anio(token)):
             continue
@@ -315,12 +321,22 @@ def auditar(pieza, paquete, encargo=""):
     # a quien la dijo. En una prueba el sistema le adjudico la misma cita a dos
     # personas opuestas en dos corridas. Un resumen de RSS no suele decir quien
     # habla, asi que eso no es comprobable aqui y va como aviso al editor.
-    material_txt = " ".join(str(x) for x in material).lower()
+    # SE COMPARA CON EL PORCENTAJE NORMALIZADO. La norma del medio obliga a
+    # escribir «7,14 %» con espacio, y las fuentes casi siempre escriben
+    # «7,14%» pegado. Al citar textualmente, el redactor aplica nuestra norma y
+    # la frase deja de coincidir letra por letra con el original: la cita del
+    # BCV sobre los 21 trimestres se bloqueo por ese unico espacio. El espacio
+    # no cambia lo que dijo la fuente, asi que se ignora en la comparacion.
+    def _sin_espacio_de_porcentaje(s):
+        return re.sub(r"\s+%", "%", s)
+
+    material_txt = _sin_espacio_de_porcentaje(
+        " ".join(str(x) for x in material).lower())
     for cita in ENTRECOMILLADO.findall(texto):
         limpia = re.sub(r"\s+", " ", cita).strip().lower()
         if len(limpia) < 25:      # frases cortas dan falsos positivos
             continue
-        if limpia not in material_txt:
+        if _sin_espacio_de_porcentaje(limpia) not in material_txt:
             h.append(Hallazgo("bloqueo", "cita-ajena",
                               f"la frase entrecomillada «{cita[:60]}…» no aparece "
                               f"en el material del paquete"))

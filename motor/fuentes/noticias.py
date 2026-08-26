@@ -30,6 +30,7 @@ from calendar import timegm
 
 import feedparser
 
+from motor import criterio
 from motor.paquete import Cifra, Fuente, Paquete
 
 # Regla de oro #3: feedparser/urllib NO traen timeout y una fuente que acepta la
@@ -324,7 +325,17 @@ def extraer(medios=None, horas=24, limite=6, tema=None):
             print(f"[aviso] {medio['nombre']} no respondio: {exc}")
             continue
         if not feed.entries:
-            print(f"[aviso] {medio['nombre']} devolvio 0 noticias")
+            # UN FEED VACIO NO SIEMPRE ES UN MEDIO CAIDO, y confundirlos lleva a
+            # sacar una fuente buena de la lista. Bitacora Economica respondia
+            # 200 con diez notas y, tras varias consultas seguidas el mismo dia,
+            # paso a responder 202 sin contenido: eso es el escudo antibots
+            # diciendo "vuelve mas tarde", no el medio dejando de publicar.
+            estado = feed.get("status")
+            if estado in (202, 403, 429):
+                print(f"[aviso] {medio['nombre']} nos esta limitando ({estado}), "
+                      f"no esta caido. Reintentar mas tarde.")
+            else:
+                print(f"[aviso] {medio['nombre']} devolvio 0 noticias")
             continue
 
         for entrada in feed.entries:
@@ -335,6 +346,20 @@ def extraer(medios=None, horas=24, limite=6, tema=None):
 
             resumen = _limpiar(entrada.get("summary") or entrada.get("description"))
             texto = f"{titular}. {resumen}"
+
+            # LA BASURA SE PARA AQUI, EN LA PUERTA. Hasta ahora este extractor no
+            # filtraba nada y cada consumidor se defendia por su cuenta: el
+            # documentalista aprendio a rechazar el Powerball, pero el contexto
+            # de prensa no, y se trajo como fuente un publirreportaje de El Pais
+            # sobre turismo español para un articulo sobre el PIB de Venezuela.
+            # /branded/ es publicidad pagada con forma de reportaje.
+            #
+            # Se aplican SOLO los filtros de basura, no el de "exigir economia":
+            # ese descarta por titular y ya vimos que deja fuera cosas buenas
+            # («Trump dice que es hora de darle una leccion a Canada» no lleva
+            # ninguna palabra de economia y es una noticia economica).
+            if criterio.JUNK.search(titular) or criterio.JUNK_URL.search(enlace):
+                continue
 
             # Si el feed no viene filtrado por seccion, hay que filtrarlo aqui:
             # los feeds generales traen deportes y sucesos.
