@@ -1,0 +1,69 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "Venezuela anuncia cincuenta acuerdos petroleros pero la opacidad oficial solo deja rastros de una decena",
+    "autor": null,
+    "fecha_publicacion": "2026-08-26",
+    "cuerpo": "El pasado 24 de agosto, la presidenta encargada Delcy Rodríguez afirmó que Venezuela ha firmado cincuenta acuerdos estratégicos en petróleo y gas durante 2026 para incorporar nuevas inversiones en más de setenta y seis áreas productivas. Sin embargo, según reportó el medio Bitácora Económica, el Ejecutivo ha mantenido bajo reserva el desglose exhaustivo de los documentos, de modo que la información pública disponible solo permite identificar de forma concreta siete acuerdos y tres memorandos de entendimiento firmados entre enero y agosto.\n\nEntre los convenios que se han hecho públicos figuran alianzas con gigantes energéticos internacionales como la estadounidense Chevron, que recibió participaciones de 60 % y 100 % en los bloques 2 y 3 de Plataforma Deltana junto a una ampliación de concesión en la faja petrolífera del Orinoco. A esto se suman proyectos de gas y crudo con empresas como la italiana ENI y la española Repsol en el campo costa afuera Cardón IV, el cual produce actualmente 580 millones de pies cúbicos de gas diarios, además de iniciativas con Shell, British Petroleum, Hunt Oil y la prestadora de servicios SLB.\n\nLa propia fuente periodística señala una contradicción interna en los registros oficiales y públicos, ya que mientras el conteo preliminar habla de nueve documentos, la lista detallada suma diez instrumentos entre acuerdos y memorandos. Esta falta de transparencia dificulta dimensionar el impacto real de la apertura en un sector clave para la infraestructura energética del país.\n\nEn paralelo, el sector eléctrico nacional busca apoyarse en estas negociaciones para mitigar sus deficiencias operativas. Según informó El Nacional, el vicepresidente de Gas de Pdvsa, Jannier Viloria, estimó que para diciembre se prevé alcanzar una entrega al mercado interno de 2.000 millones de pies cúbicos de gas metano destinado al sistema termoeléctrico, así como al sector industrial, doméstico y comercial.",
+    "bloque_sureconomics": "Nos venden como una audaz apertura petrolera lo que en la práctica es una negociación a ciegas. Cuando un Estado cede el control operativo y accionario en áreas estratégicas sin publicar los contratos completos, debilita su propia posición y reduce el beneficio nacional a una promesa de ingresos futuros. La urgencia por captar capital externo no puede traducirse en una entrega discrecional de los recursos soberanos bajo la sombra de la opacidad institucional.\n\nLo que está en juego no es solo la reactivación de los pozos, sino qué parte de la renta petrolera se queda en el país para sostener el gasto social y la infraestructura básica. Si el gobierno negocia sin contrapesos ni rendición de cuentas, los únicos ganadores son los conglomerados transnacionales que imponen sus condiciones, mientras los ciudadanos cargan con el costo de un modelo extractivo sin control público.",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1",
+      "cifra_2",
+      "cifra_3",
+      "cifra_4",
+      "ctx1_cifra_1"
+    ],
+    "fuentes_usadas": [
+      "man1",
+      "elnacional"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: Bitácora Económica, 2026-08-25 · https://bitacoraeconomica.com/de-50-acuerdos-petroleros-y-gasiferos-anunciados-por-delcy-rodriguez-nueve-se-han-hecho-publicos-hasta-ahora/\nSacado de: El Nacional, 2026-08-25 · https://www.elnacional.com/2026/08/pdvsa-preve-incorporar-gas-metano-al-sistema-termoelectrico-para-finales-de-ano/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: Bitácora Económica, por Nurelyin Contreras, 2026-08-25. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Inclusión de contexto macroeconómico totalmente ajeno al tema central de la nota.",
+        "por_que": "El párrafo final sobre las exportaciones del agronegocio en Brasil y Estados Unidos no tiene ninguna relación con los acuerdos petroleros y gasíferos de Venezuela. Forzar esta comparación para ilustrar la 'dependencia extractiva' es un salto lógico que resta rigor y desvía la atención del lector.",
+        "sugerencia": "Eliminar por completo el párrafo que cita a Folha de S.Paulo."
+      },
+      {
+        "gravedad": "media",
+        "que": "Comparación de magnitudes temporales inconsistente en las cifras de gas.",
+        "por_que": "Se contrasta una meta de entrega 'hacia el final del año' con la producción 'diaria' de Cardón IV. Si el lector interpreta la primera como una cifra acumulada anual, la comparación es metodológicamente incorrecta. Falta precisar si ambas cifras se refieren a flujos diarios para que la escala sea justa.",
+        "sugerencia": "Aclarar si la proyección de Pdvsa para diciembre representa un volumen de entrega diario o acumulado antes de contrastarlo con la tasa diaria de Cardón IV."
+      },
+      {
+        "gravedad": "media",
+        "que": "Falta de sustancia en la descripción de los acuerdos que sí son públicos.",
+        "por_que": "La nota critica la opacidad y la entrega de soberanía en el bloque de opinión, pero en el cuerpo solo enumera las empresas transnacionales de forma genérica. No explica qué se sabe de los acuerdos que sí son públicos (como el intercambio de activos de Chevron o las áreas cedidas), dejando la crítica editorial sin base fáctica en el texto.",
+        "sugerencia": "Sustituir el espacio del párrafo eliminado por detalles de los convenios conocidos, como las ampliaciones de concesiones o los proyectos de inversión en el sistema termoeléctrico."
+      }
+    ],
+    "sobra": [
+      "El bloque sobre las exportaciones agrícolas de Brasil y Estados Unidos extraído de Folha de S.Paulo, por carecer de pertinencia con el sector energético venezolano."
+    ],
+    "falta": [
+      "Detalles específicos de los acuerdos públicos (como las condiciones de Chevron o las áreas de explotación de gas) para sostener la afirmación editorial de que se está entregando el control de los recursos."
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "Colombia aclara que migrantes venezolanos con PPT no enfrentarán deportaciones",
+    "autor": null,
+    "fecha_publicacion": "2026-08-26",
+    "cuerpo": "El gobierno de Colombia aclaró que los migrantes venezolanos que cuentan con el Permiso por Protección Temporal (PPT) no podrán ser deportados, según informó el diario TalCual el 25 de agosto de 2026. La medida busca dar certidumbre a una población que se ha integrado formalmente a la economía del país receptor durante los últimos años.\n\nEl ministro del Interior de Colombia, Rodrigo Lara, señaló que los ciudadanos venezolanos que recibieron este régimen de protección y lograron insertarse en la actividad productiva no deben ser considerados migrantes en situación irregular. Este estatus legal permite el acceso a la seguridad social, a la banca formal y al mercado laboral en condiciones de igualdad.\n\nEl Permiso por Protección Temporal funciona como un mecanismo de regularización extraordinaria implementado para absorber el flujo migratorio regional y transformar la informalidad en formalidad fiscal y laboral. Para los trabajadores y las familias, este documento representa la diferencia entre la precariedad de la clandestinidad y la estabilidad jurídica necesaria para alquilar una vivienda, cotizar y planificar el futuro.\n\nLa decisión gubernamental despeja los temores sobre posibles cambios abruptos en la política migratoria colombiana y establece un criterio de continuidad para la integración económica de la comunidad venezolana asentada en el país vecino.",
+    "bloque_sureconomics": "La regularización migratoria no es solo un acto humanitario, sino una decisión económica lógica que beneficia al fisco y dinamiza el mercado laboral formal. Cuando los países de acogida otorgan certidumbre jurídica, el Estado deja de gastar recursos en persecución y empieza a recaudar impuestos de una fuerza laboral que ya produce, mientras que el trabajador recupera la capacidad de negociar su salario sin el temor constante a la expulsión.",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Región Andina",
+      "pais": "Colombia",
+      "topico": "Política",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [],
+    "fuentes_usadas": [
+      "talcual"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: TalCual, 2026-08-25 · https://talcualdigital.com/colombia-aclara-que-venezolanos-con-ppt-no-podran-ser-deportados/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Inclusión forzada y desconectada de los 6.000 millones de dólares quemados en mesas de cambio en Venezuela.",
+        "por_que": "Se introduce un dato macroeconómico sobre la política cambiaria venezolana dentro de una noticia sobre la regularización migratoria en Colombia. No hay una conexión causal directa ni pertinente entre el gasto en defensa cambiaria del Banco Central de Venezuela y el Permiso por Protección Temporal (PPT) en Colombia, lo que constituye un salto lógico y un contexto metido a la fuerza.",
+        "sugerencia": "Eliminar por completo el párrafo sobre las intervenciones cambiarias y los 6.000 millones de dólares, ya que no aporta a la comprensión de la decisión del gobierno colombiano."
+      },
+      {
+        "gravedad": "media",
+        "que": "Omisión de la atribución obligatoria al medio fuente en el cuerpo de la noticia.",
+        "por_que": "Las advertencias del paquete de datos exigen nombrar explícitamente a TalCual en el texto, requisito que no se cumple de manera adecuada en la redacción actual.",
+        "sugerencia": "Asegurar que el primer párrafo mencione explícitamente que la información fue reportada por el diario TalCual."
+      }
+    ],
+    "sobra": [
+      "La mención a la quema de 6.000 millones de dólares en mesas de cambio en Venezuela y su debate cambiario, por no guardar relación directa con la medida migratoria de Colombia."
+    ],
+    "falta": [
+      "Atribución explícita del medio TalCual en el cuerpo del texto y cierre formal con los créditos de las fuentes según las advertencias del paquete de datos."
+    ]
+  }
+}

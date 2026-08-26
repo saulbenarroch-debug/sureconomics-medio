@@ -97,7 +97,12 @@ def main():
         planos.append(texto + "\n\n" + "-" * 60 + "\n")
 
     from datetime import date
-    hoy = date.today().strftime("%d de agosto de %Y")
+    # El mes estaba escrito a mano ("de agosto") y en septiembre habria
+    # fechado mal todos los correos sin que nadie lo notara.
+    MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
+             "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+    _h = date.today()
+    hoy = f"{_h.day} de {MESES[_h.month - 1]} de {_h.year}"
     resumen = (f"{len(piezas)} piezas · {len(piezas) - bloqueadas} aprobadas"
                + (f" · {bloqueadas} bloqueadas" if bloqueadas else ""))
 

@@ -1,0 +1,67 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "Estados Unidos suspende temporalmente las citas para visados de turismo y negocios en todo el mundo",
+    "autor": null,
+    "fecha_publicacion": "2026-08-26",
+    "cuerpo": "Según informó el medio OnCuba el 26 de agosto de 2026, el gobierno de Estados Unidos ha pausado a nivel global la programación de citas para solicitar visados de turismo y negocios (categorías B1 y B2). La medida, de carácter temporal, busca entrenar al personal consular para identificar y descartar a solicitantes que puedan ser considerados propensos a depender de las prestaciones públicas del país norteamericano.\n\nEsta suspensión apunta especialmente a aquellos ciudadanos extranjeros que obtuvieron sus visados entre los años 2016 y 2026 y que, con posterioridad, solicitaron asilo en territorio estadounidense. De acuerdo con reportes de prensa internacional citados por OnCuba, la medida podría afectar potencialmente a unas doscientas mil personas. El portavoz del Departamento de Estado, Tommy Pigott, justificó la decisión señalando que obtener un visado es un privilegio y no un derecho.\n\nDesde el inicio del segundo mandato de Donald Trump a principios de agosto de 2026, el Departamento de Estado ya ha revocado más de ciento setenta y cinco mil visados. Aunque la prensa advierte que la comunidad cubana podría verse particularmente afectada por estas nuevas disposiciones, las autoridades aún no han proporcionado cifras específicas sobre el impacto por nacionalidades.\n\nPor su parte, el diario brasileño Folha de S.Paulo ha reportado sobre el complejo panorama que atraviesa la economía de Estados Unidos. Si bien las decisiones consulares y de control migratorio se manejan de forma independiente a la coyuntura macroeconómica, estas restricciones añaden incertidumbre al flujo internacional de personas.\n\nLa suspensión de las categorías B1 y B2 (diseñadas para turismo y negocios) interrumpe canales clave para el comercio y el consumo internacional. En la práctica, la imposibilidad de viajar para cerrar acuerdos o asistir a ferias comerciales debilita la actividad económica transfronteriza, un aspecto que los analistas sugieren vigilar en los próximos meses.",
+    "bloque_sureconomics": "La decisión de suspender las citas consulares a nivel global bajo el pretexto de evitar la dependencia de asistencia social es una muestra de cómo la política migratoria se utiliza como una herramienta de propaganda y control político. Con esta medida, el gobierno estadounidense impone barreras arbitrarias que asumen la culpabilidad de los solicitantes antes de evaluar sus casos, afectando de manera desproporcionada a los sectores de menores ingresos de los países del Sur global que buscan vías legales de movilidad.\n\nEn este escenario, los grandes perdedores son los trabajadores, las familias separadas y los pequeños empresarios que dependen de la conectividad internacional, mientras que los sectores más conservadores capitalizan políticamente el endurecimiento de las fronteras. Desde SurEconomics, sostenemos que la movilidad humana y el intercambio comercial no deben ser rehenes de agendas electorales ni de doctrinas de exclusión; la cooperación internacional y el respeto a los procesos consulares transparentes deberían primar sobre la discrecionalidad política.",
+    "etiquetas": {
+      "region": "Mundo",
+      "subregion": "América",
+      "pais": "EE. UU.",
+      "topico": "Política",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [],
+    "fuentes_usadas": [
+      "man1",
+      "folha"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [
+      "Contexto sobre el impacto económico real de suspender visados B1/B2 (negocios y turismo), que afecta directamente el comercio y los flujos de consumo.",
+      "Mención a la contraparte o reacción de los países más afectados por esta medida consular."
+    ],
+    "sacado_de": "Sacado de: OnCuba, 2026-08-26 · https://oncubanews.com/mundo/ee-uu/eeuu-pausa-en-todo-el-mundo-las-citas-para-solicitar-visados/\nSacado de: Folha de S.Paulo, 2026-08-26 · https://www1.folha.uol.com.br/mercado/2026/08/inflacao-nos-eua-continua-elevada-em-julho-pib-do-2o-trimestre-permanece-inalterado-em-15.shtml"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: OnCuba, por Redacción OnCuba, 2026-08-26. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Vinculación causal forzada entre la inflación y la política migratoria en el bloque SurEconomics.",
+        "por_que": "Afirmar que la administración estadounidense traslada el costo político de su tensión inflacionaria hacia los migrantes es un salto lógico sin sustento. No hay relación económica ni empírica entre la inflación y el entrenamiento consular para evitar solicitudes de personas que dependan de asistencia social.",
+        "sugerencia": "Reescribir el bloque SurEconomics eliminando la hipótesis de la inflación. Si se quiere mantener un tono crítico, enfocarlo en la contradicción de restringir la movilidad laboral y de negocios en un contexto de desaceleración económica, o en el uso político de la migración."
+      },
+      {
+        "gravedad": "media",
+        "que": "Inclusión de contexto macroeconómico irrelevante (PIB e inflación).",
+        "por_que": "El último párrafo del cuerpo introduce datos de inflación y PIB que no ayudan a entender la noticia de los visados. Es relleno que debilita el rigor editorial y confunde al lector al mezclar temas sin conexión real.",
+        "sugerencia": "Eliminar por completo el párrafo que cita a Folha de S.Paulo sobre el PIB y la inflación."
+      },
+      {
+        "gravedad": "media",
+        "que": "Lectura errónea del dato de inflación de la fuente original.",
+        "por_que": "El texto afirma que la inflación 'se mantuvo en un 2 %', pero la fuente (Folha de S.Paulo) señala que permaneció 'bien por encima de la meta de 2%'. Es una lectura incorrecta del indicador.",
+        "sugerencia": "Dado que el dato es irrelevante, la mejor solución es eliminarlo. Si se conserva por razones editoriales, debe corregirse la redacción para reflejar que la inflación está por encima de la meta, no en ella."
+      }
+    ],
+    "sobra": [
+      "El párrafo de contexto macroeconómico sobre la inflación y el PIB de Estados Unidos.",
+      "La tesis del bloque SurEconomics que atribuye la medida migratoria a una transferencia del costo político de la inflación."
+    ],
+    "falta": [
+      "Contexto sobre el impacto económico real de suspender visados B1/B2 (negocios y turismo), que afecta directamente el comercio y los flujos de consumo.",
+      "Mención a la contraparte o reacción de los países más afectados por esta medida consular."
+    ]
+  }
+}

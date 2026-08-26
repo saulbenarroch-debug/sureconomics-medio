@@ -1,0 +1,55 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "Aeropuerto de Maiquetía reanudará operaciones parcialmente el 1 de septiembre",
+    "autor": null,
+    "fecha_publicacion": "2026-08-26",
+    "cuerpo": "A partir del próximo martes 1 de septiembre, el Aeropuerto Internacional de Maiquetía retomará de manera parcial sus operaciones tras las afectaciones sufridas por el doble terremoto del 24 de junio, restableciendo entre un 30 % y un 33 % de los vuelos internacionales, según informó Bitácora Económica.\n\nEl ministro de Transporte, Francisco Garcés, señaló que antes de la emergencia el Aeropuerto Simón Bolívar manejaba aproximadamente el 75 % de la oferta de vuelos internacionales y nacionales, un porcentaje que en los últimos dos meses debió redistribuirse hacia las terminales de Valencia, Barcelona y Maracay para mantener la conectividad del país.\n\nPara facilitar la reactivación, las autoridades habilitarán terminales temporales ubicadas en los estacionamientos del aeropuerto, una superficie provisional que abarca el equivalente a varios campos de fútbol, desde donde los pasajeros serán trasladados hacia las pistas mediante autobuses mientras continúan las reparaciones de fondo en la infraestructura principal.\n\nEl ministro indicó además que la meta inicial es recuperar un poco más del 25 % de la oferta para escalar de forma progresiva hasta alcanzar la normalidad operativa total, luego de descartar la fecha previa de apertura y priorizar la puesta a tono de los servicios básicos y los mecanismos de seguridad en los espacios provisionales.",
+    "bloque_sureconomics": "La improvisación logística tras una catástrofe recae siempre sobre los hombros de los usuarios y de las aerolíneas regionales que cargan con el costo operativo de desviar rutas hacia aeropuertos secundarios. Venezuela llega a esta reapertura parcial con una infraestructura aeroportuaria sumamente vulnerable, donde depender de terminales levantadas en estacionamientos demuestra la precariedad de la inversión pública en prevención.\n\nLo que debemos mirar de aquí en adelante no es solo el cumplimiento de la meta del 33 % de vuelos el 1 de septiembre, sino la capacidad real del Estado para garantizar que las reparaciones estructurales no se queden en parches temporales que mantengan al principal terminal aéreo del país operando a media máquina de forma indefinida.",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1",
+      "cifra_2",
+      "cifra_3",
+      "cifra_4"
+    ],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: Bitácora Económica, 2026-08-26 · https://bitacoraeconomica.com/aeropuerto-de-maiquetia-recuperara-al-menos-33-de-los-vuelos-internacionales-este-1-de-septiembre/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: Bitácora Económica, por Génesis Carrero Soto, 2026-08-26. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Inclusión de contexto económico totalmente ajeno en el paquete de datos original (la previsión de crecimiento petrolero de Ecoanalítica / El Nacional).",
+        "por_que": "El paquete de datos incluye una cita sobre las proyecciones de crecimiento de Ecoanalítica para 2027 que no guarda ninguna relación directa con la reapertura parcial del aeropuerto de Maiquetía tras un terremoto. Meter eso sería caer en el error histórico de la redacción de adjuntar datos disparatados.",
+        "sugerencia": "Eliminar cualquier mención a proyecciones de crecimiento macroeconómico general o petrolero que no guarden relación directa con la logística aeroportuaria."
+      }
+    ],
+    "sobra": [
+      "Cualquier referencia a proyecciones de crecimiento del PIB o petróleo de 2027 que intente colarse desde fuentes no pertinentes."
+    ],
+    "falta": [
+      "Mencionar explícitamente el origen de los daños (el doble terremoto del 24 de junio), ya que el cuerpo actual solo menciona 'las afectaciones sufridas' de forma vaga, perdiendo la causa real del problema logístico."
+    ]
+  }
+}

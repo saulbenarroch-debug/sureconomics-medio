@@ -1,0 +1,67 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "Consecomercio plantea atraer inversión colombiana para reactivar plantas industriales venezolanas",
+    "autor": null,
+    "fecha_publicacion": "2026-08-26",
+    "cuerpo": "El presidente del Consejo Nacional del Comercio y los Servicios (Consecomercio), José Gregorio Rodríguez, planteó que la relación comercial entre Venezuela y Colombia debe trascender la compra de bienes terminados para enfocarse en la atracción de inversiones desde el vecino país, según informó el medio Descifrado el 26 de agosto de 2026.\n\nDurante una entrevista en Unión Radio recogida por el mencionado portal, el dirigente gremial sostuvo que la estrategia busca que las industrias colombianas que decidan instalarse en territorio venezolano elaboren productos de manera local. Esto permitiría abastecer el mercado interno y destinar los excedentes a la exportación hacia la región caribeña.\n\nLa propuesta se estructura en tres ejes principales: la sustitución de importaciones para generar empleo formal mediante la producción nacional, el aprovechamiento de la capacidad ociosa a través de encuentros con empresarios colombianos para invertir en plantas inactivas, y un esquema de exportación conjunta. Se trata de una iniciativa gremial y no de un acuerdo firmado o una política pública oficial entre ambos gobiernos.\n\nEn el plano macroeconómico general, el Fondo Monetario Internacional (FMI) proyecta para Venezuela un crecimiento del PIB real de 4,0 % en 2026 y de 6,0 % en 2027, mientras que para Colombia estima tasas de 2,3 % y 2,5 % respectivamente para esos mismos años. Cabe destacar que estas cifras corresponden a estimaciones globales del organismo y no a resultados derivados directamente de la propuesta gremial.\n\nLa iniciativa abre el debate sobre las condiciones necesarias para que el capital extranjero logre reactivar un parque industrial disminuido tras años de contracción económica, un proceso donde la seguridad jurídica y el financiamiento operan como factores determinantes.",
+    "bloque_sureconomics": "Las propuestas de asociación binacional que surgen desde el sector privado replican una vieja tensión estructural: la necesidad de inyectar capital para rescatar la capacidad instalada frente a un Estado que mantiene un control férreo sobre la economía. Sin garantías financieras claras ni un marco de seguridad jurídica estricto, la llegada de inversión extranjera corre el riesgo de traducirse en una enclave extractiva de baja integración local en lugar de un verdadero motor de desarrollo industrial.",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Región Andina",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "fmi_crecimiento_2026",
+      "fmi_crecimiento_2027",
+      "ctx3_fmi_crecimiento_2026",
+      "ctx3_fmi_crecimiento_2027"
+    ],
+    "fuentes_usadas": [
+      "man1",
+      "fmi1",
+      "fmi1_2"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [
+      "reacción oficial o pronunciamiento del gobierno venezolano ante la propuesta de Consecomercio"
+    ],
+    "sacado_de": "Sacado de: Descifrado, 2026-08-26 · https://www.descifrado.com/2026/08/26/como-impulsar-la-economia-entre-venezuela-y-colombia-la-propuesta-de-consecomercio/\nSacado de: Fondo Monetario Internacional, 2026-08-26 · https://www.imf.org/external/datamapper/PCPIPCH@WEO"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: Descifrado, por Descifrado, 2026-08-26. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [advertencia-paquete] LOS AÑOS 2026 EN ADELANTE SON PROYECCIONES del FMI, no datos observados. Si usas una, dilo expresamente: presentar una estimación como hecho consumado es un error grave.",
+    "  ! [advertencia-paquete] Datos capturados a mano el 2026-08-25 porque el FMI bloquea la lectura automática. El WEO se actualiza en abril y en octubre; si estamos pasados de esas fechas, conviene refrescarlos.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo no lleve postura (va solo en el bloque) y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Contexto cambiario desconectado de la noticia principal",
+        "por_que": "Se introduce la depreciación del peso colombiano reportada por El Comercio como si influyera directamente en los costos de intercambio de esta propuesta, pero la nota es sobre una intención gremial de inversión directa a largo plazo en plantas industriales, no sobre transacciones comerciales monetarias inmediatas. Es un contexto forzado.",
+        "sugerencia": "Eliminar la mención a la depreciación del peso o aclarar estrictamente por qué una fluctuación diaria de 0,42% afecta una inversión de capital a largo plazo, aunque lo más sensato es removerlo por falta de pertinencia."
+      },
+      {
+        "gravedad": "media",
+        "que": "Mezcla de proyecciones del FMI sin anclaje directo con la propuesta",
+        "por_que": "Se mencionan las proyecciones de crecimiento del PIB para Venezuela (4,0 % y 6,0 %) en el mismo párrafo donde se habla de sustituir importaciones, sugiriendo una relación directa que la propuesta gremial por sí sola no garantiza.",
+        "sugerencia": "Aclarar explícitamente que las cifras del FMI son proyecciones macroeconómicas generales y no un resultado directo de la propuesta de Consecomercio."
+      }
+    ],
+    "sobra": [
+      "La mención a la depreciación del peso colombiano (-0,42 %) reportada por El Comercio, ya que no aporta al entendimiento de una propuesta gremial de inversión industrial a largo plazo."
+    ],
+    "falta": [
+      "Mencionar la contraparte institucional o la reacción oficial del gobierno venezolano ante la propuesta de Consecomercio, cumpliendo con la regla de buscar la otra mitad del hecho."
+    ]
+  }
+}
