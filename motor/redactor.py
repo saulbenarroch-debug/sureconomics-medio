@@ -150,6 +150,14 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
         # parrafo, en la misma linea. Hay que quitarla este donde este.
         for campo in ("cuerpo", "bloque_sureconomics"):
             texto = pieza.get(campo) or ""
+            # La bibliografia academica es el mismo problema con otra ropa. En
+            # el articulo sobre el PIB el modelo cerro con un bloque
+            # «Referencias» en formato APA que repetia, enlace incluido, la
+            # linea que el codigo ya escribe debajo. Un medio no publica
+            # bibliografia: publica de donde lo saco, una vez.
+            texto = re.sub(r"\n\s*(Referencias|Bibliograf[ií]a|Fuentes"
+                           r"|Referencias bibliogr[aá]ficas)\s*:?\s*\n.*$",
+                           "", texto, flags=re.IGNORECASE | re.DOTALL)
             limpio = re.sub(r"\s*Sacado de:.*?(?=\n|$)", "", texto,
                             flags=re.IGNORECASE)
             pieza[campo] = re.sub(r"\n{3,}", "\n\n", limpio).strip()
