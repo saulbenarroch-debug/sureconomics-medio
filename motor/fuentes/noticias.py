@@ -60,6 +60,13 @@ MEDIOS = {
                         url="https://www.elnacional.com/economia/feed/"),
     "descifrado":  dict(nombre="Descifrado", pais="Venezuela", economia=True,
                         url="https://www.descifrado.com/category/economia/feed/"),
+    # Nos faltaba y era el que mejor cubre esta fuente. Lo trajo Edicion el
+    # 26/08/2026 como origen de una noticia que ninguna de las 44 fuentes tenia:
+    # de 50 acuerdos petroleros y gasiferos anunciados, nueve se han hecho
+    # publicos. Es venezolano, es solo economia y el feed general ya viene
+    # limpio, asi que no hace falta apuntar a una seccion.
+    "bitacora":    dict(nombre="Bitácora Económica", pais="Venezuela",
+                        economia=True, url="https://bitacoraeconomica.com/feed/"),
     # La SECCION de economia, no el feed general: el general trae de todo y
     # obligaba a filtrar por palabras. Asi lo tiene el bot de Telegram.
     "cocuyo":      dict(nombre="Efecto Cocuyo", pais="Venezuela", economia=True,
@@ -305,6 +312,14 @@ def extraer(medios=None, horas=24, limite=6, tema=None):
         medio = MEDIOS[clave]
         try:
             feed = feedparser.parse(medio["url"], agent=AGENTE)
+            # SEGUNDO INTENTO SIN DISFRAZARSE. AGENTE imita a Chrome, que es lo
+            # que hace falta en la mayoria de los sitios, pero algunos hacen lo
+            # contrario: bloquean al navegador y dejan pasar al lector de feeds.
+            # Bitacora Economica devolvia 403 con AGENTE y 200 con el agente por
+            # defecto de feedparser, y el medio se quedaba fuera pareciendo
+            # caido. Un feed vacio no cuesta casi nada de reintentar.
+            if not feed.entries:
+                feed = feedparser.parse(medio["url"])
         except Exception as exc:  # noqa: BLE001 - un diario caido no detiene al resto
             print(f"[aviso] {medio['nombre']} no respondio: {exc}")
             continue

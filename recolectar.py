@@ -20,9 +20,30 @@ from dotenv import load_dotenv  # noqa: E402
 from motor import criterio  # noqa: E402
 from motor import buscador  # noqa: E402
 from motor.fuentes import noticias, oficiales  # noqa: E402
+from motor.paquete import Fuente, Paquete  # noqa: E402
 
 # Cargamos el .env desde el repositorio del bot de Telegram
 load_dotenv(r"C:\Users\saulb\telegram-finance-bot\.env")
+
+
+def _a_paquete(c):
+    """Convierte un resultado del buscador en Paquete, para poder mezclarlos.
+
+    Es un candidato, no una fuente todavia: hay que abrir la nota y verificarla
+    antes de escribir nada con ella. Por eso lleva su advertencia.
+    """
+    url = c.get("url", "")
+    return Paquete(
+        hecho=c.get("titular", ""),
+        fecha_hecho=c.get("fecha", "") or "",
+        citas=[{"texto": c.get("extracto", "") or "", "autor": c.get("medio", ""),
+                "fuente_id": "web1"}] if c.get("extracto") else [],
+        entidades=[c.get("medio", "")],
+        fuentes=[Fuente(id="web1", institucion=c.get("medio", "") or "desconocido",
+                        documento=c.get("titular", ""), url=url)],
+        advertencias=["CANDIDATO DE BUSCADOR: no es fuente todavia. Hay que abrir "
+                      "la nota, verificarla y registrarla con agregar_fuente.py."],
+    )
 
 
 def _parecidas(a, b):
@@ -56,7 +77,11 @@ def recolectar(horas=24, limite=10):
     try:
         api_cands = buscador.barrido_tematico(dias=max(1, horas // 24))
         print(f"      -> {len(api_cands)} candidatos de Tavily News")
-        paquetes_crudos.extend(api_cands)
+        # El buscador devuelve diccionarios y los otros dos extractores
+        # devuelven Paquetes. Mezclarlos rompia el consolidador en la primera
+        # linea: 'dict' object has no attribute 'fuentes'. Se convierten aqui,
+        # que es donde se juntan las tres vias.
+        paquetes_crudos.extend(_a_paquete(c) for c in api_cands)
     except Exception as e:
         print(f"      [error] Falló la API de Noticias: {e}")
 
