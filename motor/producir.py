@@ -8,6 +8,7 @@ No publica nada. Deja el borrador en borradores/ para que lo apruebe Edicion.
 import argparse
 import json
 import pathlib
+import re
 import sys
 
 _RAIZ = pathlib.Path(__file__).resolve().parent.parent
@@ -208,6 +209,15 @@ def main():
         base = args.manual
     elif args.diarios:
         base = args.diarios.replace(",", "-")
+        # EL TEMA ENTRA EN EL NOMBRE. Dos piezas del mismo diario en el mismo dia
+        # se pisaban: el 27/08/2026 la de los activos expropiados y la del comite
+        # de acreedores salian las dos de Bitacora Economica y la segunda borro a
+        # la primera sin avisar. Un borrador que desaparece en silencio es peor
+        # que uno que falla.
+        if args.tema:
+            corto = re.sub(r"[^a-z0-9]+", "-", args.tema.lower()).strip("-")[:24]
+            if corto:
+                base += "_" + corto
     else:
         base = f"{args.pais.lower()}_{args.indicador}"
     nombre = f"{base}_{args.tipo.lower()}"

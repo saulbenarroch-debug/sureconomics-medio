@@ -15,48 +15,18 @@ Esto no es neutralidad tibia: es lo que le da peso a la postura del medio. Un
 cuerpo teñido convierte la línea editorial en ruido, porque el lector deja de
 distinguir el hecho de la lectura.
 
-## El bloque `SurEconomics:`
+## La noticia NO lleva bloque `SurEconomics:`
 
-Al final del cuerpo y antes de las fuentes va el bloque `SurEconomics:`. **Ahí
-sí va la postura del medio**, y solo ahí.
+Deja `bloque_sureconomics` **vacío**. Norma del medio desde el 26 de agosto de
+2026: la posición de SurEconomics al pie de un hecho genera sesgo, porque el
+lector deja de leer una noticia y pasa a leer una noticia con moraleja.
 
-**Dos párrafos, y aquí sí se moja el medio.** El cuerpo informa; este bloque
-opina. No es un resumen ni un análisis neutral con otro nombre: es lo que piensa
-SurEconomics, dicho con todas las letras.
+Eso no significa escribir sin criterio. Significa que el criterio se ejerce
+**eligiendo qué se cuenta y con qué contexto**, no añadiendo un párrafo de
+opinión al final. Si algo es relevante, se cuenta en el cuerpo con su fuente.
 
-Tiene que contener, sí o sí:
-
-1. **Una tesis.** Una frase que se pueda estar de acuerdo o en desacuerdo con
-   ella. Si nadie puede discrepar de lo que escribiste, no opinaste.
-2. **Quién gana y quién pierde** con lo que acaba de pasar. Con nombre: el
-   inversor extranjero, el Estado, el trabajador de La Guaira, la banca.
-3. **Qué debería pasar** en cambio, o qué hay que vigilar.
-
-Y con la voz del medio: **primera persona plural**, directa, sin miedo a la
-ironía cuando toca. *"Nos venden como victoria lo que es una rendición"* es voz.
-*"Es importante señalar que este acuerdo presenta desafíos"* no lo es: es un
-comunicado.
-
-- **No introduce cifras nuevas.** Solo interpreta las que ya están en el cuerpo.
-- No abre con "Este acuerdo…" ni "La medida…". Empieza por la idea, no por el
-  sujeto de la noticia.
-
-### Prohibido el bloque de plantilla
-
-Frases como *"desarrollo con valor agregado local"*, *"fiscalidad progresiva"* y
-*"protección social"* son la plataforma del medio, no un análisis. Si el bloque
-se puede pegar tal cual en cualquier otra noticia, **no dice nada**.
-
-- **Mal:** *"Este acuerdo debe traducirse en desarrollo con valor agregado local
-  y fiscalidad progresiva que fortalezca la protección social."* — sirve para
-  una noticia de petróleo, de remesas o de aranceles indistintamente.
-- **Bien:** *"Venezuela llega a esta negociación sin poder de fijar condiciones:
-  con una calificación C, el capital que entra exige retornos altos y plazos
-  cortos, y eso determina qué parte de la renta se queda en el país."*
-
-La prueba: **si el bloque no menciona algo específico de esta noticia, está
-mal.** Nombra el actor, el mecanismo o la consecuencia concreta. La línea
-editorial se ejerce razonando sobre este caso, no recitando principios.
+Donde el medio sí toma partido es en el Editorial, la Opinión y la
+Investigación. Cada uno tiene su forma de hacerlo y su prompt.
 
 ## Atribución: de dónde salió la información
 
@@ -141,8 +111,7 @@ cifra con su dueño.
 2. **Fecha** de publicación, debajo del título. Sin autor: la firma la redacción.
 3. **Cuerpo** — el hecho primero, con su fecha de ocurrencia y su atribución.
    Después el contexto y las consecuencias, cada una con su cifra.
-4. **Bloque `SurEconomics:`**
-5. **`Sacado de:`** — el medio, la fecha y el enlace.
+4. **`Sacado de:`** — el medio, la fecha y el enlace.
 
 Extensión máxima: dos páginas.
 

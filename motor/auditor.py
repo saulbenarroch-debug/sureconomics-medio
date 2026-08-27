@@ -379,10 +379,15 @@ def auditar(pieza, paquete, encargo=""):
 
     # --- 6. Reglas por tipo de escrito --------------------------------------
     tipo = pieza.get("tipo", "")
-    if tipo == "Noticia" and not (pieza.get("bloque_sureconomics") or "").strip():
-        h.append(Hallazgo("bloqueo", "sin-bloque",
-                          "una noticia sin bloque 'SurEconomics:' no cumple la "
-                          "estructura del medio"))
+    # LA NOTICIA YA NO LLEVA BLOQUE «SurEconomics:». Decision editorial del dueño
+    # el 26/08/2026: en una noticia, la posicion del medio al pie genera sesgo.
+    # La regla estaba justo al reves y BLOQUEABA la noticia que no lo traia, asi
+    # que no bastaba con dejar de pedirlo: habia que invertirla. La opinion, el
+    # editorial y la investigacion siguen tomando partido, cada uno a su manera.
+    if tipo == "Noticia" and (pieza.get("bloque_sureconomics") or "").strip():
+        h.append(Hallazgo("bloqueo", "noticia-con-opinion",
+                          "una noticia no lleva bloque 'SurEconomics:': la "
+                          "posicion del medio al pie de un hecho genera sesgo"))
     # Solo opinion e investigacion exigen persona con nombre: una opinion sin
     # firma es un editorial anonimo, y una investigacion sin autor no se puede
     # defender. Educacion si puede ir firmada por la redaccion.
@@ -460,9 +465,12 @@ def auditar(pieza, paquete, encargo=""):
     # --- 8. Lo que NO audita, y se le dice al editor -------------------------
     # Estas dos exigen criterio. Marcarlas como bloqueo daria falsos positivos.
     if tipo == "Noticia":
+        # El aviso decia "la postura va solo en el bloque". Ya no hay bloque en
+        # las noticias, asi que ahora no hay ningun sitio donde ponerla: en una
+        # noticia el criterio se ejerce eligiendo que se cuenta, no opinando.
         h.append(Hallazgo("aviso", "revision-humana",
-                          "revisar a mano: que el cuerpo no lleve postura (va solo "
-                          "en el bloque) y que el titular no afirme mas que el cuerpo"))
+                          "revisar a mano: que el cuerpo informe y no opine, y "
+                          "que el titular no afirme mas que el cuerpo"))
 
     return h
 

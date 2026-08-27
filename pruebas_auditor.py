@@ -20,7 +20,7 @@ assert paq, "no hubo paquete"
 url = paq.fuentes[0].url
 
 base = {"tipo": "Noticia", "autor": None, "etiquetas": dict(ETIQUETAS_OK),
-        "bloque_sureconomics": "La cifra retrata el agotamiento del modelo.",
+        "bloque_sureconomics": "",
         "cifras_usadas": ["inflacion_2016"], "fuentes_usadas": ["bm1"]}
 
 print("-- 1. Pieza correcta --")

@@ -273,4 +273,5 @@ del vocabulario de la disciplina. **Decláralas** y el auditor las admite; sin
 declarar, bloquean la pieza. No metas aquí ninguna cifra que describa la
 realidad: eso es un dato y va en el paquete.
 
-`bloque_sureconomics` va vacío salvo en noticias.
+`bloque_sureconomics` va SIEMPRE VACÍO en las noticias. Solo lo
+usan el editorial, la opinión y la investigación.

@@ -162,6 +162,21 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
                             flags=re.IGNORECASE)
             pieza[campo] = re.sub(r"\n{3,}", "\n\n", limpio).strip()
 
+    # LA NOTICIA NO LLEVA BLOQUE DE OPINION, y se le quita aqui. El prompt ya no
+    # lo pide y el auditor lo bloquea, pero el modelo lo sigue escribiendo por
+    # inercia: la primera noticia del 27/08/2026 salio bloqueada por eso. Pedirlo
+    # en el prompt no basta; la norma la aplica el codigo.
+    if pieza.get("tipo") == "Noticia":
+        pieza["bloque_sureconomics"] = ""
+
+    # EL TITULAR VA EN MAYUSCULAS. Norma del medio, decidida el 26/08/2026. Se
+    # aplica AQUI y no al maquetar: hasta ahora solo se veia en mayusculas en el
+    # correo y en el Word, porque quien lo ponia asi era la funcion que arma el
+    # texto legible. Al cargar las piezas en el panel del sitio, el titulo
+    # llegaba en minusculas, que es donde de verdad importa.
+    if pieza.get("titulo"):
+        pieza["titulo"] = pieza["titulo"].strip().upper()
+
     # Ultimo paso, sobre TODO lo que sale publicado: fuera los guiones largos.
     for campo, valor in list(pieza.items()):
         if isinstance(valor, str):
