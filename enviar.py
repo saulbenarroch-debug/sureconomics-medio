@@ -127,7 +127,10 @@ def main():
     # tandas del mismo dia salian con el asunto identico ("6 borradores del 25
     # de agosto") y en la bandeja no habia forma de saber cual era cual.
     tanda = "" if carpeta.name == "hoy" else f" ({carpeta.name})"
-    asunto = f"SurEconomics · {len(piezas)} borradores del {hoy}{tanda}"
+    # Singular cuando va una sola. «1 borradores» delata que lo escribe
+    # una maquina, y este correo lo abre Edicion todos los dias.
+    palabra = "borrador" if len(piezas) == 1 else "borradores"
+    asunto = f"SurEconomics · {len(piezas)} {palabra} del {hoy}{tanda}"
 
     # CUIDADO AQUI. correo.enviar() lee los destinatarios de la variable de
     # entorno DESTINATARIOS, que en el .env de La Campana tiene CINCO personas de

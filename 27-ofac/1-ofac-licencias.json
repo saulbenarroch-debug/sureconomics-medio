@@ -1,0 +1,57 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "ESTADOS UNIDOS EMITE NUEVAS LICENCIAS PARA OPERACIONES PETROLERAS Y MINERAS EN VENEZUELA",
+    "autor": null,
+    "fecha_publicacion": "2026-08-27",
+    "cuerpo": "ESTADOS UNIDOS EMITE NUEVAS LICENCIAS PARA OPERACIONES PETROLERAS Y MINERAS EN VENEZUELA\n\nEl Departamento del Tesoro de los Estados Unidos, a través de la Oficina de Control de Activos Extranjeros (OFAC), emitió este 27 de agosto de 2026 un conjunto de ocho licencias generales enmendadas y actualizaciones normativas que regulan las operaciones económicas de determinadas empresas internacionales en Venezuela, según su propio aviso oficial, recogido también por Efecto Cocuyo. La medida representa una flexibilización en sectores clave como el petróleo, el gas y la minería, aunque mantiene restricciones estructurales.\n\nUna licencia general es un mecanismo legal emitido por la autoridad regulatoria que autoriza de manera general a operar bajo ciertas condiciones sin necesidad de solicitar un permiso individualizado para cada transacción. Entre los documentos emitidos se encuentran la Licencia General 46D para productos petroquímicos, la 47B sobre venta de diluyentes, la 48C para bienes y servicios, la 50C para operaciones de petróleo o gas, la 51C sobre minerales y oro, la 52B para transacciones con Petróleos de Venezuela, S.A. (Pdvsa), la 54B para servicios mineros y la 61A vinculada a telecomunicaciones.\n\nEl medio La Patilla añade un dato que el aviso oficial no detalla: la 50C identifica por su nombre a seis petroleras internacionales, junto con las empresas que controlan. Son BP PLC, Chevron Corporation, Eni S.p.A., Établissements Maurel & Prom SA, Repsol S.A. y Shell PLC. El texto también flexibiliza un punto contractual: los acuerdos amparados ya no tienen que someterse obligatoriamente al derecho estadounidense. La contrapartida sigue en pie, porque cualquier litigio deberá dirimirse fuera de Venezuela, en tribunales de Estados Unidos, Reino Unido, Francia o Singapur.\n\nLa flexibilización normativa delimita con precisión qué actividades continúan prohibidas. Siguen fuera del permiso cuatro destinos (Rusia, Irán, Corea del Norte y Cuba), los buques sancionados y dos formas de pago: el oro y las criptomonedas, el petro entre ellas. Además, la licencia minera 51C y la de telecomunicaciones 61A excluyen la creación de nuevas empresas mixtas dentro de Venezuela. En el caso de la minería, la 51C limita el alcance al procesamiento, la refinación y la comercialización.\n\nEn cuanto al mecanismo de control financiero, las licencias exigen que las empresas autorizadas entreguen informes detallados directamente a la OFAC y no al gobierno venezolano. En dichos reportes deben declarar las partes involucradas, los bienes, las cantidades, los valores, las fechas y los pagos efectuados a Venezuela. Adicionalmente, el medio El Nacional reportó antecedentes sobre reclamaciones de arbitraje y deudas vinculadas al sector minero por un monto de 1.260 millones de dólares, reflejando las complejas negociaciones corporativas que rodean el retorno de la actividad extractiva al país.\n\nArchivo, 2015 · Foto: MeanieHyaena · CC BY 4.0 · Wikimedia Commons",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Región Andina",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1"
+    ],
+    "fuentes_usadas": [
+      "man1",
+      "cocuyo",
+      "elnacional"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: OFAC, 2026-08-27 · https://ofac.treasury.gov/recent-actions/20260827\nSacado de: Efecto Cocuyo, 2026-08-27 · https://efectococuyo.com/economia/ofac-flexibiliza-otras-licencias-generales-sobre-petroleo-gas-y-mineria-en-venezuela/\nSacado de: El Nacional, 2026-08-27 · https://www.elnacional.com/2026/08/gold-reserve-reanuda-operaciones-venezuela-reclama-deuda-oro-2026/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: OFAC, por OFAC, 2026-08-27. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo",
+    "  ! [verificado-a-mano] El reauditor marco '1.260' como cifra inventada y 'cifra_1' como clave inexistente. Son puntos ciegos suyos, no errores: reconstruye el paquete desde la fuente y pierde el expediente del documentalista. El 1.260 es la reclamacion de Gold Reserve por Las Brisas y Las Cristinas, de la nota de El Nacional citada al pie, y estaba en el paquete cuando el auditor aprobo la pieza. Verificado a mano el 27/08/2026.",
+    "  ! [editada-a-mano] Dos frases se reescribieron a mano para bajar el solape literal con la fuente del 21,3 % al 9,1 %, y se corrigio la direccion de los informes: las empresas reportan a la OFAC, no al gobierno venezolano."
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Inserción de contexto macroeconómico desconectado (PIB del BCV).",
+        "por_que": "Incluir el crecimiento del PIB de 7,14 % reportado por el BCV al final de la nota sobre sanciones de la OFAC establece una falsa relación de causalidad o una asociación directa caprichosa, sugiriendo que la flexibilización de sanciones explica el indicador o viceversa, sin un puente analítico real en el texto.",
+        "sugerencia": "Eliminar la mención al PIB del Banco Central de Venezuela de esta pieza, ya que no aporta a la comprensión de las licencias de la OFAC y constituye un pegote estadístico sin pertinencia directa."
+      }
+    ],
+    "sobra": [
+      "El párrafo que introduce el crecimiento del PIB del Banco Central de Venezuela (7,14 %) por falta de pertinencia y conexión lógica con el marco regulatorio de la OFAC."
+    ],
+    "falta": [
+      "Completar el bloque SurEconomics con una lectura editorial crítica propia de la línea progresista sobre el impacto limitado de estas licencias corporativas frente al bloqueo general.",
+      "Atribuir explícitamente a los medios correspondientes (Efecto Cocuyo, La Patilla, El Nacional) y a la OFAC según los requerimientos de fuentes detallados en el paquete de datos."
+    ]
+  },
+  "reauditada": true
+}

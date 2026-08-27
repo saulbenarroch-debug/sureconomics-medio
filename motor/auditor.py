@@ -296,6 +296,18 @@ def auditar(pieza, paquete, encargo=""):
                               f"la pieza declara la cifra '{clave}', que no esta "
                               f"en el paquete"))
 
+    # LOS GUIONES LARGOS SE COMPRUEBAN, no solo se limpian. La norma la aplicaba
+    # unicamente redactor.py al generar, asi que una edicion a mano los volvia a
+    # meter sin que saltara nada. Paso el 27/08/2026: al reescribir a mano dos
+    # frases de la pieza de la OFAC escribi «cuatro destinos —Rusia, Iran...—» y
+    # nada lo detecto, porque el unico que miraba era el paso que ya habia
+    # corrido. Una norma que solo se aplica al generar no es una norma.
+    for encontrado in set(re.findall(r"[^\s]*[—–][^\s]*", texto)):
+        h.append(Hallazgo("bloqueo", "guion-largo",
+                          f"'{encontrado[:40]}' lleva guion largo. La norma del "
+                          f"medio es puntuacion normal: coma, parentesis o "
+                          f"guion corto"))
+
     # --- 3. Formato numerico ------------------------------------------------
     # Se mira el texto SIN enlaces ni credito de foto, por lo mismo que en el
     # apartado anterior: «CC BY 4.0» no es una cifra mal escrita, es el nombre
