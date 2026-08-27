@@ -73,8 +73,13 @@ FUGA_DE_PROMPT = re.compile(
     # que «la falta de datos desagregados EN ESTE PAQUETE limita una lectura mas
     # fina»: el lector no sabe que existe un paquete, y enterarse de que hay uno
     # es enterarse de que la nota se escribio con lo que habia a mano.
-    r"(en |de |del )?(este|el) paquete( de datos)?|"
-    r"el paquete no (trae|tiene|incluye)|"
+    # OJO CON «PAQUETE» A SECAS. La primera version de esta regla bloqueaba
+    # cualquier «el paquete», y en un medio de economia eso es vocabulario
+    # corriente: paquete fiscal, paquete de medidas, paquete de estimulo. La
+    # nota de la OFAC decia «el paquete de licencias» y quedo bloqueada por
+    # hablar bien el castellano. Solo es fuga cuando nombra NUESTRO paquete.
+    r"(en |de |del )?(este|el) paquete de datos|"
+    r"el paquete (de datos )?no (trae|tiene|incluye)|"
     r"(los )?datos (disponibles |que manejamos )?no permiten|"
     r"la (falta|ausencia) de datos [^.]{0,40}(limita|impide)", re.IGNORECASE)
 
@@ -260,6 +265,12 @@ def auditar(pieza, paquete, encargo=""):
     # dentro de la URL de su propia fuente: nadie lo habia escrito ni lo iba a
     # leer nadie. Se quitan las direcciones antes de buscar cifras.
     texto_sin_enlaces = re.sub(r"https?://\S+", " ", texto)
+    # EL CREDITO DE LA FOTO TAMPOCO ES UNA CIFRA. Desde que el credito se anexa
+    # al cuerpo -porque el campo del panel no lo guarda y CC BY obliga a
+    # atribuir-, la version de la licencia entraba como dato inventado: «CC BY
+    # 4.0» aportaba un 4 y un 0. Habria bloqueado toda pieza con foto licenciada.
+    texto_sin_enlaces = re.sub(
+        r"(?im)^\s*(archivo,\s*\d{4}\s*·\s*)?foto:.*$", " ", texto_sin_enlaces)
     for token in NUMERO.findall(texto_sin_enlaces):
         if (token in permitidas or token in hipoteticas
                 or token in definiciones or _es_anio(token)):
@@ -286,7 +297,10 @@ def auditar(pieza, paquete, encargo=""):
                               f"en el paquete"))
 
     # --- 3. Formato numerico ------------------------------------------------
-    for mal in DECIMAL_INGLES.findall(texto):
+    # Se mira el texto SIN enlaces ni credito de foto, por lo mismo que en el
+    # apartado anterior: «CC BY 4.0» no es una cifra mal escrita, es el nombre
+    # de una licencia, y una direccion web no la lee nadie.
+    for mal in DECIMAL_INGLES.findall(texto_sin_enlaces):
         h.append(Hallazgo("bloqueo", "decimal-ingles",
                           f"'{mal}' usa punto decimal. La norma del medio es coma"))
     # La norma del medio pide espacio antes del %. Es mecanico, asi que se

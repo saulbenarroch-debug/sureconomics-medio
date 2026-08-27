@@ -225,7 +225,15 @@ def main():
         json.dumps({"pieza": pieza,
                     "bloqueada": auditor.bloqueada(hallazgos),
                     "hallazgos": [str(h) for h in hallazgos],
-                    "critica_economista": critica},
+                    "critica_economista": critica,
+                    # EL PAQUETE SE GUARDA CON LA PIEZA. Sin esto no se puede
+                    # volver a auditar despues de una edicion a mano: reauditar.py
+                    # tenia que reconstruirlo desde la fuente y perdia el
+                    # expediente del documentalista, asi que marcaba como
+                    # inventada cualquier cifra que viniera de una nota
+                    # relacionada. Le paso el 27/08/2026 con el reclamo de Gold
+                    # Reserve en la pieza de la OFAC.
+                    "paquete": json.loads(paquete.a_json())},
                    ensure_ascii=False, indent=2), encoding="utf-8")
     (carpeta / f"{nombre}.txt").write_text(texto_legible(pieza), encoding="utf-8")
     estado = "BLOQUEADO" if auditor.bloqueada(hallazgos) else "listo para Edicion"

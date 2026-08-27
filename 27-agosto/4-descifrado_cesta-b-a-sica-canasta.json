@@ -1,0 +1,71 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "LA CESTA BÁSICA EN DÓLARES ACUMULA CINCO MESES DE BAJA EN VENEZUELA, AUNQUE REPUNTA EN AGOSTO",
+    "autor": null,
+    "fecha_publicacion": "2026-08-27",
+    "cuerpo": "El costo promedio de una cesta de productos esenciales en Venezuela acumula una tendencia a la baja durante cinco meses consecutivos, según los datos publicados por el medio Descifrado. De acuerdo con el reporte, el valor pasó de 34,81 dólares el 21 de marzo de 2026 a 31,63 dólares el 22 de agosto, lo que representa una caída acumulada de 9,1 % en ese período.\n\nSin embargo, este comportamiento a la baja no ha sido lineal a lo largo de los meses, ya que el indicador registra un repunte parcial en agosto. Este seguimiento se realiza sobre un conjunto limitado de productos en 15 ciudades del país, donde elementos específicos como la carne para sopa y el queso blanco concentran la mayor parte del gasto cotidiano de los consumidores.\n\nEn paralelo, el contexto general del costo de vida muestra presiones inflacionarias severas que afectan el poder adquisitivo de los hogares. Según la información difundida por el diario El Nacional, basándose en registros del Centro de Documentación y Análisis para los Trabajadores (Cendas), una familia venezolana integrada por cinco miembros necesitó 728 dólares en julio para cubrir sus necesidades alimentarias básicas.\n\nEsta diferencia de escala refleja que el monitoreo parcial de 10 productos registra una tendencia específica de precios, mientras que la canasta alimentaria completa de Cendas abarca la totalidad de los requerimientos nutricionales del núcleo familiar. Dicho deterioro del ingreso ocurre en un entorno inflacionario donde se ha acumulado un incremento de 175,5 % en los primeros siete meses del año, con una variación de 19,9 % registrada únicamente en el mes de julio.\n\nPara transacciones y referencias financieras oficiales en el mercado nacional, el Banco Central de Venezuela (BCV) fijó la tasa de cambio de referencia en 791,32 bolívares por dólar y 921,81 bolívares por euro para la fecha valor del 27 de agosto de 2026.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1",
+      "cifra_2",
+      "cifra_3",
+      "ctx3_cifra_1",
+      "ctx3_cifra_2",
+      "ctx3_cifra_3",
+      "bcv_usd",
+      "bcv_eur"
+    ],
+    "fuentes_usadas": [
+      "descifrado",
+      "elnacional",
+      "bcv1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [
+      "Detalle metodológico completo sobre la composición exacta de la canasta alimentaria de Cendas más allá del monto total en dólares y el porcentaje de inflación acumulada."
+    ],
+    "sacado_de": "Sacado de: Descifrado, 2026-08-27 · https://www.descifrado.com/2026/08/27/la-cesta-basica-en-dolares-acumula-cinco-meses-de-caida-aunque-repunta-en-agosto/\nSacado de: El Nacional, 2026-08-27 · https://www.elnacional.com/2026/08/cendas-una-familia-venezolana-de-5-miembros-necesito-728-dolares-en-julio-para-alimentarse/\nSacado de: Banco Central de Venezuela, 2026-08-27 · https://www.bcv.org.ve/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [advertencia-paquete] OJO CON LA FECHA: el BCV publica cada tarde la tasa que rige el DÍA SIGUIENTE. Esta rige el 2026-08-27. No escribas «la tasa de hoy» sin comprobar que hoy es esa fecha: se publicaría como vigente una tasa que todavía no lo está.",
+    "  ! [advertencia-paquete] Es la tasa OFICIAL. En Venezuela convive con el mercado paralelo, y si la pieza habla de precios o de poder de compra, decir solo la oficial da una imagen incompleta.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Inclusión de datos de contexto totalmente ajenos al tema central de la cesta básica",
+        "por_que": "Se introducen cifras como los 200.000 dólares de inversión en salud de EE.UU. (ctx2_cifra_1) y los 1.260 millones que reclama Gold Reserve (ctx4_cifra_1) que no guardan relación directa con el comportamiento de la cesta básica alimentaria, generando ruido informativo y desvirtuando el foco de la pieza.",
+        "sugerencia": "Eliminar por completo las menciones a la donación en salud de EE.UU. y al litigio de Gold Reserve, ya que son noticias independientes que se mezclaron artificialmente."
+      },
+      {
+        "gravedad": "media",
+        "que": "Contraste confuso entre dos métricas de alcance diferente",
+        "por_que": "Se mezcla la caída de una cesta específica de 10 productos (que pasa de 34,81 a 31,63 dólares) con el costo total de la canasta alimentaria familiar reportada por Cendas (728 dólares en julio) sin aclarar adecuadamente la diferencia metodológica y de escala entre ambas mediciones, lo que puede confundir al lector sobre el costo real de vida.",
+        "sugerencia": "Aclarar que los 31,63 dólares corresponden únicamente a una cesta parcial de 10 productos básicos relevada por Descifrado, mientras que los 728 dólares de Cendas abarcan la totalidad de las necesidades alimentarias de una familia de cinco miembros."
+      }
+    ],
+    "sobra": [
+      "La dotación valorada en más de 200.000 dólares para renovar centros de salud por parte de EE.UU.",
+      "La mención a la minera Gold Reserve y su reclamo de 1.260 millones de dólares al Estado venezolano"
+    ],
+    "falta": [
+      "Una breve explicación metodológica que distinga entre la cesta reducida de 10 productos y la canasta alimentaria completa de Cendas de 728 dólares",
+      "Completar el bloque SurEconomics con un análisis breve sobre cómo conviven la caída marginal de estos productos específicos con la alta inflación general acumulada"
+    ]
+  }
+}

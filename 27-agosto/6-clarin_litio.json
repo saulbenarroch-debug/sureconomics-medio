@@ -1,0 +1,58 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "CHINA AVANZA EN EL LITIO ARGENTINO CON UNA NUEVA INVERSIÓN MILLONARIA",
+    "autor": null,
+    "fecha_publicacion": "2026-08-27",
+    "cuerpo": "Según informó el diario Clarín el 27 de agosto de 2026, la gigante asiática Ganfeng Lithium dio un nuevo paso en la región al asegurar su tercer proyecto en Argentina. La operación consiste en una inversión de 180 millones de dólares destinada a Lithium Argentina, mediante la cual asumirá el control del 67 % del proyecto Pozuelos-Pastos Grandes.\n\nEl litio es un metal alcalino fundamental para la transición energética global, especialmente como insumo clave en la fabricación de baterías para vehículos eléctricos y dispositivos electrónicos. La extracción de este mineral se realiza principalmente a partir de salmueras en los salares altoandinos o de yacimientos de roca, requiriendo complejos procesos químicos para obtener carbonato o hidróxido de litio aptos para la industria tecnológica.\n\nCon este movimiento, la compañía reafirma su posición como la principal fabricante global de litio metálico, consolidando al Cono Sur como una de sus bases productivas más importantes fuera de sus fronteras. La magnitud de la operación se enmarca en un escenario donde las inversiones extranjeras buscan asegurar el acceso a recursos críticos en medio de la competencia tecnológica internacional.\n\nPara el país receptor, la llegada de capitales a la minería de litio promete dinamizar las economías regionales del norte argentino, generar empleo y ampliar las exportaciones del sector. Sin embargo, también abre debates recurrentes sobre la primarización de la economía, la transferencia de valor agregado y el uso del agua en zonas áridas.\n\nEn el plano macroeconómico, el sector minero opera bajo condiciones financieras marcadas por las variables globales y locales. Las proyecciones a futuro dependerán tanto de la evolución de los precios internacionales del carbonato de litio como de la estabilidad regulatoria y las condiciones de financiamiento para grandes proyectos de infraestructura.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Cono Sur",
+      "pais": "Argentina",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1",
+      "cifra_2"
+    ],
+    "fuentes_usadas": [
+      "clarin"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: Clarín, 2026-08-27 · https://www.clarin.com/energia-y-mineria/china-avanza-litio-argentino-mayores-productoras-aseguro-tercer-proyecto-pais_0_MWOVwc9VMw.html"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] USA ESTE CONTEXTO SOLO SI VIENE AL CASO, y casi nunca hace falta la cifra. En la mayoría de las piezas basta con «la alta prima de riesgo país encarece el crédito y ahuyenta la inversión»: es una realidad conocida que no necesita número ni fuente. Mete el número solo si el argumento se apoya en su magnitud.",
+    "  ! [advertencia-paquete] LA ATRIBUCIÓN VA CON LA CIFRA, NO SIN ELLA. Si escribes el número, nombra a Damodaran (NYU Stern) y di que es de 2026-01-01: es la estimación de un académico, no una cifra oficial, y presentarla sin dueño sería falsa precisión. Pero si solo haces la afirmación cualitativa, NO lo menciones: nombrar a un académico para decir que el riesgo es alto suena a nota al pie y estorba la lectura.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Falta la atribución obligatoria a Clarín y el cierre formal exigido en el paquete de datos.",
+        "por_que": "Las advertencias del paquete indican explícitamente que la información es de Clarín, se debe nombrar al diario en el texto y la pieza debe cerrar con la cita y enlace correspondientes.",
+        "sugerencia": "Incluir la mención a Clarín en la redacción inicial y agregar al final de la pieza el cierre: «Sacado de: Clarín, 2026-08-27 — https://www.clarin.com/energia-y-mineria/china-avanza-litio-argentino-mayores-productoras-aseguro-tercer-proyecto-pais_0_MWOVwc9VMw.html»."
+      },
+      {
+        "gravedad": "media",
+        "que": "El bloque SurEconomics está completamente vacío.",
+        "por_que": "La línea editorial exige que la pieza incluya una lectura propia del medio que aporte perspectiva analítica más allá de la mera recopilación de hechos.",
+        "sugerencia": "Redactar el bloque SurEconomics conectando la inversión extranjera con el debate sobre el desarrollo con valor agregado local y la renta minera."
+      }
+    ],
+    "sobra": [],
+    "falta": [
+      "La perspectiva del medio en el bloque SurEconomics",
+      "La atribución formal al medio de origen en el texto y el cierre"
+    ]
+  }
+}

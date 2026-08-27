@@ -1,0 +1,64 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "STARTUP VENEZOLANA FINA LEVANTA US$1 MILLÓN PARA ACELERAR LA DIGITALIZACIÓN DEL COMERCIO LOCAL",
+    "autor": null,
+    "fecha_publicacion": "2026-08-27",
+    "cuerpo": "La plataforma tecnológica Fina levantó una ronda de financiación de un millón de dólares para ampliar sus operaciones en el país, según informó el diario El Nacional. Fundada en 2024, la empresa se enfoca en la gestión administrativa y la digitalización de las operaciones para pequeños negocios en el mercado venezolano.\n\nLa empresa busca atender a un segmento comercial que suele enfrentar dificultades para acceder a herramientas financieras modernas y sistemas de control de inventarios. Este tipo de soluciones tecnológicas apunta a optimizar la contabilidad diaria y la emisión de facturas en comercios de menor escala.\n\nEl desarrollo de este tipo de iniciativas ocurre en un entorno económico donde la disponibilidad de capital de riesgo para proyectos tecnológicos sigue siendo limitada en comparación con otras economías de la región. El acceso al financiamiento privado resulta clave para que los emprendimientos locales logren escalar sus operaciones y consolidar su presencia en el mercado interno.\n\nEn paralelo a la dinámica cambiante de precios y costos, la banca central mantiene referencias monetarias diarias, ubicando la tasa oficial del dólar en 791,32 bolívares y la del euro en 921,81 bolívares para la fecha, según los registros del Banco Central de Venezuela. La evolución de estas variables influye directamente en la planificación financiera de las pequeñas y medianas empresas.\n\nEn el futuro inmediato, el desempeño de este sector dependerá de la capacidad de estas plataformas para retener usuarios activos y adaptarse a los cambios normativos y tecnológicos que condicionan la actividad comercial en el país.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "bcv_usd",
+      "bcv_eur"
+    ],
+    "fuentes_usadas": [
+      "elnacional",
+      "bcv1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [
+      "datos detallados sobre el volumen total de inversión de capital de riesgo (venture capital) en Venezuela durante 2026"
+    ],
+    "sacado_de": "Sacado de: El Nacional, 2026-08-27 · https://www.elnacional.com/2026/08/fina-levanta-us1-millon-para-digitalizar-el-comercio-local/\nSacado de: Banco Central de Venezuela, 2026-08-27 · https://www.bcv.org.ve/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [advertencia-paquete] OJO CON LA FECHA: el BCV publica cada tarde la tasa que rige el DÍA SIGUIENTE. Esta rige el 2026-08-27. No escribas «la tasa de hoy» sin comprobar que hoy es esa fecha: se publicaría como vigente una tasa que todavía no lo está.",
+    "  ! [advertencia-paquete] Es la tasa OFICIAL. En Venezuela convive con el mercado paralelo, y si la pieza habla de precios o de poder de compra, decir solo la oficial da una imagen incompleta.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Mezcla de noticias completamente inconexas en un mismo cuerpo de texto.",
+        "por_que": "La pieza utiliza una noticia sobre una startup de software (Fina) para encadenar datos inconexos sobre gas metano de Pdvsa, reconstrucción tras terremotos con fondos del Banco Caribe y proyecciones petroleras de Ecoanalítica. Esto viola el criterio de pertinencia y escala: meter datos que no vienen al caso convierte la nota en un refrito de titulares sin sentido común.",
+        "sugerencia": "Eliminar todo el párrafo macroeconómico sobre gas metano, sismos y proyecciones petroleras que no guardan relación directa con la ronda de inversión de la startup."
+      },
+      {
+        "gravedad": "media",
+        "que": "Falta de atribución explícita de las fuentes originales según las advertencias.",
+        "por_que": "Las advertencias del paquete de datos exigen nombrar al diario El Nacional y atribuir correctamente los datos contextuales, lo cual no se cumple de forma adecuada en el texto redactado.",
+        "sugerencia": "Asegurar que cada bloque de información externa esté debidamente atribuido en el cuerpo del texto a su fuente correspondiente."
+      }
+    ],
+    "sobra": [
+      "Las proyecciones de gas metano de Pdvsa",
+      "Los datos sobre los sismos y la reconstrucción del Banco de Desarrollo del Caribe",
+      "Las estimaciones de crecimiento sectorial de Ecoanalítica"
+    ],
+    "falta": [
+      "Un contexto real sobre el ecosistema de emprendimiento o venture capital en Venezuela que dé dimensión a la ronda de 1 millón de dólares, en lugar de cifras macroeconómicas de otros sectores."
+    ]
+  }
+}
