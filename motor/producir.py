@@ -55,6 +55,42 @@ def texto_legible(pieza):
     return "\n".join(lineas)
 
 
+def _leer_candidato(ruta, indice):
+    """Rehidrata un Paquete guardado por recolectar.py.
+
+    Se reconstruyen Cifra y Fuente como objetos, no como diccionarios: el
+    auditor y el redactor acceden por atributo (c.valor, f.institucion) y con
+    diccionarios crudos fallarian con AttributeError a mitad de la cadena.
+    """
+    import json
+    import pathlib
+
+    from motor.paquete import Cifra, Fuente, Paquete
+
+    datos = json.loads(pathlib.Path(ruta).read_text(encoding="utf-8"))
+    if not isinstance(datos, list):
+        datos = [datos]
+    if indice >= len(datos):
+        print("El archivo tiene %d candidatos y se pidio el %d." % (len(datos), indice))
+        return None
+
+    crudo = datos[indice]
+    paquete = Paquete(**{k: v for k, v in crudo.items()
+                         if k in Paquete.__dataclass_fields__
+                         and k not in ("cifras", "fuentes")})
+    paquete.cifras = [Cifra(**{k: v for k, v in c.items()
+                               if k in Cifra.__dataclass_fields__})
+                      for c in crudo.get("cifras", [])]
+    paquete.fuentes = [Fuente(**{k: v for k, v in f.items()
+                                 if k in Fuente.__dataclass_fields__})
+                       for f in crudo.get("fuentes", [])]
+    print("   del recolector, sin volver a buscar:")
+    print("   %s" % paquete.hecho[:90])
+    if paquete.fuentes:
+        print("   %s" % paquete.fuentes[0].url[:90])
+    return paquete
+
+
 def main():
     ap = argparse.ArgumentParser(description="Cadena completa de produccion")
     ap.add_argument("--diarios", help="claves de la lista blanca separadas por coma, "
@@ -63,6 +99,9 @@ def main():
     ap.add_argument("--manual", help="nombre de una nota registrada a mano en "
                     "fuentes_manuales/. Es la via para los medios que no se "
                     "dejan leer por maquina y para lo que solo aparece en la web")
+    ap.add_argument("--paquete", help="ruta a un candidatos.json de recolectar.py")
+    ap.add_argument("--indice", type=int, default=0,
+                    help="cual de los candidatos de ese archivo, empezando en 0")
     ap.add_argument("--horas", type=int, default=24)
     ap.add_argument("--pais", help="ISO3, para el Banco Mundial")
     ap.add_argument("--indicador", help="indicador del Banco Mundial")
@@ -88,7 +127,20 @@ def main():
 
     print("=" * 70)
     print("1. EXTRACTOR — voy a la fuente")
-    if args.ranking:
+    if args.paquete:
+        # BUSCAR DOS VECES ERA EL FALLO. La corrida automatica del 28/08/2026
+        # elegia bien el tema y luego le pedia a este archivo que lo volviera a
+        # encontrar dando el medio y unas palabras. En tres de seis piezas el
+        # filtro casaba antes con otra nota del mismo diario y se escribia sobre
+        # otra cosa: se pidio el superavit del Orcamento brasileño y salio una
+        # nota de vacantes de empleo. El texto estaba bien hecho y bien
+        # auditado, pero no era la noticia elegida, que es un fallo que no deja
+        # rastro de error en ningun sitio.
+        #
+        # El recolector ya tiene el paquete entero, con su url y sus cifras
+        # verificadas. Aqui se lee tal cual y no se busca nada.
+        paquete = _leer_candidato(args.paquete, args.indice)
+    elif args.ranking:
         paquete = banco_mundial.ranking(args.ranking, top=args.top)
         # Un ranking no es un hecho noticioso: es una tabla. No hay «que mas se
         # sabe de esto» que buscar en la prensa, ni contexto que pedirle al
