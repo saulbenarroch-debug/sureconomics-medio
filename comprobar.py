@@ -12,6 +12,7 @@ critico esta caido, para que un cron pueda avisar.
 """
 
 import os
+import json
 import pathlib
 import socket
 import sys
@@ -183,6 +184,48 @@ def diarios():
               "estrecha la cobertura sin que se note.")
 
 
+
+def cuota_de_busqueda():
+    """Cuanto queda del plan de Tavily.
+
+    Se añadio el 28/08/2026 porque el plan gratuito se agoto sin que nadie lo
+    viera venir: 886 de 1.000 creditos consumidos, y el aviso llego cuando
+    quedaban 114. Un limite que solo se descubre al chocar con el no es un
+    limite, es una sorpresa. Aqui se ve todos los dias, junto al resto.
+    """
+    print("\n--- CUOTA DE BÚSQUEDA ---")
+    clave = os.environ.get("TAVILY_API_KEY", "").strip()
+    if not clave:
+        linea("mal", "Tavily", "sin clave en el .env", critico=True)
+        return
+    try:
+        peticion = urllib.request.Request(
+            "https://api.tavily.com/usage",
+            headers={"Authorization": "Bearer " + clave})
+        with urllib.request.urlopen(peticion, timeout=20) as r:
+            datos = json.load(r)
+    except Exception as exc:  # noqa: BLE001
+        linea("mal", "Tavily", f"no responde: {str(exc)[:60]}", critico=True)
+        return
+
+    cuenta = datos.get("account", {}) or {}
+    usados = cuenta.get("plan_usage")
+    limite = cuenta.get("plan_limit")
+    plan = cuenta.get("current_plan", "?")
+    if not limite:
+        linea("ok", "Tavily", f"plan {plan}, sin límite declarado")
+        return
+    quedan = limite - usados
+    porcentaje = 100.0 * usados / limite
+    # Por debajo del 20 % restante se avisa, pero no se considera caido: el
+    # sistema sigue funcionando y lo que hace falta es tiempo para reaccionar.
+    detalle = f"plan {plan}: {usados} de {limite} ({porcentaje:.0f} %), quedan {quedan}"
+    linea("ok" if quedan > limite * 0.2 else "aviso", "Tavily", detalle)
+    if quedan <= limite * 0.2:
+        print(f"   OJO: al ritmo de esta semana, eso son pocos días. "
+              f"Renovar o subir de plan antes de quedarse sin búsqueda.")
+
+
 if __name__ == "__main__":
     print("=" * 72)
     print("CENTINELA — comprobación de todo lo que depende de fuera")
@@ -190,6 +233,7 @@ if __name__ == "__main__":
     desde_donde_nos_ven()
     modelos_de_ia()
     bases_de_datos()
+    cuota_de_busqueda()
     diarios()
     print("\n" + "=" * 72)
     if fallos:
