@@ -123,6 +123,15 @@ def main():
                     "--paquete", candidatos, "--indice", i - 1])
         cola = (r.stdout or "")[-260:]
         print("     " + cola.replace("\n", "\n     ")[:400])
+        # STDERR SOLO CUANDO FALLA, PERO ENTONCES SIEMPRE. La corrida anterior
+        # murio con un AttributeError en las seis piezas y aqui no se vio nada:
+        # se imprimia solo el final de stdout, la traza iba por stderr y el
+        # resumen decia "0 piezas" sin decir por que. Un fallo invisible cuesta
+        # una corrida entera de averiguar.
+        if r.returncode != 0 and (r.stderr or "").strip():
+            print("     FALLO:")
+            for linea in (r.stderr or "").strip().splitlines()[-6:]:
+                print("       " + linea[:150])
 
     # 3. Recoger lo escrito. producir.py deja cada pieza en borradores/ con el
     #    nombre de sus fuentes; enviar.py espera una carpeta con archivos

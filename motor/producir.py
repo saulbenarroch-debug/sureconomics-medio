@@ -255,7 +255,18 @@ def main():
 
     carpeta = pathlib.Path(__file__).resolve().parent.parent / "borradores"
     carpeta.mkdir(exist_ok=True)
-    if args.ranking:
+    if args.paquete:
+        # Sin esta rama, --paquete caia en el `else` del Banco Mundial y moria
+        # con AttributeError sobre args.pais, que es None. La pieza ya estaba
+        # escrita y auditada: se perdia entera en el ultimo paso, despues de
+        # gastar las llamadas a la IA. Y como el fallo iba por stderr, la corrida
+        # decia "0 piezas" sin explicar por que.
+        institucion = paquete.fuentes[0].institucion if paquete.fuentes else "fuente"
+        base = re.sub(r"[^a-z0-9]+", "-", institucion.lower()).strip("-")[:16]
+        corto = re.sub(r"[^a-z0-9]+", "-", paquete.hecho.lower()).strip("-")[:30]
+        if corto:
+            base += "_" + corto
+    elif args.ranking:
         base = f"ranking_{args.ranking}"
     elif args.manual:
         base = args.manual
