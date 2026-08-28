@@ -54,6 +54,71 @@ def correr(argumentos, minutos=25):
     return r
 
 
+# El recolector guarda Paquetes serializados: el titular esta en "hecho" y el
+# medio en fuentes[0]["institucion"], con su nombre bonito ("Folha de S.Paulo").
+# producir.py, en cambio, quiere la CLAVE de la lista blanca ("folha"). La
+# primera version leia una clave "titular" que no existe y no pasaba --diarios:
+# las seis piezas morian con "Indica --diarios" y la corrida terminaba en verde
+# sin haber escrito nada. Verde y vacio es el peor resultado posible.
+def _clave_del_medio(tema):
+    import unicodedata
+
+    def pelar(s):
+        s = unicodedata.normalize("NFKD", str(s).lower())
+        return "".join(c for c in s if not unicodedata.combining(c) and c.isalnum())
+
+    try:
+        from motor.fuentes.noticias import MEDIOS
+    except ImportError:
+        return None
+    fuentes = tema.get("fuentes") or []
+    if not fuentes:
+        return None
+    quien = pelar(fuentes[0].get("institucion", ""))
+    if not quien:
+        return None
+    for clave, medio in MEDIOS.items():
+        if pelar(medio["nombre"]) == quien:
+            return clave
+    for clave, medio in MEDIOS.items():
+        nombre = pelar(medio["nombre"])
+        if nombre and (nombre in quien or quien in nombre):
+            return clave
+    return None
+
+
+# Palabras vacias: si entran en el filtro, este casa con media portada y el
+# extractor trae cualquier cosa menos la nota que se buscaba.
+VACIAS = {"para", "como", "desde", "hasta", "entre", "sobre", "esta", "este",
+          "sus", "los", "las", "del", "con", "por", "que", "una", "uno", "mas",
+          "segun", "tras", "ante", "todos", "todas", "cada", "año", "anos"}
+
+
+def _filtro(hecho):
+    """Dos o tres palabras distintivas, en alternancia, como pide --tema.
+
+    Se recortan a la raiz (sin las dos ultimas letras) para que "inflacion"
+    tambien case con "inflacionaria" o "inflacionario".
+    """
+    import re
+    import unicodedata
+
+    plano = unicodedata.normalize("NFKD", hecho.lower())
+    plano = "".join(c for c in plano if not unicodedata.combining(c))
+    palabras = [p for p in re.findall(r"[a-z]{5,}", plano) if p not in VACIAS]
+    if not palabras:
+        return hecho[:24]
+    vistas, elegidas = set(), []
+    for p in sorted(palabras, key=len, reverse=True):
+        raiz = p[:-2]
+        if raiz not in vistas:
+            vistas.add(raiz)
+            elegidas.append(raiz)
+        if len(elegidas) == 3:
+            break
+    return "|".join(elegidas)
+
+
 def hay_con_que():
     """Cuota antes de arrancar. Ver punto 1 de la cabecera."""
     r = correr([PYTHON, AQUI / "comprobar.py"], minutos=10)
@@ -111,11 +176,17 @@ def main():
     #    corrida que se cae entera por un tema es una corrida que no sirve.
     print("\n--- 2. PRODUCIR ---")
     for i, tema in enumerate(temas, 1):
-        titular = str(tema.get("titular", ""))[:60]
-        print("\n  [%d/%d] %s" % (i, len(temas), titular))
+        hecho = str(tema.get("hecho", ""))
+        diario = _clave_del_medio(tema)
+        filtro = _filtro(hecho)
+        print("\n  [%d/%d] %s" % (i, len(temas), hecho[:70]))
+        if not diario:
+            print("     sin medio reconocible en la lista blanca, se salta")
+            continue
+        print("     medio: %s   filtro: %s" % (diario, filtro))
         r = correr([PYTHON, AQUI / "motor" / "producir.py",
                     "--tipo", "Noticia", "--horas", args.horas,
-                    "--tema", tema.get("filtro") or titular[:40]])
+                    "--diarios", diario, "--tema", filtro])
         cola = (r.stdout or "")[-260:]
         print("     " + cola.replace("\n", "\n     ")[:400])
 
