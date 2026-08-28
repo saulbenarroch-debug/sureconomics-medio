@@ -80,6 +80,9 @@ def main():
     hoy = datetime.date.today().isoformat()
     carpeta = AQUI / ("corrida-" + hoy)
     carpeta.mkdir(exist_ok=True)
+    # Marca de tiempo para distinguir lo escrito HOY de lo que ya hubiera en
+    # borradores/. Sin esto, una corrida mandaria por correo todo el historico.
+    arranque = __import__("time").time()
 
     print("=" * 70)
     print("CORRIDA DIARIA  %s   %d piezas" % (hoy, args.piezas))
@@ -116,20 +119,40 @@ def main():
         cola = (r.stdout or "")[-260:]
         print("     " + cola.replace("\n", "\n     ")[:400])
 
-    # 3. Correo y panel. El correo va SIEMPRE, aunque el panel falle: es el
-    #    unico aviso de que la corrida ocurrio.
-    print("\n--- 3. ENTREGA ---")
-    correr([PYTHON, AQUI / "armar_carga.py"], minutos=10)
-    carga = AQUI / "carga-28.json"
+    # 3. Recoger lo escrito. producir.py deja cada pieza en borradores/ con el
+    #    nombre de sus fuentes; enviar.py espera una carpeta con archivos
+    #    numerados. Sin este paso el correo salia vacio aunque las piezas
+    #    existieran, que es el peor fallo posible: parece que no hubo noticias.
+    print("\n--- 3. RECOGER ---")
+    nuevos = sorted(p for p in (AQUI / "borradores").glob("*.txt")
+                    if p.stat().st_mtime > arranque)
+    for i, origen in enumerate(nuevos, 1):
+        for sufijo in (".txt", ".json"):
+            fuente = origen.with_suffix(sufijo)
+            if fuente.exists():
+                (carpeta / ("%d-%s%s" % (i, origen.stem[:26], sufijo))).write_bytes(
+                    fuente.read_bytes())
+    print("  %d pieza(s) recogidas en %s" % (len(nuevos), carpeta.name))
+    if not nuevos:
+        print("  No se produjo nada. Revisa el paso anterior.")
 
-    if not args.sin_subir and carga.exists():
-        r = correr([PYTHON, AQUI / "subir.py", carga], minutos=20)
-        print((r.stdout or "") + (r.stderr or "")[-500:])
+    # 4. Correo y panel. El correo va SIEMPRE, aunque el panel falle: es el
+    #    unico aviso de que la corrida ocurrio.
+    print("\n--- 4. ENTREGA ---")
+    if not args.sin_subir:
+        # PENDIENTE. armar_carga.py todavia decide foto, temas y lugares pieza a
+        # pieza, a mano, para las seis del 28/08/2026. Para subir de forma
+        # automatica hay que generalizarlo: la foto la puede buscar
+        # buscar_foto.py, pero temas y lugares hay que sacarlos del propio
+        # paquete de datos. Mientras tanto, subir sin eso crearia borradores sin
+        # clasificar, y prefiero no subir a subir mal.
+        print("  La subida automatica aun no esta: armar_carga.py depende de")
+        print("  decisiones tomadas a mano. Se manda el correo igual.")
 
     r = correr([PYTHON, AQUI / "enviar.py", carpeta, args.correo], minutos=15)
     print((r.stdout or "") + (r.stderr or "")[-400:])
 
-    print("\nCorrida terminada. Todo queda en borrador.")
+    print("\nCorrida terminada. Nada se ha publicado.")
     return 0
 
 
