@@ -155,12 +155,35 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
             # «Referencias» en formato APA que repetia, enlace incluido, la
             # linea que el codigo ya escribe debajo. Un medio no publica
             # bibliografia: publica de donde lo saco, una vez.
-            texto = re.sub(r"\n\s*(Referencias|Bibliograf[ií]a|Fuentes"
+            # El «#» del principio hace falta: en el articulo sobre las licencias
+            # de la OFAC el modelo escribio «### Referencias», con cabecera de
+            # markdown, y la regla sin almohadillas no lo reconocio.
+            texto = re.sub(r"\n\s*#*\s*(Referencias|Bibliograf[ií]a|Fuentes"
                            r"|Referencias bibliogr[aá]ficas)\s*:?\s*\n.*$",
                            "", texto, flags=re.IGNORECASE | re.DOTALL)
             limpio = re.sub(r"\s*Sacado de:.*?(?=\n|$)", "", texto,
                             flags=re.IGNORECASE)
             pieza[campo] = re.sub(r"\n{3,}", "\n\n", limpio).strip()
+
+        # LOS CREDITOS SE COMPRUEBAN CONTRA EL TEXTO FINAL, no contra el que
+        # habia al armarlos. Es un problema de orden: la linea «Sacado de» se
+        # arma arriba y la limpieza del cuerpo ocurre despues, asi que si el
+        # modelo nombraba a un medio dentro de un bloque que luego se borra -una
+        # bibliografia, por ejemplo- el credito sobrevivia al nombre. Paso el
+        # 28/08/2026: el articulo de las licencias acreditaba al Banco Central de
+        # Venezuela, que no aparecia en ninguna parte del texto publicado.
+        # Acreditar una fuente que la pieza no usa es tan falso como no acreditar
+        # la que si usa.
+        final = " ".join(str(pieza.get(c) or "") for c in
+                         ("titulo", "cuerpo", "bloque_sureconomics"))
+        vivas = []
+        for i, linea in enumerate(pieza["sacado_de"].split("\nSacado de: ")):
+            nombre = linea.replace("Sacado de: ", "").split(",")[0].strip()
+            # La primera se conserva siempre: es la fuente de la que sale la
+            # pieza, se la nombre o no en la prosa.
+            if i == 0 or re.search(r"\b" + re.escape(nombre) + r"\b", final):
+                vivas.append(linea.replace("Sacado de: ", ""))
+        pieza["sacado_de"] = "Sacado de: " + "\nSacado de: ".join(vivas)
 
     # LA NOTICIA NO LLEVA BLOQUE DE OPINION, y se le quita aqui. El prompt ya no
     # lo pide y el auditor lo bloquea, pero el modelo lo sigue escribiendo por
