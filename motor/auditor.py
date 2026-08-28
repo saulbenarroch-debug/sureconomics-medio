@@ -88,6 +88,25 @@ FUGA_DE_PROMPT = re.compile(
 # vuelve a ocurrir.
 SIGLAS_MAL = {"MFI": "FMI", "FMI Internacional": "FMI", "BCV Central": "BCV"}
 
+# El instituto de estadistica de cada pais. No se puede meter en SIGLAS_MAL
+# porque ninguna de estas siglas esta mal en si misma: INEC es correcto para
+# Ecuador y equivocado para Argentina, que tiene INDEC.
+#
+# Salio de una pieza PUBLICADA el 28/08/2026: el cuerpo decia «el Instituto
+# Nacional de Estadistica y Censos (INEC)» hablando de la inflacion argentina,
+# mientras su propio bloque de fuentes enlazaba al INDEC. Nombrar mal al
+# organismo que produce la cifra es un error de fondo, no una errata: pone en
+# duda que se haya mirado la fuente.
+#
+# Va como AVISO y no como bloqueo: una pieza sobre Argentina puede citar al DANE
+# de Colombia para comparar, y eso es correcto. Lo que se marca es la sospecha.
+INSTITUTOS = {
+    "INDEC": "Argentina", "INEC": "Ecuador y Costa Rica", "INEI": "Perú",
+    "DANE": "Colombia", "INEGI": "México", "IBGE": "Brasil",
+    "INE": "Chile, España y Venezuela", "DGEEC": "Paraguay",
+    "ONEI": "Cuba", "BCU": "Uruguay",
+}
+
 
 @dataclass
 class Hallazgo:
@@ -307,6 +326,24 @@ def auditar(pieza, paquete, encargo=""):
                           f"'{encontrado[:40]}' lleva guion largo. La norma del "
                           f"medio es puntuacion normal: coma, parentesis o "
                           f"guion corto"))
+
+    # El instituto de estadistica tiene que cuadrar con el pais de la pieza.
+    pais_pieza = (pieza.get("etiquetas", {}) or {}).get("pais", "")
+    if pais_pieza:
+        for sigla, duenos in INSTITUTOS.items():
+            if not re.search(r"\b" + sigla + r"\b", texto):
+                continue
+            if pais_pieza in duenos:
+                continue
+            # Si ademas nombra al que SI le corresponde, es una comparacion
+            # legitima y no se dice nada.
+            propio = next((s for s, d in INSTITUTOS.items() if pais_pieza in d), None)
+            if propio and re.search(r"\b" + propio + r"\b", texto):
+                continue
+            h.append(Hallazgo("aviso", "instituto-de-otro-pais",
+                              f"la pieza es de {pais_pieza} y nombra al {sigla}, "
+                              f"que es el instituto de {duenos}"
+                              + (f". El de {pais_pieza} es el {propio}" if propio else "")))
 
     # --- 3. Formato numerico ------------------------------------------------
     # Se mira el texto SIN enlaces ni credito de foto, por lo mismo que en el

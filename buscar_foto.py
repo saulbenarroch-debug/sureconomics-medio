@@ -27,8 +27,15 @@ LO QUE HAY QUE SABER ANTES DE USAR LO QUE DEVUELVE
 """
 
 import argparse
+import io
 import json
 import sys
+
+# La consola de Windows escribe en cp1252 y revienta con cualquier autor
+# que lleve una letra fuera de esa tabla. El 28/08/2026 la busqueda de una
+# foto del rey de Noruega murio a medias por una 'c' croata en el nombre
+# del fotografo, que es justo el dato que hay que acreditar.
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 import urllib.parse
 import urllib.request
 

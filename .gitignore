@@ -11,3 +11,14 @@ entrega/
 ~$*
 __pycache__/
 *.pyc
+
+# Producto de cada corrida: se regenera y no es codigo. Mismo criterio que
+# borradores/ y hoy/, que ya estaban fuera.
+carga-*.json
+corrida-*/
+28-noticias/
+*-noticias/
+ilustracion.png
+prueba_ilustracion.png
+28-articulo/
+*.b64

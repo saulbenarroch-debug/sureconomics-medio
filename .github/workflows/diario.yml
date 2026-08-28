@@ -1,0 +1,67 @@
+name: Corrida diaria
+
+# 8:00 de la mañana en Venezuela = 12:00 UTC.
+#
+# Se deja el disparo manual ademas del programado a proposito. En este mismo
+# grupo de proyectos ya se aprendio que el "schedule" de GitHub llega con
+# retrasos de hasta media hora, y por eso el bot de Telegram lo dispara desde
+# un cron externo (cron-job.org) que llama a workflow_dispatch. Aqui el
+# schedule queda como red de seguridad: si el cron externo falla, la corrida
+# sale igual aunque sea tarde.
+on:
+  workflow_dispatch:
+    inputs:
+      piezas:
+        description: "Cuantas piezas producir"
+        default: "6"
+      sin_subir:
+        description: "true = solo correo, no toca el panel"
+        default: "false"
+  schedule:
+    - cron: "0 12 * * 1-5"
+
+jobs:
+  producir:
+    runs-on: ubuntu-latest
+    # Escribir seis piezas con auditoria lleva su tiempo. El limite existe para
+    # que una corrida colgada no se coma la cuota de Actions del mes.
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Corrida
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          # Cuenta de servicio del robot, NO la de una persona: el servidor
+          # atribuye cada pieza a la cuenta que la crea.
+          SURECONOMICS_API: ${{ secrets.SURECONOMICS_API }}
+          SURECONOMICS_TOKEN: ${{ secrets.SURECONOMICS_TOKEN }}
+          # Envio del correo, reutiliza la cuenta de La Campana.
+          SMTP_USUARIO: ${{ secrets.SMTP_USUARIO }}
+          SMTP_CLAVE: ${{ secrets.SMTP_CLAVE }}
+        run: |
+          python orquestar.py \
+            --piezas "${{ github.event.inputs.piezas || '6' }}" \
+            ${{ github.event.inputs.sin_subir == 'true' && '--sin-subir' || '' }}
+
+      # Los borradores del dia se guardan aunque la subida al panel falle. Si
+      # algo sale mal, el texto no se pierde: queda aqui para rescatarlo.
+      - name: Guardar lo producido
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: borradores
+          path: |
+            corrida-*/
+            carga-*.json
+          retention-days: 14
