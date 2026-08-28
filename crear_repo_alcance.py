@@ -20,8 +20,14 @@ from crear_repo import _llamar  # noqa: E402
 
 
 def main():
-    yo, _ = _llamar("/user")
+    yo, cabeceras = _llamar("/user")
     print("cuenta del token: %s  (%s)" % (yo.get("login"), yo.get("name") or "sin nombre"))
+
+    # GitHub devuelve la caducidad en una cabecera. Importa antes de ponerse a
+    # editar permisos: si al token le quedan dias, se edita hoy y se rehace la
+    # semana que viene, que es tocar lo mismo dos veces.
+    caduca = cabeceras.get("github-authentication-token-expiration")
+    print("caduca          : %s" % (caduca or "(no lo declara: puede no caducar)"))
 
     repos, _ = _llamar("/installation/repositories")
     if isinstance(repos, dict) and "repositories" in repos:
