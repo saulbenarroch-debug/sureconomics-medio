@@ -1,8 +1,19 @@
 # Dependencias del motor. En esta maquina viven en .libs/ y se usan con el
 # Python portable de telegram-finance-bot; en GitHub Actions se instalan con
 # pip a partir de este archivo.
+#
+# OJO AL AÑADIR: hay imports DENTRO de funciones, no solo en la cabecera de los
+# archivos. openpyxl faltaba aqui por eso y la corrida del 28/08/2026 perdio una
+# pieza entera: se escribio, se auditó y murio al pedirle el riesgo pais a
+# Damodaran, que lee un Excel. Para revisar la lista hay que buscar los imports
+# indentados tambien.
 feedparser>=6.0
 requests>=2.31
 python-dotenv>=1.0
 google-genai>=1.0
 python-docx>=1.1
+openpyxl>=3.1
+# Cajas selladas de libsodium: GitHub exige cifrar asi los secretos de Actions.
+# Solo lo usa poner_secretos.py, que no corre en el workflow, pero se declara
+# para que el repo se pueda montar entero de una vez.
+pynacl>=1.5
