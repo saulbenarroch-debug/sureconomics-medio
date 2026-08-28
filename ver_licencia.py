@@ -14,7 +14,7 @@ import sys
 import urllib.parse
 import urllib.request
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 API = "https://commons.wikimedia.org/w/api.php"
 AGENTE = "SurEconomics/1.0 (redaccion; contacto via sureconomics.com)"

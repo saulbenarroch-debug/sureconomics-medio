@@ -21,12 +21,19 @@ TRES COSAS QUE HACE Y CONVIENE ENTENDER
 
 QUE SIGUE NECESITANDO A UNA PERSONA
 
-La foto. El codigo puede exigir que sea de Wikimedia Commons, con autor y
-licencia declarados, apaisada y de resolucion suficiente. Lo que no puede
-comprobar es si la foto es DEL SITIO del que habla la nota. El 26/08/2026
-aparecieron fotos buenisimas de migrantes venezolanos para una nota sobre
-Colombia, y eran del cruce entre Ecuador y Colombia. Por eso las piezas quedan
-en borrador y el correo llega igual: para que alguien las mire.
+La foto, y por eso NO se pone sola salvo que se pida con --con-foto.
+
+Las reglas de motor/foto.py si saben comprobar el LUGAR: descartan Melbourne
+para una nota sobre España y Boston para una sobre Brasil. Lo que no saben es si
+la foto ilustra el ASUNTO. Probadas contra las cinco piezas de la corrida del
+28/08/2026, dos recibieron imagen y una era el Museu do Ipiranga encabezando una
+nota sobre morosidad bancaria.
+
+Todo lo demas si va solo: que temas y que lugares del sitio le corresponden a
+cada pieza lo decide motor/clasificar.py, con una tabla que se lee y se corrige.
+
+Por eso las piezas quedan en BORRADOR y el correo llega igual: para que alguien
+las mire antes de publicarlas.
 """
 
 import argparse
@@ -41,7 +48,7 @@ AQUI = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(AQUI / ".libs"))
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 PYTHON = sys.executable
 
@@ -75,6 +82,10 @@ def main():
     ap.add_argument("--correo", default="saul@rendigroup.com")
     ap.add_argument("--sin-subir", action="store_true",
                     help="produce y manda el correo, pero no toca el panel")
+    # Ver el comentario largo de armar_carga.py sobre por que no va por defecto.
+    ap.add_argument("--con-foto", action="store_true",
+                    help="deja que el codigo elija foto. Acierta con el lugar y "
+                         "falla con el asunto: leer armar_carga.py antes")
     args = ap.parse_args()
 
     hoy = datetime.date.today().isoformat()
@@ -153,15 +164,18 @@ def main():
     # 4. Correo y panel. El correo va SIEMPRE, aunque el panel falle: es el
     #    unico aviso de que la corrida ocurrio.
     print("\n--- 4. ENTREGA ---")
-    if not args.sin_subir:
-        # PENDIENTE. armar_carga.py todavia decide foto, temas y lugares pieza a
-        # pieza, a mano, para las seis del 28/08/2026. Para subir de forma
-        # automatica hay que generalizarlo: la foto la puede buscar
-        # buscar_foto.py, pero temas y lugares hay que sacarlos del propio
-        # paquete de datos. Mientras tanto, subir sin eso crearia borradores sin
-        # clasificar, y prefiero no subir a subir mal.
-        print("  La subida automatica aun no esta: armar_carga.py depende de")
-        print("  decisiones tomadas a mano. Se manda el correo igual.")
+    if not args.sin_subir and nuevos:
+        orden = [PYTHON, AQUI / "armar_carga.py", carpeta]
+        if args.con_foto:
+            orden.append("--con-foto")
+        r = correr(orden, minutos=20)
+        print((r.stdout or "")[-1400:])
+        carga = carpeta / "carga.json"
+        if carga.exists():
+            r = correr([PYTHON, AQUI / "subir.py", carga], minutos=20)
+            print((r.stdout or "") + (r.stderr or "")[-400:])
+        else:
+            print("  No se armo la carga. No se sube nada.")
 
     r = correr([PYTHON, AQUI / "enviar.py", carpeta, args.correo], minutos=15)
     print((r.stdout or "") + (r.stderr or "")[-400:])

@@ -18,7 +18,7 @@ AQUI = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(AQUI / ".libs"))
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from motor.paquete import Cifra, Fuente, Paquete  # noqa: E402
 from motor.producir import _leer_candidato  # noqa: E402

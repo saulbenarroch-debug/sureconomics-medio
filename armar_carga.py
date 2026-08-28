@@ -1,144 +1,83 @@
-r"""Convierte los borradores del dia en la carga exacta que pide el panel.
+r"""Convierte los borradores de una corrida en la carga que pide el panel.
 
-    .pyruntime\python.exe armar_carga.py
+    .pyruntime\python.exe armar_carga.py corrida-2026-08-28
+    .pyruntime\python.exe armar_carga.py corrida-2026-08-28 --sin-foto
 
-Deja carga-28.json. NO sube nada: subir es cosa del navegador, con la sesion
-abierta por el propio dueño.
+Deja carga.json dentro de esa carpeta. NO sube nada: subir es cosa de subir.py.
 
 POR QUE ESTE ARCHIVO Y NO PEGAR A MANO
 
 El 26/08/2026 se cargaron nueve piezas con el cuerpo vacio y nadie lo vio hasta
-que el dueño abrio el sitio. La causa fue rellenar el editor antes de que
-terminara de montarse. La leccion no fue "esperar mas", fue: lo que se sube
-tiene que estar escrito antes, en un archivo que se pueda revisar, y el
-navegador solo lo copia y lo comprueba leyendo de vuelta.
+que el dueño abrio el sitio. La causa fue rellenar el editor del navegador antes
+de que terminara de montarse. La leccion no fue "esperar mas", fue: lo que se
+sube tiene que estar escrito antes, en un archivo que se pueda revisar.
+
+La primera version de este archivo tenia la foto, los temas y los lugares de
+cada pieza escritos a mano, uno por uno, para las seis del 28 de agosto. Servia
+para esa tanda y para ninguna otra: la corrida automatica lo llamaba y no
+encontraba nada. Ahora todo eso lo deciden motor/clasificar.py y motor/foto.py.
 
 EL CREDITO DE LA FOTO VA EN EL PIE DEL CUERPO A PROPOSITO. El panel tiene un
-campo de credito que no persiste (defecto conocido, pendiente de arreglo). Una
-foto CC BY o CC BY-SA sin atribucion no es un descuido de estilo: es una
-infraccion de la licencia. Mientras el campo no guarde, el credito viaja dentro
-del texto, que si se guarda.
+campo de credito que no persiste: se rellena, se guarda, se recarga y vuelve
+vacio (comprobado el 28/08/2026). Una foto CC BY o CC BY-SA sin atribucion no es
+un descuido de estilo, es una infraccion de la licencia. Mientras el campo no
+guarde, el credito viaja dentro del texto, que si se guarda.
 
-LO QUE SE APRENDIO DEL PANEL EL 28/08/2026, PARA NO VOLVER A DESCUBRIRLO
+LO QUE SE APRENDIO DEL PANEL, Y ES LA RAZON DE QUE ESTE ARCHIVO EXISTA
 
 1. **La sesion vive en sessionStorage, o sea en UNA pestaña.** No hay cookie ni
    nada en localStorage. Abrir la nota en pestaña nueva deja al editor fuera sin
-   avisar. Se arregla del lado del sitio con una cookie HttpOnly; mientras
-   tanto, se trabaja en la pestaña donde se entro y en ninguna otra.
+   avisar.
+2. **Los dos editores son tiptap (ProseMirror) y NO leen innerHTML.** Solo
+   aceptan un evento de pegado. Asignar innerHTML deja el texto a la vista y el
+   estado vacio: se guarda una pieza en blanco.
+3. **Cambiar el formato remonta el formulario entero.** Va lo primero, siempre.
+4. **Verificar es recargar.** Leer los campos justo despues de rellenarlos no
+   prueba nada.
 
-2. **Los dos editores son tiptap (ProseMirror), y NO leen innerHTML.** Lo unico
-   que aceptan de fuera es un evento de pegado con text/html, que es la misma
-   via que usa una persona con el portapapeles. Asignar innerHTML deja el texto
-   a la vista y el estado vacio: se guarda una pieza en blanco.
-
-3. **Los campos normales son de React.** Hay que usar el setter nativo del
-   prototipo y disparar input y change. Asignar .value a secas se ve relleno y
-   no llega.
-
-4. **Las fuentes no tienen boton de «añadir»: la fila siguiente aparece sola**
-   en cuanto se llena la anterior. Buscar el boton y rendirse al no encontrarlo
-   dejaba fuera la segunda fuente.
-
-5. **Cambiar el formato remonta el formulario entero.** Va lo primero, siempre,
-   o borra lo que ya se hubiera escrito.
-
-6. **Verificar es recargar.** Leer los campos justo despues de rellenarlos no
-   prueba nada: el 26/08 el cargador dijo «cuerpo ok» y nueve piezas salieron
-   vacias. La comprobacion buena es volver a abrir la pieza guardada y contar.
+Nada de eso afecta ya a la subida, que va por la API (ver subir.py), pero sigue
+valiendo para quien edite a mano.
 """
 
+import argparse
 import glob
 import io
 import json
 import os
+import pathlib
 import sys
 
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+AQUI = pathlib.Path(__file__).resolve().parent
+sys.path.insert(0, str(AQUI))
+sys.path.insert(0, str(AQUI / ".libs"))
 
-COMMONS = "https://upload.wikimedia.org/wikipedia/commons/"
+# reconfigure y NO io.TextIOWrapper: envolver el buffer crea un objeto
+# nuevo, y si dos archivos del proyecto lo envuelven (uno al importar al
+# otro), el primero que se recoge cierra el buffer y todo lo que imprima
+# despues revienta con "I/O operation on closed file", sin tocar ningun
+# archivo. Paso tres veces el 28/08/2026. reconfigure cambia el que ya hay.
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-# Foto, tema y lugar se deciden pieza a pieza. No hay automatismo que sepa que
-# una nota sobre el rey de Noruega no lleva lugar: Noruega no esta en la
-# taxonomia del sitio, y poner "EE. UU." porque si seria mentir en la ficha.
-FICHAS = {
-    "1-todos_chevron": dict(
-        formato="noticia",
-        temas=["Energía y Minería", "Empresas y Negocios"],
-        lugares=["Venezuela", "EE. UU."],
-        foto=COMMONS + "thumb/7/74/Refiner%C3%ADa_El_Palito%2C_Carabobo%2C_"
-                       "Venezuela.JPG/1920px-Refiner%C3%ADa_El_Palito%2C_"
-                       "Carabobo%2C_Venezuela.JPG",
-        credito="Archivo, 2012. Refinería El Palito, en Carabobo, Venezuela. "
-                "Foto: Marive Casimiro, CC BY-SA 3.0, vía Wikimedia Commons."),
-    "2-elnacional-descifrado-bita": dict(
-        formato="noticia",
-        temas=["Energía y Minería", "Política Fiscal y Deuda"],
-        lugares=["Venezuela", "EE. UU."],
-        foto=COMMONS + "a/ae/Edificio_PDVSA_5_de_Julio.jpg",
-        credito="Archivo. Sede de PDVSA en la avenida 5 de Julio, Maracaibo. "
-                "Foto: Wilfredor, CC BY-SA 3.0, vía Wikimedia Commons."),
-    "3-bbcmundo-france24-dw_nepal": dict(
-        formato="noticia",
-        temas=["Comercio Exterior", "Infraestructura"],
-        lugares=["China"],
-        # Se cambio el 28/08/2026: la del Puente de la Amistad era vertical
-        # (1494x2056) y se recortaba mal en portada. Se descarto tambien la del
-        # puesto de Gyirong, que es el sitio exacto de la nota, por ser una
-        # captura de un video de YouTube de un medio estatal y de solo 996 px.
-        # Esta es obra propia de un usuario de Commons, apaisada y de 1600 px.
-        # El pie dice "Nepal y China" y no "Gyirong" porque la foto no acredita
-        # ese paso concreto: el pie no puede afirmar mas que la foto.
-        foto=COMMONS + "3/37/Nepal_China_Border.JPG",
-        credito="Archivo, 2013. La frontera entre Nepal y China. Foto: Krish "
-                "Dulal, CC BY-SA 3.0, vía Wikimedia Commons."),
-    "4-latercera-elpais-infobae_h": dict(
-        formato="noticia",
-        temas=["Política"],
-        lugares=[],
-        foto=COMMONS + "f/fa/King_Harald_V_2021.jpg",
-        credito="Archivo, 2021. El rey Harald V de Noruega. Foto: Sámediggi - "
-                "Sametinget, CC BY 2.0, vía Wikimedia Commons."),
-    "5-todos_ciberataque-ciberseg": dict(
-        formato="noticia",
-        temas=["Tecnología y Pagos", "Geoeconomía"],
-        lugares=["EE. UU."],
-        foto=COMMONS + "thumb/5/5d/BalticServers_data_center.jpg/1920px-"
-                       "BalticServers_data_center.jpg",
-        credito="Archivo, 2013. Interior de un centro de datos. Foto: "
-                "BalticServers.com, CC BY-SA 3.0, vía Wikimedia Commons."),
-    "6-elpais-latercera-oilprice_": dict(
-        formato="noticia",
-        temas=["Comercio Exterior", "Energía y Minería"],
-        lugares=["EE. UU."],
-        foto=COMMONS + "b/b8/Jet_refueling.jpg",
-        credito="Archivo, 2023. Carga de combustible en un avión. Foto: "
-                "Dayton.loyd, CC0, vía Wikimedia Commons."),
-}
+from motor import clasificar, foto as buscador  # noqa: E402
 
-ARTICULO = dict(
-    ruta="borradores/ofac-licencias_investigación.txt",
-    formato="articulo",
-    temas=["Energía y Minería", "Geoeconomía", "Política Fiscal y Deuda"],
-    lugares=["Venezuela", "EE. UU."],
-    foto=COMMONS + "d/da/Orinoco_Oil_Belt.png",
-    credito="Archivo, 2009. Mapa de la Faja Petrolífera del Orinoco. Foto: "
-            "Christopher J. Schenk (USGS), dominio público, vía Wikimedia "
-            "Commons.")
+# Nuestro formato -> el del sitio. No son equivalentes uno a uno: nuestra
+# 'Investigacion' entra como 'informe', que no lleva bloque de opinion al pie
+# porque un informe lleva su posicion dentro del texto.
+FORMATOS = {"noticia": "noticia", "investigación": "informe",
+            "investigacion": "informe", "análisis": "articulo",
+            "analisis": "articulo", "editorial": "editorial",
+            "entrevista": "entrevista"}
 
 
 def es_intertitulo(linea):
-    """Linea corta, sin punto final: separa secciones, no es un parrafo.
-
-    En una noticia no hay ninguno y por eso no se busca. En el articulo son los
-    que dan la estructura, y si entran como parrafo el texto se lee como un
-    ladrillo sin respiracion.
-    """
+    """Linea corta, sin punto final: separa secciones, no es un parrafo."""
     s = linea.strip()
     return 0 < len(s) < 95 and not s.endswith(".") and not s.isupper()
 
 
 def desmontar(ruta, con_intertitulos):
-    texto = open(ruta, encoding="utf-8").read()
+    texto = ruta.read_text(encoding="utf-8")
+    cabecera = texto.split("\n", 1)[0]
     titulo, firma, resumen = "", "", ""
     crudo, fuentes = [], []
 
@@ -175,8 +114,7 @@ def desmontar(ruta, con_intertitulos):
             esperando = True
             continue
         if esperando and not resumen:
-            resumen = s
-            esperando = False
+            resumen, esperando = s, False
             continue
         esperando = False
         partes.append((clase, s))
@@ -187,7 +125,12 @@ def desmontar(ruta, con_intertitulos):
         primera = partes[0][1]
         corte = primera.find(". ")
         resumen = primera[:corte + 1] if corte > 60 else primera
-    return titulo, resumen, partes, fuentes, firma
+    return cabecera, titulo, resumen, partes, fuentes, firma
+
+
+def formato_de(cabecera):
+    etiqueta = cabecera.split("]")[0].replace("[", "").strip().lower()
+    return FORMATOS.get(etiqueta, "noticia")
 
 
 def escapar(s):
@@ -195,38 +138,98 @@ def escapar(s):
 
 
 def main():
+    ap = argparse.ArgumentParser(description="Arma la carga del panel")
+    ap.add_argument("carpeta")
+    # LA FOTO NO VA POR DEFECTO, Y ESTO ES UNA DECISION, NO UN OLVIDO.
+    #
+    # Se probaron las reglas estrictas contra las cinco piezas que produjo la
+    # corrida automatica del 28/08/2026. Las reglas SI saben comprobar el lugar:
+    # descartaron Melbourne para una nota sobre España y el distrito financiero
+    # de Boston para una sobre Brasil. Lo que no saben es si la foto ilustra el
+    # asunto. Con todo apretado, dos de cinco piezas recibieron imagen, y una de
+    # esas dos era el Museu do Ipiranga encabezando una nota sobre morosidad
+    # bancaria: pais correcto, licencia correcta, sentido ninguno.
+    #
+    # Una pieza sin foto la resuelve Edicion en un minuto con buscar_foto.py.
+    # Una pieza con la foto equivocada la resuelve despues de que la lea alguien,
+    # y a veces despues de que la lea un lector. Por eso hay que pedirla.
+    ap.add_argument("--con-foto", action="store_true",
+                    help="busca imagen automaticamente. Ver el comentario de "
+                         "arriba antes de usarlo en produccion")
+    args = ap.parse_args()
+
+    carpeta = pathlib.Path(args.carpeta)
+    rutas = sorted(pathlib.Path(p) for p in glob.glob(str(carpeta / "[0-9]*.txt")))
+    if not rutas:
+        print("No hay piezas en %s/" % carpeta)
+        return 1
+
     carga = []
-    for ruta in sorted(glob.glob("28-noticias/[0-9]*.txt")):
-        ficha = FICHAS[os.path.basename(ruta)[:-4]]
-        titulo, resumen, partes, fuentes, firma = desmontar(ruta, False)
-        carga.append(dict(ficha, titulo=titulo, resumen=resumen, firma=firma,
-                          fuentes=fuentes, partes=partes,
-                          origen=os.path.basename(ruta)))
+    for ruta in rutas:
+        formato = formato_de(ruta.read_text(encoding="utf-8").split("\n", 1)[0])
+        cabecera, titulo, resumen, partes, fuentes, firma = desmontar(
+            ruta, con_intertitulos=formato != "noticia")
+        if not titulo:
+            print("  %s: sin titulo, se salta" % ruta.name)
+            continue
 
-    titulo, resumen, partes, fuentes, firma = desmontar(ARTICULO["ruta"], True)
-    carga.append(dict({k: v for k, v in ARTICULO.items() if k != "ruta"},
-                      titulo=titulo, resumen=resumen, firma=firma,
-                      fuentes=fuentes, partes=partes, origen="ofac-licencias"))
+        cuerpo_plano = " ".join(s for _, s in partes)
+        temas = clasificar.temas(titulo, cuerpo_plano)
+        lugares = clasificar.lugares(cabecera, titulo)
 
-    for p in carga:
-        partes = p.pop("partes")
+        # El veredicto del auditor viaja con la pieza. subir.py no sube lo
+        # bloqueado, pero la decision se toma aqui, donde esta el expediente.
+        bloqueada = False
+        json_ruta = ruta.with_suffix(".json")
+        if json_ruta.exists():
+            bloqueada = bool(json.loads(
+                json_ruta.read_text(encoding="utf-8")).get("bloqueada"))
+
+        elegida = None
+        if args.con_foto and not bloqueada:
+            elegida = buscador.para(titulo, lugares, temas[0], explicar=True)
+
         cuerpo = "".join("<%s>%s</%s>" % (c, escapar(s), c) for c, s in partes)
-        # El credito, en cursiva, al pie del cuerpo. Ver cabecera del archivo.
-        cuerpo += "<p><em>" + escapar(p["credito"]) + "</em></p>"
-        p["cuerpo_html"] = cuerpo
-        p["resumen_html"] = "<p>" + escapar(p["resumen"]) + "</p>"
+        if elegida:
+            cuerpo += "<p><em>" + escapar(elegida["credito"]) + "</em></p>"
 
-    with open("carga-28.json", "w", encoding="utf-8") as f:
-        json.dump(carga, f, ensure_ascii=False, indent=1)
+        carga.append({
+            "origen": ruta.name,
+            "formato": formato,
+            "titulo": titulo,
+            "resumen": resumen,
+            "resumen_html": "<p>" + escapar(resumen) + "</p>",
+            "cuerpo_html": cuerpo,
+            "firma": firma,
+            "fuentes": fuentes,
+            "temas": temas,
+            "lugares": lugares,
+            "foto": elegida["url"] if elegida else "",
+            "credito": elegida["credito"] if elegida else "",
+            "bloqueada": bloqueada,
+        })
 
-    for p in carga:
-        print("%-31s %-9s cuerpo %5d  h2:%d  fuentes:%d  temas:%d  lugares:%d" % (
-            p["origen"][:31], p["formato"], len(p["cuerpo_html"]),
-            p["cuerpo_html"].count("<h2>"), len(p["fuentes"]),
-            len(p["temas"]), len(p["lugares"])))
-        print("    " + p["titulo"][:88])
-    print("\ncarga-28.json con %d piezas" % len(carga))
+        marca = "BLOQUEADA" if bloqueada else "ok"
+        print("%-30s %-9s %-9s  %s" % (ruta.name[:30], formato, marca,
+                                       " · ".join(temas)))
+        print("     %s" % titulo[:86])
+        print("     lugares: %s" % (", ".join(lugares) or "(ninguno)"))
+        if elegida:
+            print("     foto: %s (%sx%s) [%s]" % (
+                elegida["titulo"][:40], elegida["ancho"], elegida["alto"],
+                elegida["consulta"]))
+        elif args.con_foto and not bloqueada:
+            print("     foto: NINGUNA paso las reglas. Sube sin imagen.")
+
+    destino = carpeta / "carga.json"
+    destino.write_text(json.dumps(carga, ensure_ascii=False, indent=1),
+                       encoding="utf-8")
+    con_foto = sum(1 for p in carga if p["foto"])
+    bloqueadas = sum(1 for p in carga if p["bloqueada"])
+    print("\n%s: %d piezas, %d con foto, %d bloqueadas (no se subiran)" % (
+        destino.name, len(carga), con_foto, bloqueadas))
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

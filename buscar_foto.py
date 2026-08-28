@@ -35,7 +35,7 @@ import sys
 # que lleve una letra fuera de esa tabla. El 28/08/2026 la busqueda de una
 # foto del rey de Noruega murio a medias por una 'c' croata en el nombre
 # del fotografo, que es justo el dato que hay que acreditar.
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import urllib.parse
 import urllib.request
 
@@ -67,7 +67,10 @@ def buscar(consulta, n=5, ancho=1600):
         "gsrnamespace": "6",
         "gsrlimit": str(n),
         "prop": "imageinfo",
-        "iiprop": "url|extmetadata",
+        # 'size' trae ancho y alto del original. Hace falta para descartar las
+        # verticales: el 28/08/2026 subimos una foto de 1494x2056 a una nota y
+        # en portada se recortaba mal. Sin este dato hay que abrir cada una.
+        "iiprop": "url|size|extmetadata",
         "iiurlwidth": str(ancho),
         "format": "json",
     }
@@ -99,6 +102,13 @@ def buscar(consulta, n=5, ancho=1600):
             "licencia": licencia or "licencia no declarada",
             "anio": anio if anio.isdigit() else "",
             "exige_credito": licencia.upper().startswith("CC BY"),
+            "ancho": ii.get("width") or 0,
+            "alto": ii.get("height") or 0,
+            "fuente_declarada": _limpio((meta.get("Credit") or {}).get("value")),
+            # La descripcion es lo unico que permite comprobar QUE sale en la
+            # foto. Sin ella no hay forma de saber que una vista de ciudad no es
+            # de otro continente.
+            "descripcion": _limpio((meta.get("ImageDescription") or {}).get("value")),
         })
     for c in salida:
         c["credito"] = credito(c)
