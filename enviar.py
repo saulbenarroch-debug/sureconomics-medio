@@ -23,10 +23,61 @@ sys.path.insert(0, r"C:\Users\saulb\wallstreet-bot")
 from dotenv import load_dotenv  # noqa: E402
 
 # Las credenciales SMTP viven en el .env de La Campana, que es donde estan
-# configuradas y probadas. No se copian aqui.
+# configuradas y probadas. No se copian aqui. En GitHub Actions ese archivo no
+# existe y load_dotenv no hace nada: las variables llegan del entorno.
 load_dotenv(r"C:\Users\saulb\wallstreet-bot\.env")
 
-import correo  # noqa: E402
+try:
+    import correo  # noqa: E402
+except ImportError:
+    # En Actions no existe C:\Users\saulb\wallstreet-bot, asi que no hay de
+    # donde importar el envio. Antes esto tumbaba la corrida entera en el ultimo
+    # paso, con las piezas ya escritas y sin forma de que llegaran a nadie.
+    #
+    # Se replica aqui lo minimo, con la MISMA interfaz, para no tener que tocar
+    # nada mas abajo. No es duplicar por gusto: en la maquina del dueño se sigue
+    # usando el correo.py de La Campana, que es el que lleva meses probado, y
+    # esto solo entra cuando aquel no esta.
+    import os
+    import smtplib
+    from email.message import EmailMessage
+    from email.utils import formataddr
+
+    class correo:  # noqa: N801
+        @staticmethod
+        def enviar(asunto, html, texto_plano=""):
+            usuario = os.environ.get("SMTP_USUARIO", "").strip()
+            clave = os.environ.get("SMTP_CLAVE", "").replace(" ", "").strip()
+            if not usuario or not clave:
+                raise RuntimeError(
+                    "Faltan SMTP_USUARIO / SMTP_CLAVE. Con Gmail hace falta una "
+                    "'contrasena de aplicacion', no la contrasena de la cuenta.")
+            servidor = os.environ.get("SMTP_SERVIDOR", "smtp.gmail.com").strip()
+            puerto = int(os.environ.get("SMTP_PUERTO", "587"))
+            nombre = os.environ.get("REMITENTE_NOMBRE", "SurEconomics").strip()
+            lista = [d.strip() for d in
+                     os.environ.get("DESTINATARIOS", "").split(",") if d.strip()]
+            if not lista:
+                raise RuntimeError("DESTINATARIOS esta vacio.")
+
+            enviados = 0
+            with smtplib.SMTP(servidor, puerto, timeout=45) as s:
+                s.starttls()
+                s.login(usuario, clave)
+                for quien in lista:
+                    msg = EmailMessage()
+                    msg["Subject"] = asunto
+                    msg["From"] = formataddr((nombre, usuario))
+                    msg["To"] = quien
+                    msg.set_content(texto_plano or "Se ve mejor en HTML.")
+                    msg.add_alternative(html, subtype="html")
+                    try:
+                        s.send_message(msg)
+                        enviados += 1
+                        print(f"  [correo] enviado a {quien}")
+                    except Exception as e:  # noqa: BLE001
+                        print(f"  [correo] fallo con {quien}: {e}")
+            return enviados
 
 TINTA, GRIS, VERDE, ROJO = "#1a2331", "#5a636e", "#2c6a4e", "#b22f26"
 
