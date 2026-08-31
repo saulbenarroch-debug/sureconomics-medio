@@ -23,6 +23,22 @@ vacio (comprobado el 28/08/2026). Una foto CC BY o CC BY-SA sin atribucion no es
 un descuido de estilo, es una infraccion de la licencia. Mientras el campo no
 guarde, el credito viaja dentro del texto, que si se guarda.
 
+LO MISMO VALE PARA LAS IMAGENES GENERADAS CON IA, Y ES MAS GRAVE. El 31/08/2026
+se publicaron seis piezas con imagen generada con ChatGPT. La declaracion se
+habia escrito en el campo de credito del panel y desaparecio ahi, igual que los
+creditos de Commons: la ficha del asset que devuelve la API ni siquiera tiene
+campo de credito, solo id, kind, storage, url y original_filename. O sea que ese
+texto no se guarda en ninguna parte.
+
+Una foto sin atribuir incumple una licencia. Una imagen generada sin declarar le
+dice al lector que esta viendo una fotografia de algo que no ocurrio. La linea
+es esta, al pie del cuerpo, y no se negocia:
+
+    <p><em>Imagen generada con inteligencia artificial.</em></p>
+
+Y NO se le pone a las imagenes que no lo son. Ponersela a una foto real de
+Commons seria mentir en la direccion contraria.
+
 LO QUE SE APRENDIO DEL PANEL, Y ES LA RAZON DE QUE ESTE ARCHIVO EXISTA
 
 1. **La sesion vive en sessionStorage, o sea en UNA pestaña.** No hay cookie ni
