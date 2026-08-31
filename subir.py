@@ -110,8 +110,16 @@ class Panel:
         "external": el sitio NO se descarga la imagen, la enlaza. Si Wikimedia
         cambia la ruta, la foto desaparece de la pieza. Esta apuntado como
         arreglo pendiente del CMS.
+
+        LA RUTA ES /admin/media/external, NO /admin/assets. La segunda me la
+        habia inventado por deduccion a partir del campo image_asset_id que
+        devuelve la ficha de una pieza, y falla de la peor manera: el navegador
+        la rechaza por CORS antes de que haya codigo de respuesta, asi que no da
+        404 sino "Failed to fetch", que parece un fallo de red. Se descubrio el
+        31/08/2026 escuchando lo que hace el propio panel al pulsar ADJUNTAR.
         """
-        r = self._llamar("/admin/assets", "POST", {"kind": "image", "url": url})
+        r = self._llamar("/admin/media/external", "POST",
+                         {"kind": "image", "url": url})
         d = r.get("data", r)
         return d.get("id")
 
