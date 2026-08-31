@@ -1,0 +1,141 @@
+{
+  "pieza": {
+    "tipo": "Editorial",
+    "titulo": "PETRODÓLARES A LA VISTA: LA VERDADERA PRUEBA DEL ACUERDO PETROLERO EN VENEZUELA",
+    "autor": "Redacción SurEconomics",
+    "fecha_publicacion": "2026-08-31",
+    "cuerpo": "El reciente acuerdo petrolero con Estados Unidos, detallado por Bitácora Económica, pone sobre la mesa una cifra mareante. Según las estimaciones oficiales presentadas por la administración venezolana y recogidas por el medio, el pacto dejará al Estado venezolano unos 209.335 millones de dólares, calculados sobre un precio estimado de 65 dólares por barril, con una entrada directa de 19 dólares por cada barril producido y vendido. La meta es superar los 1,5 millones de barriles diarios a lo largo de 25 años de explotación en 17 campos estratégicos, bajo un esquema que contempla regalías del 16 % y un impuesto sobre la renta del 34 %.\n\nReconocemos con franqueza lo que este entendimiento resuelve en lo inmediato. Venezuela carecía del capital masivo y de la capacidad técnica indispensables para rescatar una industria colapsada tras años de sanciones, desinversión y desgobierno. Ninguna economía puede reconstruir sus hospitales, sus escuelas ni su infraestructura social sobre la ruina de su principal fuente de divisas. El flujo de inversión extranjera y la reactivación de ocho bloques nuevos sin desarrollar aportan el oxígeno financiero que el país necesita para salir del coma.\n\nEl verdadero peligro, sin embargo, no reside en los barriles que salgan de los pozos, sino en la arquitectura institucional con la que se administren esos recursos. La historia económica latinoamericana, y la de la propia Venezuela, nos deja una lección dolorosa. La entrada masiva y repentina de divisas por exportaciones primarias aprecia el tipo de cambio real, abaratando de golpe lo importado frente a lo producido internamente. Es el conocido mal holandés, un mecanismo perverso que destruye la competitividad de la manufactura y del agro nacional. Ya lo vivimos durante el ciclo de altos precios entre 2004 y 2012, cuando el rentismo petrolero hizo más rentable importar alimentos que sembrarlos, dejando al país completamente indefenso ante los choques externos posteriores y abriendo la puerta a una hiperinflación destructiva y a un desplome histórico del producto interno bruto.\n\nPara evitar que este acuerdo repita los errores del pasado, la respuesta no es rechazar la inversión, sino blindar la economía mediante la esterilización de los recursos. Los petrodólares no pueden financiar gasto corriente, importaciones superfluas ni redes clientelares que desaparecen cuando el barril cae. Deben canalizarse estrictamente hacia la formación de capital fijo: la reconstrucción de la red eléctrica nacional, el saneamiento de cuencas hidrográficas, la modernización de puertos, la tecnología agrícola y la educación técnica de las nuevas generaciones. Si sale más barato importar un kilo de tomates que sembrarlo en los Andes, el modelo habrá fracasado antes de consolidarse.\n\nLa crítica fundamental no apunta a un gobierno en particular, sino al modelo rentista que lleva setenta años repitiendo la misma receta con administraciones de todos los signos políticos. Sin un cambio en la estructura de gobernanza económica, cualquier bonanza es apenas una tregua temporal. Exigimos transparencia radical: que se publiquen de inmediato la curva de producción anual y el destino fiscal de cada dólar ingresado. Sin esa rendición de cuentas verificable, nadie puede juzgar con seriedad si este acuerdo siembra desarrollo o si simplemente financia una nueva ilusión destinada al fracaso.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Permanente",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1",
+      "cifra_2",
+      "cifra_3",
+      "cifra_4",
+      "cifra_5",
+      "cifra_6"
+    ],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: Bitácora Económica, 2026-08-30 · https://bitacoraeconomica.com/delcy-rodriguez-confirma-que-ingresos-petroleros-superaran-209-000-millones-por-cada-barril-19-dolares-ingresan-directamente/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [cifra-del-encargo] hay cifras que vienen del encargo de edición, no de una fuente automática: responde quien lo escribió",
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: Bitácora Económica, 2026-08-30. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias."
+  ],
+  "critica_economista": null,
+  "paquete": {
+    "hecho": "La presidenta interina de Venezuela, Delcy Rodríguez, detalló las cifras del acuerdo petrolero con Estados Unidos.",
+    "fecha_hecho": "2026-08-30",
+    "cifras": [
+      {
+        "clave": "cifra_1",
+        "valor": "209.335",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Bitácora Económica: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_2",
+        "valor": "65",
+        "unidad": "dólares",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Bitácora Económica: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_3",
+        "valor": "19",
+        "unidad": "dólares",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Bitácora Económica: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_4",
+        "valor": "1,5",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Bitácora Económica: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_5",
+        "valor": "16",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Bitácora Económica: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_6",
+        "valor": "34",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Bitácora Económica: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      }
+    ],
+    "citas": [
+      {
+        "texto": "puede ser más, puede ser menos",
+        "autor": "Delcy Rodríguez",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "Cerca de 19 dólares ingresan directamente a nuestro país",
+        "autor": "Delcy Rodríguez",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "La presidenta interina de Venezuela, Delcy Rodríguez, detalló las cifras del acuerdo petrolero con Estados Unidos.\n\nRodríguez afirmó que el acuerdo dejará 209.335 millones de dólares para el Estado venezolano, tomando como referencia un precio de 65 dólares por barril, un precio que según sus palabras «puede ser más, puede ser menos».\n\n«Cerca de 19 dólares ingresan directamente a nuestro país» por cada barril producido y vendido, declaró Rodríguez.\n\nEl acuerdo tiene una duración de 25 años y contempla el desarrollo de 17 campos estratégicos, de los cuales 8 son bloques nuevos sin desarrollar.\n\nLa meta de producción establecida es superior a 1,5 millones de barriles diarios.\n\nLos términos fiscales del esquema contemplan regalías mínimas del 16 % sobre las operaciones y un impuesto sobre la renta del 34 %.\n\nLas cifras de 209.335 millones de dólares y de 19 dólares por barril fueron presentadas por Rodríguez como estimaciones propias del gobierno venezolano, no como cálculos verificados de forma independiente.",
+        "autor": "Bitácora Económica",
+        "fuente_id": "man1"
+      }
+    ],
+    "entidades": [
+      "Bitácora Económica"
+    ],
+    "fuentes": [
+      {
+        "id": "man1",
+        "institucion": "Bitácora Económica",
+        "documento": "La presidenta interina de Venezuela, Delcy Rodríguez, detalló las cifras del acuerdo petrolero con Estados Unidos.",
+        "url": "https://bitacoraeconomica.com/delcy-rodriguez-confirma-que-ingresos-petroleros-superaran-209-000-millones-por-cada-barril-19-dolares-ingresan-directamente/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      }
+    ],
+    "advertencias": [
+      "FUENTE VERIFICADA A MANO por la redacción: Bitácora Económica, 2026-08-30. Cítala por su nombre.",
+      "Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+      "ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la nota de Bitácora Económica."
+    ]
+  }
+}
