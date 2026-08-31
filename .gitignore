@@ -7,7 +7,13 @@ borradores/
 hoy/
 final/
 entrega/
+# Los .docx que genera el motor se regeneran y no van al repo.
 *.docx
+# EXCEPCION: los originales que escribe la redaccion. El de Oscar sobre el
+# acuerdo petrolero vivia solo en Descargas, que es donde se pierden las cosas.
+# Es la base de cuatro articulos y una editorial: si desaparece, se rehace a
+# mano lo que ya estaba hecho.
+!documentos/*.docx
 ~$*
 __pycache__/
 *.pyc
