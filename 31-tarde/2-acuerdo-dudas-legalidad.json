@@ -1,0 +1,124 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "EXPERTOS CUESTIONAN LA LEGALIDAD Y TRANSPARENCIA DEL ACUERDO PETROLERO ENTRE ESTADOS UNIDOS Y VENEZUELA",
+    "autor": null,
+    "fecha_publicacion": "2026-08-31",
+    "cuerpo": "Según informó el diario El Nacional, diversos expertos y abogados consultados por la agencia Reuters expresaron dudas sobre la legalidad, la transparencia y la sostenibilidad fiscal del reciente acuerdo petrolero entre Estados Unidos y Venezuela.\n\nEl convenio se negoció en secreto hasta la semana pasada sin pasar por un proceso competitivo, lo que generó cuestionamientos sobre la selección de los operadores privados. En el ámbito legal, el abogado José Ignacio Hernández advirtió sobre riesgos de nulidad constitucional, al señalar que existen demasiadas lagunas en el acuerdo petrolero y que la Constitución de Venezuela no permite ceder territorio a gobiernos extranjeros ni disponer del petróleo de esa manera.\n\nEn la misma línea, el economista Francisco Rodríguez exigió mayor transparencia y recordó que el artículo 150 de la Constitución exige el aval de la Asamblea Nacional para los contratos de interés publico con Estados extranjeros. Este requisito institucional busca garantizar el control legislativo y la protección de los recursos estratégicos de la nación frente a decisiones ejecutivas unilaterales.\n\nPor su parte, el economista Francisco Monaldi, integrante del Instituto Baker de la Universidad Rice, criticó los términos económicos proyectados y afirmó que los impuestos que se recaudarán, anunciados por el gobierno interino, son increíblemente bajos. Los especialistas advierten que este tipo de condiciones debilita el marco institucional venezolano y afecta la certidumbre jurídica a largo plazo.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: El Nacional, 2026-08-31 · https://www.elnacional.com/2026/08/reuters-acuerdo-petrolero-entre-venezuela-y-ee-uu-genera-dudas-sobre-legalidad-y-transparencia/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [cifra-del-encargo] hay cifras que vienen del encargo de edición, no de una fuente automática: responde quien lo escribió",
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: El Nacional, 2026-08-31. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] USA ESTE CONTEXTO SOLO SI VIENE AL CASO, y casi nunca hace falta la cifra. En la mayoría de las piezas basta con «la alta prima de riesgo país encarece el crédito y ahuyenta la inversión»: es una realidad conocida que no necesita número ni fuente. Mete el número solo si el argumento se apoya en su magnitud.",
+    "  ! [advertencia-paquete] LA ATRIBUCIÓN VA CON LA CIFRA, NO SIN ELLA. Si escribes el número, nombra a Damodaran (NYU Stern) y di que es de 2026-01-01: es la estimación de un académico, no una cifra oficial, y presentarla sin dueño sería falsa precisión. Pero si solo haces la afirmación cualitativa, NO lo menciones: nombrar a un académico para decir que el riesgo es alto suena a nota al pie y estorba la lectura.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "El bloque SurEconomics está completamente vacío.",
+        "por_que": "La línea editorial exige aportar una lectura propia y fundamentada sobre el contexto económico o institucional (en este caso, vinculado a la sostenibilidad fiscal o al riesgo país), y la pieza carece de este cierre analítico.",
+        "sugerencia": "Añadir un bloque SurEconomics breve que contextualice cómo la debilidad institucional y la falta de transparencia encarecen las operaciones y afectan la atracción de inversiones necesarias, evitando incluir cifras innecesarias de riesgo país."
+      }
+    ],
+    "sobra": [],
+    "falta": [
+      "Un cierre o bloque analítico propio de SurEconomics que aporte perspectiva sobre las implicaciones económicas de la falta de transparencia en los acuerdos energéticos."
+    ]
+  },
+  "paquete": {
+    "hecho": "Expertos y abogados consultados por la agencia Reuters expresaron dudas sobre la legalidad, la transparencia y la sostenibilidad fiscal del acuerdo petrolero en",
+    "fecha_hecho": "2026-08-31",
+    "cifras": [
+      {
+        "clave": "calificacion",
+        "valor": "C",
+        "unidad": "calificación",
+        "periodo": "2026-01-01",
+        "fuente_id": "dam1",
+        "valor_crudo": null,
+        "nota": "calificación soberana de Moody's (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "prima_pais",
+        "valor": "26,66",
+        "unidad": "%",
+        "periodo": "2026-01-01",
+        "fuente_id": "dam1",
+        "valor_crudo": 26.659117303269014,
+        "nota": "prima de riesgo país (contexto que aporta el medio)",
+        "rol": "contexto"
+      }
+    ],
+    "citas": [
+      {
+        "texto": "demasiadas lagunas en el acuerdo petrolero",
+        "autor": "El Nacional",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "Los impuestos que se recaudarán, anunciados por el gobierno interino, son increíblemente bajos",
+        "autor": "El Nacional",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "Expertos y abogados consultados por la agencia Reuters expresaron dudas sobre la legalidad, la transparencia y la sostenibilidad fiscal del acuerdo petrolero entre Estados Unidos y Venezuela.\n\nEl abogado José Ignacio Hernández advirtió que el convenio presenta riesgos de nulidad constitucional y señaló que hay «demasiadas lagunas en el acuerdo petrolero». Sostuvo que la Constitución de Venezuela no permite ceder territorio a gobiernos extranjeros ni disponer del petróleo de esa manera.\n\nEl economista Francisco Rodríguez exigió transparencia y recordó que el artículo 150 de la Constitución exige el aval de la Asamblea Nacional para los contratos de interés público con Estados extranjeros.\n\nFrancisco Monaldi, del Instituto Baker de la Universidad Rice, afirmó sobre las cifras anunciadas: «Los impuestos que se recaudarán, anunciados por el gobierno interino, son increíblemente bajos».\n\nEl acuerdo no pasó por un proceso competitivo y su negociación se mantuvo en secreto hasta la semana pasada. Los expertos advierten sobre la falta de transparencia en la selección de los operadores privados y sobre el riesgo de debilitar el marco institucional venezolano.",
+        "autor": "El Nacional",
+        "fuente_id": "man1"
+      }
+    ],
+    "entidades": [
+      "El Nacional",
+      "Venezuela",
+      "NYU Stern",
+      "Aswath Damodaran"
+    ],
+    "fuentes": [
+      {
+        "id": "man1",
+        "institucion": "El Nacional",
+        "documento": "Expertos y abogados consultados por la agencia Reuters expresaron dudas sobre la legalidad, la transparencia y la sostenibilidad fiscal del acuerdo petrolero en",
+        "url": "https://www.elnacional.com/2026/08/reuters-acuerdo-petrolero-entre-venezuela-y-ee-uu-genera-dudas-sobre-legalidad-y-transparencia/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "dam1",
+        "institucion": "Aswath Damodaran (NYU Stern)",
+        "documento": "Country Default Spreads and Risk Premiums, actualizado 2026-01-01",
+        "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datacurrent.html",
+        "url_datos": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/ctryprem.xlsx",
+        "portada_es_la_fuente": false
+      }
+    ],
+    "advertencias": [
+      "FUENTE VERIFICADA A MANO por la redacción: El Nacional, 2026-08-31. Cítala por su nombre.",
+      "Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+      "ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la nota de El Nacional.",
+      "USA ESTE CONTEXTO SOLO SI VIENE AL CASO, y casi nunca hace falta la cifra. En la mayoría de las piezas basta con «la alta prima de riesgo país encarece el crédito y ahuyenta la inversión»: es una realidad conocida que no necesita número ni fuente. Mete el número solo si el argumento se apoya en su magnitud.",
+      "LA ATRIBUCIÓN VA CON LA CIFRA, NO SIN ELLA. Si escribes el número, nombra a Damodaran (NYU Stern) y di que es de 2026-01-01: es la estimación de un académico, no una cifra oficial, y presentarla sin dueño sería falsa precisión. Pero si solo haces la afirmación cualitativa, NO lo menciones: nombrar a un académico para decir que el riesgo es alto suena a nota al pie y estorba la lectura."
+    ]
+  }
+}

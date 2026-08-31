@@ -1,0 +1,141 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "COLOMBIA NEGOCIA EL REGRESO DEL ENSAMBLAJE AUTOMOTRIZ DE MAZDA Y EVALÚA PROYECTOS CON TOYOTA",
+    "autor": null,
+    "fecha_publicacion": "2026-08-31",
+    "cuerpo": "El gobierno de Colombia confirmó que mantiene conversaciones con la marca japonesa Toyota y trabaja para que Mazda regrese a ensamblar vehículos en el país, según informó el portal Valora Analitik. Las gestiones forman parte de una agenda orientada a explorar inversiones en manufactura y movilidad sostenible, aunque se trata de conversaciones en curso y planes preliminares que por ahora no constituyen acuerdos firmados ni inversiones confirmadas.\n\nLa reapertura o instalación de plantas de ensamblaje representa un desafío complejo frente a los mercados globales, donde la escala de producción masiva y los costos logísticos marcan el ritmo del sector. Sin embargo, atraer este tipo de industrias permite dinamizar la economía mediante la creación de empleo cualificado en plantas de montaje, el impulso a una cadena de proveedores locales de autopartes y el fortalecimiento de capacidades técnicas dentro del territorio nacional.\n\nEl antecedente más cercano de esta actividad industrial se remonta a la presencia histórica de Mazda, que ensambló vehículos en Colombia durante tres décadas a través de la Compañía Colombiana Automotriz en su planta de Bogotá. Aquella etapa productiva concluyó de manera definitiva cuando el último vehículo salió de la línea de ensamblaje el 30 de abril de 2014, marcando el cierre de un ciclo para la manufactura automotriz tradicional en la capital.\n\nDentro de los contactos recientes con directivos de firmas japonesas como Toshiba, Toyota y Mazda, el ejecutivo nacional también planteó la posibilidad de ampliar la participación de Toyota mediante el desarrollo de infraestructura de carga, la integración de proveedores locales y el ensamblaje de vehículos híbridos y eléctricos. Estas conversaciones se cruzan además con los intentos por destrabar el Acuerdo de Asociación Económica entre Colombia y Japón, un tratado comercial cuyas negociaciones han permanecido detenidas durante unos quince años.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Región Andina",
+      "pais": "Colombia",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: Valora Analitik, 2026-08-31 · https://www.valoraanalitik.com/gobierno-confirma-plan-para-que-mazda-vuelva-a-ensamblar-carros-en-colombia/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [cifra-del-encargo] hay cifras que vienen del encargo de edición, no de una fuente automática: responde quien lo escribió",
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: Valora Analitik, 2026-08-31. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [advertencia-paquete] FUENTE PRIMARIA OFICIAL: La información proviene del comunicado directo de DANE (Estadísticas Colombia). A diferencia de las fuentes secundarias de prensa, esta cifra se puede publicar como propia o citando directamente a la institución. Cierra la pieza con «Sacado de: DANE (Estadísticas Colombia), Thu, 13 Au — https://www.dane.gov.co/files/prensa/comunicados/cp-DANE-OficializaCIIURev5AC.pdf».",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Contexto macroeconómico desconectado del hecho principal",
+        "por_que": "El último párrafo introduce la tasa de desempleo (8,1 %) y la ocupación nacional (24,5 millones) de forma forzada. Se vinculan las gestiones industriales con estas cifras generales sin demostrar una relación causal directa, cayendo en un salto lógico sobre el mercado laboral actual y las inversiones futuras que aún no se han concretado.",
+        "sugerencia": "Eliminar la mención a las cifras de desempleo de El Tiempo del último párrafo, ya que no aportan contexto explicativo real a una negociación de inversión automotriz a mediano y largo plazo."
+      },
+      {
+        "gravedad": "media",
+        "que": "Bloque SurEconomics vacío",
+        "por_que": "La estructura de la pieza exige un bloque de análisis propio de la línea editorial que aporte sentido a la noticia (por ejemplo, sobre el valor agregado local y la política industrial), el cual se encuentra completamente en blanco.",
+        "sugerencia": "Redactar un breve bloque SurEconomics que contextualice la importancia del desarrollo con valor agregado local y la sustitución de importaciones en la industria automotriz."
+      }
+    ],
+    "sobra": [
+      "Las cifras de empleo y desempleo de El Tiempo en el contexto actual de la nota."
+    ],
+    "falta": [
+      "Un análisis en el bloque SurEconomics sobre el impacto real de reactivar cadenas de valor industrial frente a los desafíos logísticos internacionales."
+    ]
+  },
+  "paquete": {
+    "hecho": "El gobierno de Colombia confirmó que trabaja para que Mazda vuelva a ensamblar vehículos en el país y mantiene conversaciones con Toyota, que evalúa a Colombia ",
+    "fecha_hecho": "2026-08-31",
+    "cifras": [
+      {
+        "clave": "cifra_1",
+        "valor": "8,1",
+        "unidad": "por ciento",
+        "periodo": "según la nota",
+        "fuente_id": "eltiempo",
+        "valor_crudo": null,
+        "nota": "publicada por El Tiempo: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "cifra_2",
+        "valor": "24,5",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "eltiempo",
+        "valor_crudo": null,
+        "nota": "publicada por El Tiempo: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      }
+    ],
+    "citas": [
+      {
+        "texto": "El gobierno de Colombia confirmó que trabaja para que Mazda vuelva a ensamblar vehículos en el país y mantiene conversaciones con Toyota, que evalúa a Colombia como destino para proyectos de vehículos eléctricos.\n\nEl ministro de Comercio sostuvo reuniones con empresas japonesas, entre ellas Toshiba, Toyota y Mazda, para explorar inversiones en manufactura, movilidad eléctrica, energía, infraestructura digital, innovación y tecnología.\n\nMazda ensambló vehículos en Colombia durante tres décadas a través de la Compañía Colombiana Automotriz, con planta en Bogotá. El último vehículo salió de la línea de producción el 30 de abril de 2014.\n\nEl gobierno invitó a Toyota a ampliar su presencia en Colombia con ensamblaje local de vehículos híbridos y eléctricos, infraestructura de carga y desarrollo de proveedores colombianos.\n\nLas gestiones forman parte del esfuerzo por reactivar el Acuerdo de Asociación Económica entre Colombia y Japón, cuya negociación lleva unos quince años detenida.\n\nSe trata de planes y negociaciones en curso, no de acuerdos firmados ni de inversiones confirmadas.",
+        "autor": "Valora Analitik",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "En el séptimo mes del año, la ocupación llegó a 24,5 millones de personas, mientras la agricultura perdió 204.000 ocupados y el comercio sumó 158.000.",
+        "autor": "El Tiempo",
+        "fuente_id": "eltiempo"
+      },
+      {
+        "texto": "Bogotá, 13 de agosto de 2026 COM-070-PDT-001-f-001 V19 Comunicado de prensa El DANE oficializa la CIIU Rev. 5 A.C.: nueva versión para la clasificación de las actividades económicas Bogotá D.C., 13 de agosto de 2026. El Departamento Administrativo Nacional de Estadística (DANE), como ente rector del Sistema Estadístico Nacional (SEN), informa a las entidades públicas y privadas, productores de est",
+        "autor": "DANE (Estadísticas Colombia)",
+        "fuente_id": "primaria_dane"
+      }
+    ],
+    "entidades": [
+      "Valora Analitik",
+      "El Tiempo",
+      "Colombia",
+      "DANE (Estadísticas Colombia)"
+    ],
+    "fuentes": [
+      {
+        "id": "man1",
+        "institucion": "Valora Analitik",
+        "documento": "El gobierno de Colombia confirmó que trabaja para que Mazda vuelva a ensamblar vehículos en el país y mantiene conversaciones con Toyota, que evalúa a Colombia ",
+        "url": "https://www.valoraanalitik.com/gobierno-confirma-plan-para-que-mazda-vuelva-a-ensamblar-carros-en-colombia/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "eltiempo",
+        "institucion": "El Tiempo",
+        "documento": "Desempleo en Colombia bajó a 8,1 por ciento en julio y la ocupación aumentó en 578.000 puestos de trabajo, según el Dane",
+        "url": "https://www.eltiempo.com/economia/sectores/desempleo-en-colombia-bajo-a-8-1-por-ciento-en-julio-y-la-ocupacion-aumento-en-578-000-puestos-de-trabajo-segun-el-dane-3582380",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "primaria_dane",
+        "institucion": "DANE (Estadísticas Colombia)",
+        "documento": "Comunicado de prensa",
+        "url": "https://www.dane.gov.co/files/prensa/comunicados/cp-DANE-OficializaCIIURev5AC.pdf",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      }
+    ],
+    "advertencias": [
+      "FUENTE VERIFICADA A MANO por la redacción: Valora Analitik, 2026-08-31. Cítala por su nombre.",
+      "Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+      "ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la nota de Valora Analitik.",
+      "ATRIBUCIÓN OBLIGATORIA: la información es de El Tiempo. El cuerpo tiene que nombrar al diario (El Tiempo) y la pieza cierra con «Sacado de: El Tiempo, 2026-08-31 — https://www.eltiempo.com/economia/sectores/desempleo-en-colombia-bajo-a-8-1-por-ciento-en-julio-y-la-ocupacion-aumento-en-578-000-puestos-de-trabajo-segun-el-dane-3582380».",
+      "CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+      "FUENTE PRIMARIA OFICIAL: La información proviene del comunicado directo de DANE (Estadísticas Colombia). A diferencia de las fuentes secundarias de prensa, esta cifra se puede publicar como propia o citando directamente a la institución. Cierra la pieza con «Sacado de: DANE (Estadísticas Colombia), Thu, 13 Au — https://www.dane.gov.co/files/prensa/comunicados/cp-DANE-OficializaCIIURev5AC.pdf»."
+    ]
+  }
+}

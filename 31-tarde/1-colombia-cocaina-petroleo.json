@@ -1,0 +1,255 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "UN ESTUDIO DE LA UNIVERSIDAD EAFIT DIFUNDIDO POR VALORA ANALITIK CALCULA QUE LA COCAÍNA SUPERÓ AL PETRÓLEO EN LOS FLUJOS ILÍCITOS DE COLOMBIA",
+    "autor": null,
+    "fecha_publicacion": "2026-08-31",
+    "cuerpo": "LA COCAÍNA SUPERA AL PETRÓLEO COMO PRIMER PRODUCTO DE EXPORTACIÓN DE COLOMBIA, SEGÚN LA UNIVERSIDAD EAFIT\n\nUn estudio elaborado por la Universidad EAFIT y difundido por el medio Valora Analitik detalla que el negocio de la cocaína generó ingresos estimados en 16.500 millones de dólares en 2024, superando los 15.000 millones de dólares obtenidos por las exportaciones formales de petróleo en el mismo período.\n\nEstas estimaciones sobre flujos financieros ilícitos no forman parte del comercio exterior registrado por las aduanas ni ingresan divisas formales al banco central, a diferencia de los datos oficiales de comercio que emite el Departamento Administrativo Nacional de Estadística (DANE). El estudio académico señala que las ventas del sector representaron el 4,4 % del producto interno bruto de Colombia en 2024, un incremento frente al 0,8 % registrado diez años atrás, mientras que la producción nacional pasó de menos de 300 toneladas en 2013 a cerca de 3.000 toneladas en 2024.\n\nEn el desglose de los demás sectores tradicionales del comercio exterior colombiano, el carbón sumó 7.100 millones de dólares, el oro de exportación legal alcanzó 4.100 millones de dólares y el oro ilegal totalizó 3.600 millones de dólares, según los datos difundidos por Valora Analitik. La investigación también destaca que Colombia produce cerca del 70 % de la cocaína que se exporta a nivel mundial.\n\nDesde una perspectiva económica, el flujo de esta economía ilegal opera al margen del sistema tributario formal, lo que implica que no genera ingresos fiscales para el Estado ni se traduce en el fortalecimiento de las reservas internacionales de la misma manera que una exportación regulada. Asimismo, la cadena de precios ilustra la distribución del valor en los mercados internacionales: la hoja de coca se paga a 468 dólares por kilogramo en su origen, mientras que el producto llega a alcanzar los 78.100 dólares por kilogramo para el consumidor final en Europa, con etapas intermedias en los laboratorios, las rutas de exportación y el paso por países como México y Estados Unidos.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Región Andina",
+      "pais": "Colombia",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1",
+      "cifra_2",
+      "cifra_3",
+      "cifra_4",
+      "cifra_5",
+      "cifra_6",
+      "cifra_7",
+      "cifra_8",
+      "cifra_9",
+      "cifra_10"
+    ],
+    "fuentes_usadas": [
+      "man1",
+      "primaria_dane",
+      "folha"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [
+      "La contraparte institucional: medidas o respuestas anunciadas por el gobierno colombiano o los organismos de seguridad frente al incremento de la producción y la economía ilegal reportado por el estudio."
+    ],
+    "sacado_de": "Sacado de: Valora Analitik, 2026-08-31 · https://www.valoraanalitik.com/colombia-ya-exporta-mas-cocaina-que-petroleo-y-es-el-pais-que-pone-70-de-esta-droga-a-nivel-mundial/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: Valora Analitik, 2026-08-31. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] FUENTE PRIMARIA OFICIAL: La información proviene del comunicado directo de DANE (Estadísticas Colombia). A diferencia de las fuentes secundarias de prensa, esta cifra se puede publicar como propia o citando directamente a la institución. Cierra la pieza con «Sacado de: DANE (Estadísticas Colombia), Thu, 13 Au — https://www.dane.gov.co/files/prensa/comunicados/cp-DANE-OficializaCIIURev5AC.pdf».",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Tratar la exportación de cocaína como una exportación formal dentro de las cuentas nacionales y compararla directamente con el petróleo.",
+        "por_que": "El narcotráfico es una actividad ilegal que no forma parte del comercio exterior registrado por las aduanas ni ingresa divisas formales al banco central, tal como señala correctamente el propio texto en su último párrafo. Sin embargo, presentarla en el primer párrafo como un 'principal producto de exportación' compitiendo codo a codo con el petróleo genera una confusión contable grave sobre la balanza comercial oficial del país.",
+        "sugerencia": "Matizar desde el inicio que se trata de una estimación académica sobre flujos financieros ilícitos calculados por la Universidad EAFIT, y aclarar que no forman parte de las exportaciones formales registradas por el DANE."
+      },
+      {
+        "gravedad": "media",
+        "que": "Omisión de la fuente y enlace de cierre obligatorio de Folha de S.Paulo y DANE según las advertencias del paquete de datos.",
+        "por_que": "El paquete de datos incluye fuentes obligatorias y directrices de cierre que deben reflejarse en la estructura de la pieza (atribuciones y enlaces institucionales).",
+        "sugerencia": "Incluir las menciones correspondientes a los comunicados oficiales del DANE y los datos contextuales provistos por Folha de S.Paulo, cerrando la pieza con los enlaces requeridos en las advertencias."
+      }
+    ],
+    "sobra": [],
+    "falta": [
+      "La contraparte institucional: qué medidas o respuestas ha anunciado el gobierno colombiano o los organismos de seguridad frente a este incremento de la producción y la economía ilegal reportado por el estudio."
+    ]
+  },
+  "paquete": {
+    "hecho": "Colombia exporta más cocaína que petróleo desde 2024, según un estudio de la Universidad EAFIT difundido por Valora Analitik y recogido por The Economist.",
+    "fecha_hecho": "2026-08-31",
+    "cifras": [
+      {
+        "clave": "cifra_1",
+        "valor": "16.500",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Valora Analitik: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_2",
+        "valor": "15.000",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Valora Analitik: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_3",
+        "valor": "7.100",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Valora Analitik: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_4",
+        "valor": "4.100",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Valora Analitik: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_5",
+        "valor": "3.600",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Valora Analitik: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_6",
+        "valor": "4,4",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Valora Analitik: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_7",
+        "valor": "0,8",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Valora Analitik: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_8",
+        "valor": "70",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Valora Analitik: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_9",
+        "valor": "468",
+        "unidad": "dólares",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Valora Analitik: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_10",
+        "valor": "78.100",
+        "unidad": "dólares",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Valora Analitik: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "ctx2_cifra_1",
+        "valor": "1",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "folha",
+        "valor_crudo": null,
+        "nota": "publicada por Folha de S.Paulo: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "ctx2_cifra_2",
+        "valor": "2",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "folha",
+        "valor_crudo": null,
+        "nota": "publicada por Folha de S.Paulo: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      }
+    ],
+    "citas": [
+      {
+        "texto": "Colombia exporta más cocaína que petróleo desde 2024, según un estudio de la Universidad EAFIT difundido por Valora Analitik y recogido por The Economist.\n\nLas exportaciones de cocaína alcanzaron los 16.500 millones de dólares en 2024, frente a 15.000 millones del petróleo. El carbón sumó 7.100 millones, el oro de exportación legal 4.100 millones y el oro ilegal 3.600 millones.\n\nEl negocio de la cocaína representó el 4,4 % del producto interno bruto de Colombia en 2024. Hace diez años representaba el 0,8 % del PIB.\n\nLa producción pasó de menos de 300 toneladas en 2013 a cerca de 3.000 toneladas en 2024.\n\nColombia produce cerca del 70 % de la cocaína que se exporta en el planeta.\n\nEl estudio detalla la cadena de precios por kilogramo: la hoja de coca se paga a 468 dólares y el producto llega al consumidor final en Europa a 78.100 dólares, con etapas intermedias en los laboratorios, la exportación, México y Estados Unidos.",
+        "autor": "Valora Analitik",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "Bogotá, 13 de agosto de 2026 COM-070-PDT-001-f-001 V19 Comunicado de prensa El DANE oficializa la CIIU Rev. 5 A.C.: nueva versión para la clasificación de las actividades económicas Bogotá D.C., 13 de agosto de 2026. El Departamento Administrativo Nacional de Estadística (DANE), como ente rector del Sistema Estadístico Nacional (SEN), informa a las entidades públicas y privadas, productores de est",
+        "autor": "DANE (Estadísticas Colombia)",
+        "fuente_id": "primaria_dane"
+      },
+      {
+        "texto": "As ações de Petrobras, Prio e PetroReconcavo fecharam em alta nesta segunda-feira (31) e ajudaram a sustentar a alta de quase 1% do Ibovespa . O movimento acompanhou o avanço dos preços do petróleo, que subiram mais de 2% ao longo da sessão. Leia mais (08/31/2026 - 14h15)",
+        "autor": "Folha de S.Paulo",
+        "fuente_id": "folha"
+      }
+    ],
+    "entidades": [
+      "Valora Analitik",
+      "DANE (Estadísticas Colombia)",
+      "Colombia",
+      "Folha de S.Paulo",
+      "Brasil"
+    ],
+    "fuentes": [
+      {
+        "id": "man1",
+        "institucion": "Valora Analitik",
+        "documento": "Colombia exporta más cocaína que petróleo desde 2024, según un estudio de la Universidad EAFIT difundido por Valora Analitik y recogido por The Economist.",
+        "url": "https://www.valoraanalitik.com/colombia-ya-exporta-mas-cocaina-que-petroleo-y-es-el-pais-que-pone-70-de-esta-droga-a-nivel-mundial/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "primaria_dane",
+        "institucion": "DANE (Estadísticas Colombia)",
+        "documento": "Comunicado de prensa",
+        "url": "https://www.dane.gov.co/files/prensa/comunicados/cp-DANE-OficializaCIIURev5AC.pdf",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "folha",
+        "institucion": "Folha de S.Paulo",
+        "documento": "Ações de petrolíferas brasileiras sobem em bloco com avanço do petróleo",
+        "url": "https://aovivo.folha.uol.com.br/mercado/2026/08/01/6556-dolar-empresas-e-bolsas-acompanhe-ao-vivo-o-mercado.shtml#post466781",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      }
+    ],
+    "advertencias": [
+      "FUENTE VERIFICADA A MANO por la redacción: Valora Analitik, 2026-08-31. Cítala por su nombre.",
+      "Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+      "ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la nota de Valora Analitik.",
+      "FUENTE PRIMARIA OFICIAL: La información proviene del comunicado directo de DANE (Estadísticas Colombia). A diferencia de las fuentes secundarias de prensa, esta cifra se puede publicar como propia o citando directamente a la institución. Cierra la pieza con «Sacado de: DANE (Estadísticas Colombia), Thu, 13 Au — https://www.dane.gov.co/files/prensa/comunicados/cp-DANE-OficializaCIIURev5AC.pdf».",
+      "ATRIBUCIÓN OBLIGATORIA: la información es de Folha de S.Paulo. El cuerpo tiene que nombrar al diario (Folha de S.Paulo) y la pieza cierra con «Sacado de: Folha de S.Paulo, 2026-08-31 — https://aovivo.folha.uol.com.br/mercado/2026/08/01/6556-dolar-empresas-e-bolsas-acompanhe-ao-vivo-o-mercado.shtml#post466781».",
+      "CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal."
+    ]
+  },
+  "reauditada": true
+}

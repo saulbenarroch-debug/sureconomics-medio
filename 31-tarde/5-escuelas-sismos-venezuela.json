@@ -1,0 +1,84 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "REUBICARÁN A ALUMNOS DE 91 ESCUELAS AFECTADAS POR EL SISMO EN VENEZUELA",
+    "autor": null,
+    "fecha_publicacion": "2026-08-31",
+    "cuerpo": "El ministro de Educación de Venezuela, Héctor Rodríguez, informó que los alumnos de 91 centros educativos afectados por el doble sismo del 24 de junio de 2026 serán reubicados para el próximo período escolar, según reportó el medio TalCual.\n\nDe acuerdo con la información difundida, 11 de esos 91 planteles sufrieron el colapso de sus estructuras, mientras que el resto presentó diversos daños materiales. La contingencia impactó a unas 900 escuelas de las 27.000 que conforman el sistema educativo nacional, aunque el grueso de los daños reportados fue de carácter menor.\n\nEl plan oficial establece que cada estudiante de los centros afectados sea reubicado en la institución más cercana a su zona de residencia a partir del 14 de septiembre, fecha fijada para el inicio del año escolar 2026-2027. La medida busca garantizar la continuidad de las actividades académicas a pesar de la pérdida temporal de infraestructura.\n\nEn paralelo, el reporte indicó que 12 de los 67 refugios temporales habilitados inicialmente en planteles educativos ya fueron desocupados. Esta acción forma parte de un esquema gubernamental destinado a trasladar a las personas desplazadas hacia campamentos unifamiliares o proveerles una solución habitacional definitiva.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Región Andina",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: TalCual, 2026-08-26 · https://talcualdigital.com/ministerio-de-educacion-reubicara-a-alumnos-de-91-escuelas-afectadas-por-los-terremotos/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [cifra-del-encargo] hay cifras que vienen del encargo de edición, no de una fuente automática: responde quien lo escribió",
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: TalCual, 2026-08-26. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "El bloque SurEconomics está vacío.",
+        "por_que": "La línea editorial exige un cierre o análisis propio que aporte perspectiva (en este caso, sobre la inversión pública en infraestructura y la capacidad de respuesta estatal ante emergencias), en lugar de dejar la pieza como un mero refrito de agencia.",
+        "sugerencia": "Redactar un breve bloque final que enmarque el desafío fiscal de la reconstrucción escolar dentro de la crisis económica del país, manteniendo la postura crítica pero equilibrada."
+      },
+      {
+        "gravedad": "media",
+        "que": "Ausencia de atribución directa al medio fuente en el texto principal.",
+        "por_que": "Las advertencias del paquete de datos señalan explícitamente que TalCual es una fuente secundaria y se debe citar al medio por su nombre en la redacción.",
+        "sugerencia": "Asegurar que se mencione a TalCual en el cuerpo de la noticia al presentar las cifras de los planteles afectados, tal como exige el protocolo de fuentes."
+      }
+    ],
+    "sobra": [],
+    "falta": [
+      "Un bloque SurEconomics que contextualice el reto presupuestario del Estado venezolano frente a la crisis."
+    ]
+  },
+  "paquete": {
+    "hecho": "El ministro de Educación de Venezuela, Héctor Rodríguez, informó que se reubicará a los alumnos de 91 centros educativos afectados por el doble sismo del 24 de ",
+    "fecha_hecho": "2026-08-26",
+    "cifras": [],
+    "citas": [
+      {
+        "texto": "El ministro de Educación de Venezuela, Héctor Rodríguez, informó que se reubicará a los alumnos de 91 centros educativos afectados por el doble sismo del 24 de junio de 2026 para el próximo año escolar.\n\nDe esos 91 planteles, 11 colapsaron y el resto sufrió daños estructurales.\n\nLos terremotos afectaron a unas 900 escuelas de las 27.000 que hay en el país, la gran mayoría con daños menores.\n\nCada alumno de los centros afectados será reubicado en la escuela más cercana a su zona de residencia a partir del 14 de septiembre, cuando comienza el período escolar 2026-2027.\n\nDoce de los 67 refugios temporales instalados en escuelas ya fueron desocupados, como parte de un plan que contempla trasladar a los desplazados a campamentos unifamiliares o dotarlos de vivienda.",
+        "autor": "TalCual",
+        "fuente_id": "man1"
+      }
+    ],
+    "entidades": [
+      "TalCual"
+    ],
+    "fuentes": [
+      {
+        "id": "man1",
+        "institucion": "TalCual",
+        "documento": "El ministro de Educación de Venezuela, Héctor Rodríguez, informó que se reubicará a los alumnos de 91 centros educativos afectados por el doble sismo del 24 de ",
+        "url": "https://talcualdigital.com/ministerio-de-educacion-reubicara-a-alumnos-de-91-escuelas-afectadas-por-los-terremotos/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      }
+    ],
+    "advertencias": [
+      "FUENTE VERIFICADA A MANO por la redacción: TalCual, 2026-08-26. Cítala por su nombre.",
+      "Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+      "ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la nota de TalCual."
+    ]
+  }
+}

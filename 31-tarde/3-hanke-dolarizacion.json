@@ -1,0 +1,207 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "STEVE HANKE ENTREGA A LA CASA BLANCA UN PROYECTO PARA DOLARIZAR OFICIALMENTE VENEZUELA",
+    "autor": null,
+    "fecha_publicacion": "2026-08-31",
+    "cuerpo": "El economista estadounidense Steve Hanke, profesor de la Universidad Johns Hopkins, entregó a la administración de Donald Trump su proyecto para dolarizar oficialmente la economía de Venezuela, tras una solicitud directa de la Casa Blanca, según informó el medio La Patilla el 31 de agosto de 2026.\n\nEl plan fue elaborado junto al diputado venezolano Antonio Ecarri y busca sustituir formalmente al bolívar como moneda de curso legal, con el objetivo de erradicar la hiperinflación y restaurar la estabilidad económica. Hanke participa además como asesor en la llamada Gran Estrategia del Dólar de la administración Trump, orientada a promover el uso internacional de la moneda estadounidense.\n\nEn cuanto a las probabilidades de éxito de la medida, el economista estima entre un 50 % y un 80 % la posibilidad de que Venezuela adopte oficialmente el dólar, y sostiene que cualquier decisión de ese tipo debería contar con el respaldo de la ciudadanía, de acuerdo con la información publicada por La Patilla.\n\nSobre esta iniciativa, Hanke señaló textualmente: «Una forma obvia de promover el uso del dólar estadounidense es alentar a los países a dolarizar, a eliminar su moneda sin valor y reemplazarla formalmente con el dólar estadounidense como moneda de curso legal».",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1",
+      "cifra_2"
+    ],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: La Patilla, 2026-08-31 · https://lapatilla.com/2026/08/31/plan-de-dolarizacion-de-venezuela-llego-a-la-casa-blanca-por-solicitud-de-donald-trump-afirmo-steve-hanke/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [quien-lo-dijo] hay citas textuales: comprobar CONTRA LA NOTA ORIGINAL a quien se le atribuyen. El sistema no puede verificarlo",
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: La Patilla, 2026-08-31. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] LOS AÑOS 2026 EN ADELANTE SON PROYECCIONES del FMI, no datos observados. Si usas una, dilo expresamente: presentar una estimación como hecho consumado es un error grave.",
+    "  ! [advertencia-paquete] Datos capturados a mano el 2026-08-25 porque el FMI bloquea la lectura automática. El WEO se actualiza en abril y en octubre; si estamos pasados de esas fechas, conviene refrescarlos.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Inclusión de un dato completamente ajeno a la noticia en el paquete de datos y contexto.",
+        "por_que": "El paquete de datos incluye una cifra de Telefónica en México y Venezuela (184 millones de euros) proveniente de El País que no guarda relación con la propuesta de dolarización de Steve Hanke. Aunque no se coló explícitamente en el cuerpo redactado, hay que vigilar que no se arrastren contextos cruzados de fuentes distintas.",
+        "sugerencia": "Ignorar la cifra de 184 millones de euros y la fuente de El País, ya que este artículo trata exclusivamente sobre el plan de dolarización de Hanke y no sobre resultados corporativos de multinacionales."
+      },
+      {
+        "gravedad": "media",
+        "que": "Falta el bloque SurEconomics requerido por la línea editorial.",
+        "por_que": "El borrador deja el bloque `SurEconomics:` totalmente vacío, incumpliendo la estructura esperada para aportar la lectura crítica y de valor agregado del medio.",
+        "sugerencia": "Redactar un bloque SurEconomics breve que contextualice las implicaciones estructurales de una dolarización oficial (pérdida de soberanía monetaria, dependencia de los flujos externos de divisa y asimetrías sociales) sin contradecir la prudencia analítica."
+      }
+    ],
+    "sobra": [
+      "La referencia cruzada a datos corporativos de Telefónica de otra fuente completamente desconectada del tema central."
+    ],
+    "falta": [
+      "Una mención analítica en el bloque SurEconomics sobre los riesgos estructurales de una dolarización oficial impuesta externamente para las clases trabajadoras y el tejido productivo local."
+    ]
+  },
+  "paquete": {
+    "hecho": "El economista estadounidense Steve Hanke, profesor de la Universidad Johns Hopkins, entregó a la administración de Donald Trump su proyecto para dolarizar ofici",
+    "fecha_hecho": "2026-08-31",
+    "cifras": [
+      {
+        "clave": "cifra_1",
+        "valor": "50",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por La Patilla: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_2",
+        "valor": "80",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por La Patilla: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "fmi_inflacion_2023",
+        "valor": "337,5",
+        "unidad": "%",
+        "periodo": "2023",
+        "fuente_id": "fmi1",
+        "valor_crudo": 337.5,
+        "nota": "inflación anual (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "fmi_inflacion_2024",
+        "valor": "49,4",
+        "unidad": "%",
+        "periodo": "2024",
+        "fuente_id": "fmi1",
+        "valor_crudo": 49.4,
+        "nota": "inflación anual (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "fmi_inflacion_2025",
+        "valor": "252,0",
+        "unidad": "%",
+        "periodo": "2025",
+        "fuente_id": "fmi1",
+        "valor_crudo": 252.0,
+        "nota": "inflación anual (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "fmi_inflacion_2026",
+        "valor": "387,4",
+        "unidad": "%",
+        "periodo": "2026 (proyección del FMI)",
+        "fuente_id": "fmi1",
+        "valor_crudo": 387.4,
+        "nota": "inflación anual — PROYECCIÓN, no dato observado (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "fmi_inflacion_2027",
+        "valor": "94,4",
+        "unidad": "%",
+        "periodo": "2027 (proyección del FMI)",
+        "fuente_id": "fmi1",
+        "valor_crudo": 94.4,
+        "nota": "inflación anual — PROYECCIÓN, no dato observado (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "ctx2_cifra_1",
+        "valor": "184",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "elpais",
+        "valor_crudo": null,
+        "nota": "publicada por El País: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      }
+    ],
+    "citas": [
+      {
+        "texto": "Una forma obvia de promover el uso del dólar estadounidense es alentar a los países a dolarizar, a eliminar su moneda sin valor y reemplazarla formalmente con el dólar estadounidense como moneda de curso legal",
+        "autor": "Steve Hanke",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "El economista estadounidense Steve Hanke, profesor de la Universidad Johns Hopkins, entregó a la administración de Donald Trump su proyecto para dolarizar oficialmente la economía de Venezuela, tras una solicitud directa de la Casa Blanca.\n\nEl plan fue elaborado junto al diputado venezolano Antonio Ecarri y busca sustituir formalmente al bolívar como moneda de curso legal, con el objetivo de erradicar la hiperinflación y restaurar la estabilidad económica.\n\nHanke explicó: «Una forma obvia de promover el uso del dólar estadounidense es alentar a los países a dolarizar, a eliminar su moneda sin valor y reemplazarla formalmente con el dólar estadounidense como moneda de curso legal».\n\nHanke participa además como asesor en la llamada Gran Estrategia del Dólar de la administración Trump, orientada a promover el uso internacional de la moneda estadounidense.\n\nEl economista estima entre un 50 % y un 80 % la probabilidad de que Venezuela adopte oficialmente el dólar, y sostiene que cualquier decisión de ese tipo debería contar con el respaldo de la ciudadanía.",
+        "autor": "La Patilla",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "Las dos filiales sumaron más de 184 millones de euros en ganancias en 2025, frente a las abultadas pérdidas en Chile y Colombia en plena salida del grupo español de la región",
+        "autor": "El País",
+        "fuente_id": "elpais"
+      }
+    ],
+    "entidades": [
+      "La Patilla",
+      "Venezuela",
+      "Fondo Monetario Internacional",
+      "El País",
+      "España"
+    ],
+    "fuentes": [
+      {
+        "id": "man1",
+        "institucion": "La Patilla",
+        "documento": "El economista estadounidense Steve Hanke, profesor de la Universidad Johns Hopkins, entregó a la administración de Donald Trump su proyecto para dolarizar ofici",
+        "url": "https://lapatilla.com/2026/08/31/plan-de-dolarizacion-de-venezuela-llego-a-la-casa-blanca-por-solicitud-de-donald-trump-afirmo-steve-hanke/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "fmi1",
+        "institucion": "Fondo Monetario Internacional",
+        "documento": "World Economic Outlook — inflación anual de Venezuela, consultado el 2026-08-25",
+        "url": "https://www.imf.org/external/datamapper/PCPIPCH@WEO",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "elpais",
+        "institucion": "El País",
+        "documento": "México y Venezuela aportaron beneficios millonarios en el último año de Telefónica Hispanoamérica",
+        "url": "https://elpais.com/economia/2026-08-29/mexico-y-venezuela-obtuvieron-beneficios-millonarios-en-el-ultimo-ano-de-telefonica-hispanoamerica.html",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      }
+    ],
+    "advertencias": [
+      "FUENTE VERIFICADA A MANO por la redacción: La Patilla, 2026-08-31. Cítala por su nombre.",
+      "Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+      "ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la nota de La Patilla.",
+      "LOS AÑOS 2026 EN ADELANTE SON PROYECCIONES del FMI, no datos observados. Si usas una, dilo expresamente: presentar una estimación como hecho consumado es un error grave.",
+      "Datos capturados a mano el 2026-08-25 porque el FMI bloquea la lectura automática. El WEO se actualiza en abril y en octubre; si estamos pasados de esas fechas, conviene refrescarlos.",
+      "ATRIBUCIÓN OBLIGATORIA: la información es de El País. El cuerpo tiene que nombrar al diario (El País) y la pieza cierra con «Sacado de: El País, 2026-08-29 — https://elpais.com/economia/2026-08-29/mexico-y-venezuela-obtuvieron-beneficios-millonarios-en-el-ultimo-ano-de-telefonica-hispanoamerica.html».",
+      "CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal."
+    ]
+  }
+}

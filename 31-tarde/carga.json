@@ -1,0 +1,167 @@
+[
+ {
+  "origen": "1-colombia-cocaina-petroleo.txt",
+  "formato": "noticia",
+  "titulo": "LA COCAÍNA SUPERA AL PETRÓLEO COMO PRIMER PRODUCTO DE EXPORTACIÓN DE COLOMBIA, SEGÚN LA UNIVERSIDAD EAFIT",
+  "resumen": "Un estudio elaborado por la Universidad EAFIT y difundido por el medio Valora Analitik detalla que el negocio de la cocaína generó ingresos estimados en 16.500 millones de dólares en 2024, superando los 15.000 millones de dólares obtenidos por las exportaciones formales de petróleo en el mismo período.",
+  "resumen_html": "<p>Un estudio elaborado por la Universidad EAFIT y difundido por el medio Valora Analitik detalla que el negocio de la cocaína generó ingresos estimados en 16.500 millones de dólares en 2024, superando los 15.000 millones de dólares obtenidos por las exportaciones formales de petróleo en el mismo período.</p>",
+  "cuerpo_html": "<p>Un estudio elaborado por la Universidad EAFIT y difundido por el medio Valora Analitik detalla que el negocio de la cocaína generó ingresos estimados en 16.500 millones de dólares en 2024, superando los 15.000 millones de dólares obtenidos por las exportaciones formales de petróleo en el mismo período.</p><p>Estas estimaciones sobre flujos financieros ilícitos no forman parte del comercio exterior registrado por las aduanas ni ingresan divisas formales al banco central, a diferencia de los datos oficiales de comercio que emite el Departamento Administrativo Nacional de Estadística (DANE). El estudio académico señala que las ventas del sector representaron el 4,4 % del producto interno bruto de Colombia en 2024, un incremento frente al 0,8 % registrado diez años atrás, mientras que la producción nacional pasó de menos de 300 toneladas en 2013 a cerca de 3.000 toneladas en 2024.</p><p>En el desglose de los demás sectores tradicionales del comercio exterior colombiano, el carbón sumó 7.100 millones de dólares, el oro de exportación legal alcanzó 4.100 millones de dólares y el oro ilegal totalizó 3.600 millones de dólares, según los datos difundidos por Valora Analitik. La investigación también destaca que Colombia produce cerca del 70 % de la cocaína que se exporta a nivel mundial.</p><p>Desde una perspectiva económica, el flujo de esta economía ilegal opera al margen del sistema tributario formal, lo que implica que no genera ingresos fiscales para el Estado ni se traduce en el fortalecimiento de las reservas internacionales de la misma manera que una exportación regulada. Asimismo, la cadena de precios ilustra la distribución del valor en los mercados internacionales: la hoja de coca se paga a 468 dólares por kilogramo en su origen, mientras que el producto llega a alcanzar los 78.100 dólares por kilogramo para el consumidor final en Europa, con etapas intermedias en los laboratorios, las rutas de exportación y el paso por países como México y Estados Unidos.</p>",
+  "firma": "",
+  "fuentes": [
+   {
+    "nombre": "Valora Analitik",
+    "url": "https://www.valoraanalitik.com/colombia-ya-exporta-mas-cocaina-que-petroleo-y-es-el-pais-que-pone-70-de-esta-droga-a-nivel-mundial/"
+   }
+  ],
+  "temas": [
+   "Comercio Exterior",
+   "Macroeconomía",
+   "Política Fiscal y Deuda"
+  ],
+  "lugares": [
+   "Colombia"
+  ],
+  "foto": "",
+  "credito": "",
+  "bloqueada": false
+ },
+ {
+  "origen": "2-acuerdo-dudas-legalidad.txt",
+  "formato": "noticia",
+  "titulo": "EXPERTOS CUESTIONAN LA LEGALIDAD Y TRANSPARENCIA DEL ACUERDO PETROLERO ENTRE ESTADOS UNIDOS Y VENEZUELA",
+  "resumen": "Según informó el diario El Nacional, diversos expertos y abogados consultados por la agencia Reuters expresaron dudas sobre la legalidad, la transparencia y la sostenibilidad fiscal del reciente acuerdo petrolero entre Estados Unidos y Venezuela.",
+  "resumen_html": "<p>Según informó el diario El Nacional, diversos expertos y abogados consultados por la agencia Reuters expresaron dudas sobre la legalidad, la transparencia y la sostenibilidad fiscal del reciente acuerdo petrolero entre Estados Unidos y Venezuela.</p>",
+  "cuerpo_html": "<p>Según informó el diario El Nacional, diversos expertos y abogados consultados por la agencia Reuters expresaron dudas sobre la legalidad, la transparencia y la sostenibilidad fiscal del reciente acuerdo petrolero entre Estados Unidos y Venezuela.</p><p>El convenio se negoció en secreto hasta la semana pasada sin pasar por un proceso competitivo, lo que generó cuestionamientos sobre la selección de los operadores privados. En el ámbito legal, el abogado José Ignacio Hernández advirtió sobre riesgos de nulidad constitucional, al señalar que existen demasiadas lagunas en el acuerdo petrolero y que la Constitución de Venezuela no permite ceder territorio a gobiernos extranjeros ni disponer del petróleo de esa manera.</p><p>En la misma línea, el economista Francisco Rodríguez exigió mayor transparencia y recordó que el artículo 150 de la Constitución exige el aval de la Asamblea Nacional para los contratos de interés publico con Estados extranjeros. Este requisito institucional busca garantizar el control legislativo y la protección de los recursos estratégicos de la nación frente a decisiones ejecutivas unilaterales.</p><p>Por su parte, el economista Francisco Monaldi, integrante del Instituto Baker de la Universidad Rice, criticó los términos económicos proyectados y afirmó que los impuestos que se recaudarán, anunciados por el gobierno interino, son increíblemente bajos. Los especialistas advierten que este tipo de condiciones debilita el marco institucional venezolano y afecta la certidumbre jurídica a largo plazo.</p>",
+  "firma": "",
+  "fuentes": [
+   {
+    "nombre": "El Nacional",
+    "url": "https://www.elnacional.com/2026/08/reuters-acuerdo-petrolero-entre-venezuela-y-ee-uu-genera-dudas-sobre-legalidad-y-transparencia/"
+   }
+  ],
+  "temas": [
+   "Energía y Minería",
+   "Política",
+   "Geoeconomía"
+  ],
+  "lugares": [
+   "Venezuela",
+   "EE. UU."
+  ],
+  "foto": "",
+  "credito": "",
+  "bloqueada": false
+ },
+ {
+  "origen": "3-hanke-dolarizacion.txt",
+  "formato": "noticia",
+  "titulo": "STEVE HANKE ENTREGA A LA CASA BLANCA UN PROYECTO PARA DOLARIZAR OFICIALMENTE VENEZUELA",
+  "resumen": "El economista estadounidense Steve Hanke, profesor de la Universidad Johns Hopkins, entregó a la administración de Donald Trump su proyecto para dolarizar oficialmente la economía de Venezuela, tras una solicitud directa de la Casa Blanca, según informó el medio La Patilla el 31 de agosto de 2026.",
+  "resumen_html": "<p>El economista estadounidense Steve Hanke, profesor de la Universidad Johns Hopkins, entregó a la administración de Donald Trump su proyecto para dolarizar oficialmente la economía de Venezuela, tras una solicitud directa de la Casa Blanca, según informó el medio La Patilla el 31 de agosto de 2026.</p>",
+  "cuerpo_html": "<p>El economista estadounidense Steve Hanke, profesor de la Universidad Johns Hopkins, entregó a la administración de Donald Trump su proyecto para dolarizar oficialmente la economía de Venezuela, tras una solicitud directa de la Casa Blanca, según informó el medio La Patilla el 31 de agosto de 2026.</p><p>El plan fue elaborado junto al diputado venezolano Antonio Ecarri y busca sustituir formalmente al bolívar como moneda de curso legal, con el objetivo de erradicar la hiperinflación y restaurar la estabilidad económica. Hanke participa además como asesor en la llamada Gran Estrategia del Dólar de la administración Trump, orientada a promover el uso internacional de la moneda estadounidense.</p><p>En cuanto a las probabilidades de éxito de la medida, el economista estima entre un 50 % y un 80 % la posibilidad de que Venezuela adopte oficialmente el dólar, y sostiene que cualquier decisión de ese tipo debería contar con el respaldo de la ciudadanía, de acuerdo con la información publicada por La Patilla.</p><p>Sobre esta iniciativa, Hanke señaló textualmente: «Una forma obvia de promover el uso del dólar estadounidense es alentar a los países a dolarizar, a eliminar su moneda sin valor y reemplazarla formalmente con el dólar estadounidense como moneda de curso legal».</p>",
+  "firma": "",
+  "fuentes": [
+   {
+    "nombre": "La Patilla",
+    "url": "https://lapatilla.com/2026/08/31/plan-de-dolarizacion-de-venezuela-llego-a-la-casa-blanca-por-solicitud-de-donald-trump-afirmo-steve-hanke/"
+   }
+  ],
+  "temas": [
+   "Banca y Política Monetaria",
+   "Macroeconomía",
+   "Geoeconomía"
+  ],
+  "lugares": [
+   "Venezuela",
+   "EE. UU."
+  ],
+  "foto": "",
+  "credito": "",
+  "bloqueada": false
+ },
+ {
+  "origen": "4-colombia-mazda-toyota.txt",
+  "formato": "noticia",
+  "titulo": "COLOMBIA NEGOCIA EL REGRESO DEL ENSAMBLAJE AUTOMOTRIZ DE MAZDA Y EVALÚA PROYECTOS CON TOYOTA",
+  "resumen": "El gobierno de Colombia confirmó que mantiene conversaciones con la marca japonesa Toyota y trabaja para que Mazda regrese a ensamblar vehículos en el país, según informó el portal Valora Analitik.",
+  "resumen_html": "<p>El gobierno de Colombia confirmó que mantiene conversaciones con la marca japonesa Toyota y trabaja para que Mazda regrese a ensamblar vehículos en el país, según informó el portal Valora Analitik.</p>",
+  "cuerpo_html": "<p>El gobierno de Colombia confirmó que mantiene conversaciones con la marca japonesa Toyota y trabaja para que Mazda regrese a ensamblar vehículos en el país, según informó el portal Valora Analitik. Las gestiones forman parte de una agenda orientada a explorar inversiones en manufactura y movilidad sostenible, aunque se trata de conversaciones en curso y planes preliminares que por ahora no constituyen acuerdos firmados ni inversiones confirmadas.</p><p>La reapertura o instalación de plantas de ensamblaje representa un desafío complejo frente a los mercados globales, donde la escala de producción masiva y los costos logísticos marcan el ritmo del sector. Sin embargo, atraer este tipo de industrias permite dinamizar la economía mediante la creación de empleo cualificado en plantas de montaje, el impulso a una cadena de proveedores locales de autopartes y el fortalecimiento de capacidades técnicas dentro del territorio nacional.</p><p>El antecedente más cercano de esta actividad industrial se remonta a la presencia histórica de Mazda, que ensambló vehículos en Colombia durante tres décadas a través de la Compañía Colombiana Automotriz en su planta de Bogotá. Aquella etapa productiva concluyó de manera definitiva cuando el último vehículo salió de la línea de ensamblaje el 30 de abril de 2014, marcando el cierre de un ciclo para la manufactura automotriz tradicional en la capital.</p><p>Dentro de los contactos recientes con directivos de firmas japonesas como Toshiba, Toyota y Mazda, el ejecutivo nacional también planteó la posibilidad de ampliar la participación de Toyota mediante el desarrollo de infraestructura de carga, la integración de proveedores locales y el ensamblaje de vehículos híbridos y eléctricos. Estas conversaciones se cruzan además con los intentos por destrabar el Acuerdo de Asociación Económica entre Colombia y Japón, un tratado comercial cuyas negociaciones han permanecido detenidas durante unos quince años.</p>",
+  "firma": "",
+  "fuentes": [
+   {
+    "nombre": "Valora Analitik",
+    "url": "https://www.valoraanalitik.com/gobierno-confirma-plan-para-que-mazda-vuelva-a-ensamblar-carros-en-colombia/"
+   }
+  ],
+  "temas": [
+   "Empresas y Negocios",
+   "Mercados e Inversión",
+   "Comercio Exterior"
+  ],
+  "lugares": [
+   "Colombia"
+  ],
+  "foto": "",
+  "credito": "",
+  "bloqueada": false
+ },
+ {
+  "origen": "5-escuelas-sismos-venezuela.txt",
+  "formato": "noticia",
+  "titulo": "REUBICARÁN A ALUMNOS DE 91 ESCUELAS AFECTADAS POR EL SISMO EN VENEZUELA",
+  "resumen": "El ministro de Educación de Venezuela, Héctor Rodríguez, informó que los alumnos de 91 centros educativos afectados por el doble sismo del 24 de junio de 2026 serán reubicados para el próximo período escolar, según reportó el medio TalCual.",
+  "resumen_html": "<p>El ministro de Educación de Venezuela, Héctor Rodríguez, informó que los alumnos de 91 centros educativos afectados por el doble sismo del 24 de junio de 2026 serán reubicados para el próximo período escolar, según reportó el medio TalCual.</p>",
+  "cuerpo_html": "<p>El ministro de Educación de Venezuela, Héctor Rodríguez, informó que los alumnos de 91 centros educativos afectados por el doble sismo del 24 de junio de 2026 serán reubicados para el próximo período escolar, según reportó el medio TalCual.</p><p>De acuerdo con la información difundida, 11 de esos 91 planteles sufrieron el colapso de sus estructuras, mientras que el resto presentó diversos daños materiales. La contingencia impactó a unas 900 escuelas de las 27.000 que conforman el sistema educativo nacional, aunque el grueso de los daños reportados fue de carácter menor.</p><p>El plan oficial establece que cada estudiante de los centros afectados sea reubicado en la institución más cercana a su zona de residencia a partir del 14 de septiembre, fecha fijada para el inicio del año escolar 2026-2027. La medida busca garantizar la continuidad de las actividades académicas a pesar de la pérdida temporal de infraestructura.</p><p>En paralelo, el reporte indicó que 12 de los 67 refugios temporales habilitados inicialmente en planteles educativos ya fueron desocupados. Esta acción forma parte de un esquema gubernamental destinado a trasladar a las personas desplazadas hacia campamentos unifamiliares o proveerles una solución habitacional definitiva.</p>",
+  "firma": "",
+  "fuentes": [
+   {
+    "nombre": "TalCual",
+    "url": "https://talcualdigital.com/ministerio-de-educacion-reubicara-a-alumnos-de-91-escuelas-afectadas-por-los-terremotos/"
+   }
+  ],
+  "temas": [
+   "Sociedad y Bienestar",
+   "Infraestructura"
+  ],
+  "lugares": [
+   "Venezuela"
+  ],
+  "foto": "",
+  "credito": "",
+  "bloqueada": false
+ },
+ {
+  "origen": "6-gonzalez-urrutia-barriles.txt",
+  "formato": "noticia",
+  "titulo": "EDMUNDO GONZÁLEZ URRUTIA CUESTIONA EL IMPACTO SOCIAL DEL ACUERDO PETROLERO ENTRE VENEZUELA Y ESTADOS UNIDOS",
+  "resumen": "El dirigente opositor Edmundo González Urrutia se pronunció sobre el reciente acuerdo petrolero entre Estados Unidos y Venezuela.",
+  "resumen_html": "<p>El dirigente opositor Edmundo González Urrutia se pronunció sobre el reciente acuerdo petrolero entre Estados Unidos y Venezuela.</p>",
+  "cuerpo_html": "<p>El dirigente opositor Edmundo González Urrutia se pronunció sobre el reciente acuerdo petrolero entre Estados Unidos y Venezuela. Según informó CNN en Español, el pacto otorga a Washington el control de más del 20 % de las reservas de crudo venezolano durante 25 años y contempla el desarrollo de 17 campos con un potencial probado de 65.000 millones de barriles y una producción superior a 1,5 millones de barriles diarios.</p><p>Ante este escenario, González Urrutia advirtió sobre la diferencia fundamental entre la llegada masiva de recursos y su impacto real en la población. «La recuperación de Venezuela no puede medirse solo por los barriles que vuelva a producir, sino por las vidas que esa riqueza permita reconstruir», declaró. Asimismo, señaló que el país ha tenido grandes sumas de dinero en el pasado, pero subrayó que una cosa es que entren recursos y otra muy distinta es que lleguen a la vida de la gente, planteando la interrogante sobre si el petróleo beneficiará a toda la sociedad o solo a unos pocos.</p><p>El debate sobre la renta petrolera ocurre en un contexto de marcada volatilidad económica para el país. De acuerdo con datos del Fondo Monetario Internacional (FMI), el crecimiento del PIB real de Venezuela registró un 4,0 % en 2023 y un 5,3 % en 2024, desacelerándose hasta el 1,5 % en 2025. Para los años siguientes, las proyecciones del organismo apuntan a un crecimiento del 4,0 % en 2026 y del 6,0 % en 2027, cifras que corresponden a estimaciones a futuro y no a datos observados.</p><p>Por su parte, el diario El Comercio señaló que la inyección millonaria abre la puerta a la recuperación de una industria golpeada por años de deterioro, aunque diversos analistas advierten que convertir esas reservas en mayor producción dependerá de inversiones sostenidas, seguridad jurídica e instituciones sólidas.</p><p>Para González Urrutia, recuperar la industria es necesario, pero insistió en que la prioridad debe reflejarse en la reconstrucción de viviendas, la atención en los hospitales, el funcionamiento de las escuelas y la mejora de los servicios públicos.</p>",
+  "firma": "",
+  "fuentes": [
+   {
+    "nombre": "CNN en Español",
+    "url": "https://cnnespanol.cnn.com/2026/08/30/venezuela/gonzalez-urrutia-acuerdo-petrolero-eeuu-recuperacion-barriles-orix"
+   },
+   {
+    "nombre": "Fondo Monetario Internacional",
+    "url": "https://www.imf.org/external/datamapper/PCPIPCH@WEO"
+   },
+   {
+    "nombre": "El Comercio",
+    "url": "https://elcomercio.pe/mundo/venezuela/donald-trump-y-el-petroleo-de-venezuela-que-se-sabe-hasta-ahora-del-acuerdo-que-da-a-estados-unidos-acceso-a-65000-millones-de-barriles-noticia/"
+   }
+  ],
+  "temas": [
+   "Energía y Minería",
+   "Sociedad y Bienestar",
+   "Política"
+  ],
+  "lugares": [
+   "Venezuela"
+  ],
+  "foto": "",
+  "credito": "",
+  "bloqueada": false
+ }
+]

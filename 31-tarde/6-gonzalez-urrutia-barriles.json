@@ -1,0 +1,238 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "EDMUNDO GONZÁLEZ URRUTIA CUESTIONA EL IMPACTO SOCIAL DEL ACUERDO PETROLERO ENTRE VENEZUELA Y ESTADOS UNIDOS",
+    "autor": null,
+    "fecha_publicacion": "2026-08-31",
+    "cuerpo": "El dirigente opositor Edmundo González Urrutia se pronunció sobre el reciente acuerdo petrolero entre Estados Unidos y Venezuela. Según informó CNN en Español, el pacto otorga a Washington el control de más del 20 % de las reservas de crudo venezolano durante 25 años y contempla el desarrollo de 17 campos con un potencial probado de 65.000 millones de barriles y una producción superior a 1,5 millones de barriles diarios.\n\nAnte este escenario, González Urrutia advirtió sobre la diferencia fundamental entre la llegada masiva de recursos y su impacto real en la población. «La recuperación de Venezuela no puede medirse solo por los barriles que vuelva a producir, sino por las vidas que esa riqueza permita reconstruir», declaró. Asimismo, señaló que el país ha tenido grandes sumas de dinero en el pasado, pero subrayó que una cosa es que entren recursos y otra muy distinta es que lleguen a la vida de la gente, planteando la interrogante sobre si el petróleo beneficiará a toda la sociedad o solo a unos pocos.\n\nEl debate sobre la renta petrolera ocurre en un contexto de marcada volatilidad económica para el país. De acuerdo con datos del Fondo Monetario Internacional (FMI), el crecimiento del PIB real de Venezuela registró un 4,0 % en 2023 y un 5,3 % en 2024, desacelerándose hasta el 1,5 % en 2025. Para los años siguientes, las proyecciones del organismo apuntan a un crecimiento del 4,0 % en 2026 y del 6,0 % en 2027, cifras que corresponden a estimaciones a futuro y no a datos observados.\n\nPor su parte, el diario El Comercio señaló que la inyección millonaria abre la puerta a la recuperación de una industria golpeada por años de deterioro, aunque diversos analistas advierten que convertir esas reservas en mayor producción dependerá de inversiones sostenidas, seguridad jurídica e instituciones sólidas.\n\nPara González Urrutia, recuperar la industria es necesario, pero insistió en que la prioridad debe reflejarse en la reconstrucción de viviendas, la atención en los hospitales, el funcionamiento de las escuelas y la mejora de los servicios públicos.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1",
+      "cifra_2",
+      "cifra_3",
+      "fmi_crecimiento_2023",
+      "fmi_crecimiento_2024",
+      "fmi_crecimiento_2025",
+      "fmi_crecimiento_2026",
+      "fmi_crecimiento_2027"
+    ],
+    "fuentes_usadas": [
+      "man1",
+      "fmi1",
+      "elcomercio"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: CNN en Español, 2026-08-30 · https://cnnespanol.cnn.com/2026/08/30/venezuela/gonzalez-urrutia-acuerdo-petrolero-eeuu-recuperacion-barriles-orix\nSacado de: Fondo Monetario Internacional, 2026-08-30 · https://www.imf.org/external/datamapper/PCPIPCH@WEO\nSacado de: El Comercio, 2026-08-30 · https://elcomercio.pe/mundo/venezuela/donald-trump-y-el-petroleo-de-venezuela-que-se-sabe-hasta-ahora-del-acuerdo-que-da-a-estados-unidos-acceso-a-65000-millones-de-barriles-noticia/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [quien-lo-dijo] hay citas textuales: comprobar CONTRA LA NOTA ORIGINAL a quien se le atribuyen. El sistema no puede verificarlo",
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: CNN en Español, 2026-08-30. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] LOS AÑOS 2026 EN ADELANTE SON PROYECCIONES del FMI, no datos observados. Si usas una, dilo expresamente: presentar una estimación como hecho consumado es un error grave.",
+    "  ! [advertencia-paquete] Datos capturados a mano el 2026-08-25 porque el FMI bloquea la lectura automática. El WEO se actualiza en abril y en octubre; si estamos pasados de esas fechas, conviene refrescarlos.",
+    "  ! [advertencia-paquete] CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Se presentan las proyecciones del FMI para 2026 y 2027 como si fueran datos observados.",
+        "por_que": "Las reglas del rigor económico exigen distinguir claramente entre el producto ya medido y la estimación a futuro. Presentar una proyección como un hecho consumado confunde al lector y desacredita la precisión del análisis.",
+        "sugerencia": "Aclarar expresamente en el texto que las cifras de crecimiento para 2026 y 2027 corresponden a proyecciones del Fondo Monetario Internacional."
+      },
+      {
+        "gravedad": "media",
+        "que": "El bloque SurEconomics está completamente vacío.",
+        "por_que": "La línea editorial exige que la pieza aporte una lectura propia desde nuestra perspectiva progresista —analizando la distribución de la renta o la capacidad del Estado— en lugar de limitarse a recopilar declaraciones y datos ajenos.",
+        "sugerencia": "Redactar el bloque SurEconomics conectando el acuerdo petrolero con el debate sobre la desigualdad, la renta minera/petrolera y la necesidad de una fiscalidad y gasto social que garanticen el valor agregado local y la protección social."
+      }
+    ],
+    "sobra": [],
+    "falta": [
+      "Un análisis en el bloque SurEconomics sobre cómo la concentración de los ingresos petroleros en manos extranjeras o élites locales suele profundizar la desigualdad si no existen mecanismos estrictos de redistribución y fortalecimiento de los servicios públicos."
+    ]
+  },
+  "paquete": {
+    "hecho": "Edmundo González Urrutia se pronunció sobre el acuerdo petrolero entre Estados Unidos y Venezuela, que otorga a Washington el control de más del 20 % de las res",
+    "fecha_hecho": "2026-08-30",
+    "cifras": [
+      {
+        "clave": "cifra_1",
+        "valor": "20",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por CNN en Español: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_2",
+        "valor": "65.000",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por CNN en Español: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_3",
+        "valor": "1,5",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por CNN en Español: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "fmi_crecimiento_2023",
+        "valor": "4,0",
+        "unidad": "%",
+        "periodo": "2023",
+        "fuente_id": "fmi1",
+        "valor_crudo": 4.0,
+        "nota": "crecimiento del PIB real (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "fmi_crecimiento_2024",
+        "valor": "5,3",
+        "unidad": "%",
+        "periodo": "2024",
+        "fuente_id": "fmi1",
+        "valor_crudo": 5.3,
+        "nota": "crecimiento del PIB real (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "fmi_crecimiento_2025",
+        "valor": "1,5",
+        "unidad": "%",
+        "periodo": "2025",
+        "fuente_id": "fmi1",
+        "valor_crudo": 1.5,
+        "nota": "crecimiento del PIB real (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "fmi_crecimiento_2026",
+        "valor": "4,0",
+        "unidad": "%",
+        "periodo": "2026 (proyección del FMI)",
+        "fuente_id": "fmi1",
+        "valor_crudo": 4.0,
+        "nota": "crecimiento del PIB real — PROYECCIÓN, no dato observado (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "fmi_crecimiento_2027",
+        "valor": "6,0",
+        "unidad": "%",
+        "periodo": "2027 (proyección del FMI)",
+        "fuente_id": "fmi1",
+        "valor_crudo": 6.0,
+        "nota": "crecimiento del PIB real — PROYECCIÓN, no dato observado (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "ctx2_cifra_1",
+        "valor": "65.000",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "elcomercio",
+        "valor_crudo": null,
+        "nota": "publicada por El Comercio: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      }
+    ],
+    "citas": [
+      {
+        "texto": "La recuperación de Venezuela no puede medirse solo por los barriles que vuelva a producir, sino por las vidas que esa riqueza permita reconstruir",
+        "autor": "Edmundo González Urrutia",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "es que entren recursos al país y otra muy distinta es que lleguen a la vida de la gente",
+        "autor": "Edmundo González Urrutia",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "¿El petróleo mejorará la vida de todos los venezolanos? ¿O solo de algunos?",
+        "autor": "Edmundo González Urrutia",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "recuperar a Venezuela es recuperar la vida de su gente",
+        "autor": "Edmundo González Urrutia",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "Edmundo González Urrutia se pronunció sobre el acuerdo petrolero entre Estados Unidos y Venezuela, que otorga a Washington el control de más del 20 % de las reservas de crudo venezolano durante 25 años y contempla el desarrollo de 17 campos con un potencial probado de 65.000 millones de barriles y una producción superior a 1,5 millones de barriles diarios.\n\n«La recuperación de Venezuela no puede medirse solo por los barriles que vuelva a producir, sino por las vidas que esa riqueza permita reconstruir», declaró González Urrutia.\n\nSeñaló que Venezuela ha tenido «mucho dinero antes» y subrayó que una cosa «es que entren recursos al país y otra muy distinta es que lleguen a la vida de la gente».\n\nPlanteó la pregunta: «¿El petróleo mejorará la vida de todos los venezolanos? ¿O solo de algunos?».\n\nSostuvo que recuperar la industria petrolera es necesario, pero que «recuperar a Venezuela es recuperar la vida de su gente», y añadió que eso se verá cuando las familias puedan reconstruir sus casas, los hospitales atiendan las necesidades de la gente, las escuelas dejen de deteriorarse, los maestros puedan vivir de su profesión y los servicios funcionen.",
+        "autor": "CNN en Español",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "El acuerdo petrolero entre Venezuela y Estados Unidos abre la puerta a una millonaria inyección de capital para recuperar una industria golpeada por años de deterioro. Sin embargo, analistas advierten que convertir las enormes reservas venezolanas en mayor producción dependerá de inversiones sostenidas, seguridad jurídica e instituciones sólidas",
+        "autor": "El Comercio",
+        "fuente_id": "elcomercio"
+      }
+    ],
+    "entidades": [
+      "CNN en Español",
+      "Venezuela",
+      "Fondo Monetario Internacional",
+      "El Comercio",
+      "Perú"
+    ],
+    "fuentes": [
+      {
+        "id": "man1",
+        "institucion": "CNN en Español",
+        "documento": "Edmundo González Urrutia se pronunció sobre el acuerdo petrolero entre Estados Unidos y Venezuela, que otorga a Washington el control de más del 20 % de las res",
+        "url": "https://cnnespanol.cnn.com/2026/08/30/venezuela/gonzalez-urrutia-acuerdo-petrolero-eeuu-recuperacion-barriles-orix",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "fmi1",
+        "institucion": "Fondo Monetario Internacional",
+        "documento": "World Economic Outlook — crecimiento del PIB real de Venezuela, consultado el 2026-08-25",
+        "url": "https://www.imf.org/external/datamapper/PCPIPCH@WEO",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "elcomercio",
+        "institucion": "El Comercio",
+        "documento": "Trump y el petróleo de Venezuela: ¿qué significa el “histórico” acuerdo que da a EE.UU. acceso a 65.000 millones de barriles?",
+        "url": "https://elcomercio.pe/mundo/venezuela/donald-trump-y-el-petroleo-de-venezuela-que-se-sabe-hasta-ahora-del-acuerdo-que-da-a-estados-unidos-acceso-a-65000-millones-de-barriles-noticia/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      }
+    ],
+    "advertencias": [
+      "FUENTE VERIFICADA A MANO por la redacción: CNN en Español, 2026-08-30. Cítala por su nombre.",
+      "Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+      "ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la nota de CNN en Español.",
+      "LOS AÑOS 2026 EN ADELANTE SON PROYECCIONES del FMI, no datos observados. Si usas una, dilo expresamente: presentar una estimación como hecho consumado es un error grave.",
+      "Datos capturados a mano el 2026-08-25 porque el FMI bloquea la lectura automática. El WEO se actualiza en abril y en octubre; si estamos pasados de esas fechas, conviene refrescarlos.",
+      "ATRIBUCIÓN OBLIGATORIA: la información es de El Comercio. El cuerpo tiene que nombrar al diario (El Comercio) y la pieza cierra con «Sacado de: El Comercio, 2026-08-31 — https://elcomercio.pe/mundo/venezuela/donald-trump-y-el-petroleo-de-venezuela-que-se-sabe-hasta-ahora-del-acuerdo-que-da-a-estados-unidos-acceso-a-65000-millones-de-barriles-noticia/».",
+      "CONTEXTO DE PRENSA: esta cifra la publicó otro diario, no la calculamos nosotros. Cítalo por su nombre igual que al medio de la noticia principal."
+    ]
+  }
+}
