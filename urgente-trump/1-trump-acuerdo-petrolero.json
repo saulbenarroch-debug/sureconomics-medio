@@ -1,0 +1,326 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "DONALD TRUMP ANUNCIA ACUERDO PETROLERO CON VENEZUELA Y GENERA DUDAS SOBRE SU VIABILIDAD",
+    "autor": null,
+    "fecha_publicacion": "2026-08-28",
+    "cuerpo": "DONALD TRUMP ANUNCIA ACUERDO PETROLERO CON VENEZUELA Y GENERA DUDAS SOBRE SU VIABILIDAD\n\nEl presidente de Estados Unidos, Donald Trump, anunció el 28 de agosto de 2026 a través de sus redes sociales que su país entró en un acuerdo con Venezuela para tomar el control de 65.000 millones de barriles de reservas petroleras. Según informó Associated Press, el mandatario estadounidense aseguró que el convenio se logró sin costo alguno para los contribuyentes de su país y que este pacto duplica con creces las reservas de crudo de Estados Unidos.\n\nEl anuncio, detallado también por medios como La Tercera y La Nación, plantea un esquema en el que participarían empresas estadounidenses para desarrollar yacimientos y garantizar suministros a largo plazo. La idea de que el esfuerzo lo financie el capital privado no es nueva: en enero de 2026, Trump ya había instado a las grandes petroleras estadounidenses a invertir al menos 100.000 millones de dólares en Venezuela con su propio capital, según recoge TalCual. Aquella exhortación fue recibida entonces con cautela por el sector. Sin embargo, persisten discrepancias técnicas importantes entre las fuentes: mientras Trump mencionó la cifra de 65.000 millones de barriles, un reporte previo de La Nación situaba en torno a 90.000 millones los barriles correspondientes a una docena de campos bajo negociación, una diferencia que ninguna de las partes ha explicado públicamente.\n\nEsta iniciativa ocurre en un contexto de tensiones sobre el suministro y los inventarios energéticos en Estados Unidos. De acuerdo con Associated Press, el precio promedio de la gasolina en el país norteamericano se ubicó en 4,09 dólares por galón el 28 de agosto de 2026, frente a los 3,21 dólares registrados un año antes. Paralelamente, las reservas estratégicas de petróleo de Estados Unidos, que funcionan como inventarios físicos de emergencia del gobierno, cayeron por debajo de los 300 millones de barriles a comienzos de agosto, lo que representa una disminución de más de 100 millones de barriles desde el inicio de 2026. Esta variable institucional de emergencia es conceptualmente distinta de las reservas probadas en el subsuelo que el gobierno busca asegurar mediante acuerdos comerciales o de arrendamiento.\n\nPara dimensionar el trasfondo del mercado petrolero venezolano, es necesario comprender la brecha estructural entre su potencial geológico y su capacidad operativa real. Venezuela posee reservas probadas de crudo estimadas en 303.000 millones de barriles, equivalentes al 17 % del suministro mundial y las mayores del planeta. No obstante, su producción actual representa apenas el 1 % del petróleo mundial. Esta disparidad refleja el impacto acumulado de años de desinversión, sanciones y deterioro operativo, un escenario donde las grandes corporaciones internacionales mantienen cautela. Prueba de ello es la postura expresada por Darren Woods, director ejecutivo de ExxonMobil, quien calificó previamente a Venezuela como un país no apto para la inversión o un-investable.\n\nHasta el momento, el anuncio presidencial carece de confirmación formal por parte de las instituciones venezolanas y de detalles operativos concretos. La oficina de prensa del gobierno de Venezuela no respondió a solicitudes de comentario, y la Casa Blanca tampoco detalló qué empresas privadas participarán ni qué recibirá Venezuela a cambio en términos de contraprestación o propiedad de los recursos. La administración interina de Delcy Rodríguez tampoco ha ofrecido precisiones sobre el marco legal definitivo que regirá estos convenios, en contraste con otros procesos recientes donde el ejecutivo venezolano ha otorgado licencias a firmas internacionales como BP, XRG y UCC Oil and Gas para proyectos específicos en la Plataforma Deltana, según reportó El Nacional.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Caribe",
+      "pais": "Venezuela",
+      "topico": "Economía",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [
+      "cifra_1",
+      "cifra_2",
+      "cifra_3",
+      "cifra_4",
+      "cifra_5",
+      "cifra_6",
+      "cifra_7",
+      "cifra_8",
+      "cifra_9",
+      "ctx1_cifra_2",
+      "ctx3_cifra_1"
+    ],
+    "fuentes_usadas": [
+      "man1",
+      "talcual",
+      "latercera",
+      "elnacional",
+      "man1_2"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: Associated Press, 2026-08-28 · https://www.news4jax.com/business/2026/08/28/trump-says-us-has-entered-deal-with-venezuela-to-take-control-of-65-billion-barrels-of-oil-reserves/\nSacado de: TalCual, 2026-08-28 · https://talcualdigital.com/donald-trump-anuncia-historico-acuerdo-petrolero-con-venezuela/\nSacado de: La Tercera, 2026-08-28 · https://www.latercera.com/mundo/noticia/trump-afirma-que-eeuu-llego-a-un-acuerdo-con-venezuela-para-tomar-el-control-de-65-mil-millones-de-barriles-de-sus-reservas-de-petroleo/\nSacado de: El Nacional, 2026-08-28 · https://www.elnacional.com/2026/08/venezuela-suscribe-acuerdos-con-empresas-de-reino-unido-emiratos-arabes-unidos-y-qatar-para-la-explotacion-del-campo-loran/\nSacado de: La Nación, 2026-08-27 · https://www.lanacion.com.ar/estados-unidos/trump-negocia-un-acuerdo-historico-para-asegurarse-una-porcion-del-petroleo-de-venezuela-nid27082026/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: Associated Press, 2026-08-28. Cítala por su nombre.",
+    "  ! [advertencia-paquete] Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+    "  ! [advertencia-paquete] FUENTE VERIFICADA A MANO por la redacción: La Nación, 2026-08-27. Cítala por su nombre.",
+    "  ! [revision-humana] revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "Falta la atribución obligatoria al diario TalCual y la incorporación de sus datos en el cuerpo del texto.",
+        "por_que": "El paquete de datos exige citar explícitamente a TalCual. Además, omitir la estimación de inversión privada que este medio reporta deja sin sustento la afirmación de Trump de que el acuerdo no costará nada a los contribuyentes.",
+        "sugerencia": "Mencionar a TalCual e incorporar la estimación de inversión privada proyectada para el desarrollo de estos campos, conectándola con la postura de las corporaciones privadas como ExxonMobil."
+      },
+      {
+        "gravedad": "media",
+        "que": "Confusión conceptual entre reservas petroleras probadas y reservas estratégicas del gobierno.",
+        "por_que": "El texto compara la duplicación de las reservas nacionales de EE. UU. (geológicas/probadas) con la caída de las reservas estratégicas (inventario físico de emergencia). Son variables distintas y de escalas incomparables, lo que desinforma al lector sobre la verdadera magnitud del anuncio.",
+        "sugerencia": "Aclarar en el texto que las reservas estratégicas son inventarios de emergencia del gobierno, diferenciándolas de las reservas probadas en el subsuelo que Trump afirma haber duplicado."
+      },
+      {
+        "gravedad": "media",
+        "que": "El bloque de opinión editorial 'SurEconomics' está completamente vacío.",
+        "por_que": "Como economista de la redacción, no podemos dejar pasar una pieza sin nuestra lectura analítica. Un anuncio de esta magnitud requiere un cierre que evalúe la viabilidad real del acuerdo frente a las restricciones legales y operativas de la industria venezolana.",
+        "sugerencia": "Redactar el bloque analizando críticamente cómo la falta de marco jurídico y la reticencia de las grandes operadoras contrastan con el voluntarismo del anuncio político."
+      },
+      {
+        "gravedad": "baja",
+        "que": "Inclusión de contexto geopolítico irrelevante sobre el estrecho de Ormuz.",
+        "por_que": "La mención al comercio de crudo por Ormuz y el conflicto con Irán introduce un elemento de distracción que no aporta al entendimiento de la relación bilateral energética entre EE. UU. y Venezuela.",
+        "sugerencia": "Eliminar la referencia al estrecho de Ormuz para mantener el foco de la nota en el hemisferio occidental."
+      }
+    ],
+    "sobra": [
+      "La referencia al estrecho de Ormuz y el conflicto con Irán, que añade ruido geopolítico global sin conectar de forma directa con el eje Washington-Caracas."
+    ],
+    "falta": [
+      "La mención explícita al diario TalCual.",
+      "La estimación de inversión privada requerida para el proyecto (que explica la ausencia de costo fiscal para EE. UU.).",
+      "El análisis del bloque SurEconomics sobre la viabilidad institucional y económica del anuncio."
+    ]
+  },
+  "paquete": {
+    "hecho": "El presidente de Estados Unidos, Donald Trump, anunció el 28 de agosto de 2026, a través de sus redes sociales, que su país entró en un acuerdo con Venezuela pa",
+    "fecha_hecho": "2026-08-28",
+    "cifras": [
+      {
+        "clave": "cifra_1",
+        "valor": "65.000",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Associated Press: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_2",
+        "valor": "303.000",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Associated Press: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_3",
+        "valor": "17",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Associated Press: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_4",
+        "valor": "1",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Associated Press: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_5",
+        "valor": "4,09",
+        "unidad": "dólares",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Associated Press: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_6",
+        "valor": "3,21",
+        "unidad": "dólares",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Associated Press: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_7",
+        "valor": "300",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Associated Press: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_8",
+        "valor": "100",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Associated Press: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "cifra_9",
+        "valor": "20",
+        "unidad": "%",
+        "periodo": "según la nota",
+        "fuente_id": "man1",
+        "valor_crudo": null,
+        "nota": "publicada por Associated Press: hay que atribuirsela en el texto",
+        "rol": "hecho"
+      },
+      {
+        "clave": "ctx1_cifra_1",
+        "valor": "65.000",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "talcual",
+        "valor_crudo": null,
+        "nota": "publicada por TalCual: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "ctx1_cifra_2",
+        "valor": "100.000",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "talcual",
+        "valor_crudo": null,
+        "nota": "publicada por TalCual: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "ctx2_cifra_1",
+        "valor": "65",
+        "unidad": "mil millones",
+        "periodo": "según la nota",
+        "fuente_id": "latercera",
+        "valor_crudo": null,
+        "nota": "publicada por La Tercera: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "ctx3_cifra_1",
+        "valor": "90.000",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1_2",
+        "valor_crudo": null,
+        "nota": "publicada por La Nación: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      },
+      {
+        "clave": "ctx2_cifra_2",
+        "valor": "300.000",
+        "unidad": "millones",
+        "periodo": "según la nota",
+        "fuente_id": "man1_2",
+        "valor_crudo": null,
+        "nota": "publicada por La Nación: hay que atribuirsela en el texto (contexto que aporta el medio)",
+        "rol": "contexto"
+      }
+    ],
+    "citas": [
+      {
+        "texto": "The United States of America has just entered into an Agreement with the Country of Venezuela on, THE BIGGEST OIL DEAL IN WORLD HISTORY!",
+        "autor": "Donald Trump",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "El presidente de Estados Unidos, Donald Trump, anunció el 28 de agosto de 2026, a través de sus redes sociales, que su país entró en un acuerdo con Venezuela para tomar el control de 65.000 millones de barriles de reservas petroleras.\n\n«The United States of America has just entered into an Agreement with the Country of Venezuela on, THE BIGGEST OIL DEAL IN WORLD HISTORY!», escribió Trump en su cuenta.\n\nTrump afirmó que el acuerdo llega sin costo alguno para los contribuyentes estadounidenses y que más que duplica las reservas de petróleo de Estados Unidos.\n\nSegún el anuncio, el acuerdo fue negociado por el secretario de Estado, Marco Rubio, y el secretario de Defensa, Pete Hegseth, con la presidenta interina de Venezuela, Delcy Rodríguez.\n\nVenezuela posee reservas probadas de crudo estimadas en 303.000 millones de barriles, equivalentes al 17 % del suministro mundial de petróleo. Sin embargo, su producción actual representa apenas el 1 % del petróleo mundial.\n\nEl precio promedio de la gasolina en Estados Unidos se ubicó en 4,09 dólares por galón el 28 de agosto de 2026, frente a 3,21 dólares un año antes.\n\nLas reservas estratégicas de petróleo de Estados Unidos cayeron por debajo de los 300 millones de barriles a comienzos de agosto, una disminución de más de 100 millones de barriles desde el inicio de 2026.\n\nAntes del conflicto con Irán, el 20 % del petróleo mundial pasaba por el estrecho de Ormuz.\n\nLa única empresa mencionada hasta ahora es ExxonMobil. Su director ejecutivo, Darren Woods, había calificado previamente a Venezuela como un país «un-investable», es decir, no apto para la inversión.\n\nLa oficina de prensa del gobierno venezolano no respondió a solicitudes de comentario. La Casa Blanca tampoco respondió de inmediato sobre qué socios del sector privado participarían. No se ofrecieron detalles sobre cómo funcionaría el acuerdo ni sobre qué recibe Venezuela a cambio.",
+        "autor": "Associated Press",
+        "fuente_id": "man1"
+      },
+      {
+        "texto": "El presidente Donald Trump detalló que EEUU aseguró el control mayoritario sobre más de 65.000 millones de barriles de reservas petroleras, los cuales atraerán cerca de 100.000 millones de dólares en inversión privada. El anuncio ocurre un día después de [&#8230;] The post Donald Trump anuncia «histórico» acuerdo petrolero con Venezuela appeared first on TalCual .",
+        "autor": "TalCual",
+        "fuente_id": "talcual"
+      },
+      {
+        "texto": "El presidente estadounidense dio a conocer el convenio, detallando que fue negociado por Marco Rubio, Pete Hegseth y la presidenta interina Delcy Rodríguez. Además, aseguró que con este se duplican con creces las reservas de crudo de EE.UU.",
+        "autor": "La Tercera",
+        "fuente_id": "latercera"
+      },
+      {
+        "texto": "La administración central otorga la licencia de la Fase II en la Plataforma Deltana a las firmas BP, XRG y UCC Oil and Gas, en el marco de la reciente reforma a la Ley de Hidrocarburos. The post Venezuela suscribe acuerdos con empresas de Reino Unido, Emiratos Árabes Unidos y Qatar para la explotación del Campo Loran appeared first on EL NACIONAL .",
+        "autor": "El Nacional",
+        "fuente_id": "elnacional"
+      },
+      {
+        "texto": "Estados Unidos negocia obtener acceso directo a reservas petroleras venezolanas mediante un esquema de arrendamiento y licitación, con empresas estadounidenses desarrollando yacimientos y garantías de suministro a largo plazo.\n\nEl proyecto contempla más de una docena de campos actualmente productivos, con reservas probadas cercanas a los 90.000 millones de barriles, alrededor de un tercio de las reservas probadas de Venezuela.\n\nLas reservas probadas totales de Venezuela alcanzan los 300.000 millones de barriles, las mayores del mundo.\n\nLa Reserva Estratégica de Petróleo de Estados Unidos se encuentra en su nivel más bajo en cuatro décadas.\n\nPor el lado estadounidense participan en las conversaciones el secretario de Estado, Marco Rubio; el subjefe de Gabinete de la Casa Blanca, Stephen Miller; y el secretario de Energía, Chris Wright. Por el lado venezolano, la presidenta interina Delcy Rodríguez.\n\nA cambio, Venezuela recibiría nuevas inversiones y mayores ingresos derivados de la explotación de los yacimientos.\n\nNo está confirmada una participación estadounidense en la propiedad de los recursos, que sigue bajo análisis. Tampoco hay fecha exacta de firma ni detalles legales y comerciales finales.",
+        "autor": "La Nación",
+        "fuente_id": "man1"
+      }
+    ],
+    "entidades": [
+      "Associated Press",
+      "TalCual",
+      "Venezuela",
+      "La Tercera",
+      "Chile",
+      "El Nacional",
+      "La Nación"
+    ],
+    "fuentes": [
+      {
+        "id": "man1",
+        "institucion": "Associated Press",
+        "documento": "El presidente de Estados Unidos, Donald Trump, anunció el 28 de agosto de 2026, a través de sus redes sociales, que su país entró en un acuerdo con Venezuela pa",
+        "url": "https://www.news4jax.com/business/2026/08/28/trump-says-us-has-entered-deal-with-venezuela-to-take-control-of-65-billion-barrels-of-oil-reserves/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "talcual",
+        "institucion": "TalCual",
+        "documento": "Donald Trump anuncia «histórico» acuerdo petrolero con Venezuela",
+        "url": "https://talcualdigital.com/donald-trump-anuncia-historico-acuerdo-petrolero-con-venezuela/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "latercera",
+        "institucion": "La Tercera",
+        "documento": "Trump afirma que EE.UU. llegó a un acuerdo con Venezuela para tomar el control de 65 mil millones de barriles de sus reservas de petróleo",
+        "url": "https://www.latercera.com/mundo/noticia/trump-afirma-que-eeuu-llego-a-un-acuerdo-con-venezuela-para-tomar-el-control-de-65-mil-millones-de-barriles-de-sus-reservas-de-petroleo/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "elnacional",
+        "institucion": "El Nacional",
+        "documento": "Venezuela suscribe acuerdos con empresas de Reino Unido, Emiratos Árabes Unidos y Qatar para la explotación del Campo Loran",
+        "url": "https://www.elnacional.com/2026/08/venezuela-suscribe-acuerdos-con-empresas-de-reino-unido-emiratos-arabes-unidos-y-qatar-para-la-explotacion-del-campo-loran/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "man1_2",
+        "institucion": "La Nación",
+        "documento": "Estados Unidos negocia obtener acceso directo a reservas petroleras venezolanas mediante un esquema de arrendamiento y licitación, con empresas estadounidenses ",
+        "url": "https://www.lanacion.com.ar/estados-unidos/trump-negocia-un-acuerdo-historico-para-asegurarse-una-porcion-del-petroleo-de-venezuela-nid27082026/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      }
+    ],
+    "advertencias": [
+      "FUENTE VERIFICADA A MANO por la redacción: Associated Press, 2026-08-28. Cítala por su nombre.",
+      "Es fuente SECUNDARIA como cualquier diario: el hecho se cuenta citando al medio, y sus cifras no se publican como propias.",
+      "ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la nota de Associated Press.",
+      "ATRIBUCIÓN OBLIGATORIA: la información es de TalCual. El cuerpo tiene que nombrar al diario (TalCual) y la pieza cierra con «Sacado de: TalCual, 2026-08-28 — https://talcualdigital.com/donald-trump-anuncia-historico-acuerdo-petrolero-con-venezuela/».",
+      "ATRIBUCIÓN OBLIGATORIA: la información es de La Tercera. El cuerpo tiene que nombrar al diario (La Tercera) y la pieza cierra con «Sacado de: La Tercera, 2026-08-28 — https://www.latercera.com/mundo/noticia/trump-afirma-que-eeuu-llego-a-un-acuerdo-con-venezuela-para-tomar-el-control-de-65-mil-millones-de-barriles-de-sus-reservas-de-petroleo/».",
+      "ATRIBUCIÓN OBLIGATORIA: la información es de El Nacional. El cuerpo tiene que nombrar al diario (El Nacional) y la pieza cierra con «Sacado de: El Nacional, 2026-08-13 — https://www.elnacional.com/2026/08/venezuela-suscribe-acuerdos-con-empresas-de-reino-unido-emiratos-arabes-unidos-y-qatar-para-la-explotacion-del-campo-loran/».",
+      "FUENTE VERIFICADA A MANO por la redacción: La Nación, 2026-08-27. Cítala por su nombre.",
+      "ATRIBUCIÓN OBLIGATORIA: la pieza cierra con el enlace a la nota de La Nación."
+    ]
+  },
+  "reauditada": true
+}

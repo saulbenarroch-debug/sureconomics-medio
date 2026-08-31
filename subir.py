@@ -129,7 +129,14 @@ class Panel:
             "excerpt": pieza["resumen_html"],
             "content": pieza["cuerpo_html"],
             "byline": pieza.get("firma") or "",
-            "sources": pieza.get("fuentes") or [],
+            # La API pide {name, url} en ingles y nuestra carga los guarda como
+            # {nombre, url}. Enviarlos en español devuelve un 422 con
+            # "Missing data for required field" por cada fuente. Se descubrio
+            # subiendo a mano el 31/08/2026; la primera corrida automatica
+            # habria fallado igual y sin nadie mirando.
+            "sources": [{"name": f.get("nombre") or f.get("name") or "",
+                         "url": f.get("url") or ""}
+                        for f in (pieza.get("fuentes") or [])],
             "topic_ids": [temas[t] for t in pieza["temas"]],
             "place_ids": [lugares[l] for l in pieza["lugares"]],
             # Fijo. Ver la cabecera de este archivo.
