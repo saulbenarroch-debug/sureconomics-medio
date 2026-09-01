@@ -158,8 +158,56 @@ def sirve(c, pais=None, asunto=None):
     return True, ""
 
 
-def consultas(titulo, lugares, tema):
+def que_fotografiar(titulo, resumen=""):
+    """Que se tiene que ver en la portada, en ingles y en sustantivos.
+
+    COMMONS ESTA INDEXADO EN INGLES y nuestros titulares estan en español, asi
+    que sacar palabras del titular no basta: "muere apunalada times" no
+    encuentra nada, y "cocaina supera petroleo" tampoco, porque "supera" no se
+    fotografia. Hace falta traducir el asunto a un OBJETO.
+
+    Esto es prosa, no una cifra, asi que lo hace el modelo. Si no responde, se
+    devuelve vacio y consultas() se apaña con las palabras del titular como
+    antes: perder la portada no puede tumbar la pieza.
+    """
+    from motor.ia import pedir_json
+
+    prompt = (
+        "Eres editor grafico de un medio de economia. Te doy el titular de una "
+        "noticia en español. Dime QUE OBJETO O LUGAR CONCRETO deberia verse en "
+        "la foto de portada, para buscarlo en Wikimedia Commons.\n\n"
+        "Reglas:\n"
+        "- Responde en INGLES y con SUSTANTIVOS concretos y fotografiables.\n"
+        "- Nada de verbos ni de abstracciones ('growth', 'crisis', 'economy').\n"
+        "- Si la nota va de una empresa, su sede o su logo. Si va de una "
+        "mercancia, LA MERCANCIA MISMA. Si va de un lugar, ese lugar.\n"
+        "- No esquives el asunto. Si la noticia es sobre cocaina, la foto es de "
+        "cocaina, no de un puerto ni de una bandera. Ilustrar de que trata una "
+        "noticia no es aprobar lo que cuenta, y una portada que evita el tema "
+        "deja al lector sin saber de que va la pieza.\n"
+        "- NUNCA propongas fotografiar a una persona concreta por su nombre: no "
+        "hay imagenes con licencia de particulares y no se pueden publicar.\n"
+        "- Entre dos y cuatro palabras.\n\n"
+        'Devuelve solo JSON: {"buscar": ["...", "..."]} con dos propuestas, de '
+        "la mas concreta a la mas general.\n\n"
+        "Titular: %s\n%s" % (titulo, resumen[:300]))
+
+    r = pedir_json(prompt, etiqueta="foto", temperatura=0.2)
+    if not isinstance(r, dict):
+        return []
+    salida = [str(x).strip() for x in (r.get("buscar") or []) if str(x).strip()]
+    return salida[:2]
+
+
+def consultas(titulo, lugares, tema, describir=None):
     """De la mas concreta a la mas generica. Se prueban en ese orden.
+
+    PRIMERO LO CONCRETO DE LA NOTA, DESPUES LO GENERICO. Instruccion del dueño
+    el 01/09/2026: si la pieza habla de una cosa, la imagen es de esa cosa. Si
+    la nota va de que Colombia exporta mas cocaina que petroleo, lo que tiene
+    que verse es cocaina, no una vista de Bogota. Antes se probaba primero el
+    termino generico del tema mas el pais, y de ahi salian portadas correctas y
+    completamente mudas: la pieza podia ir de cualquier cosa.
 
     SIN PAIS NO HAY BUSQUEDA GENERICA. Antes, cuando las dos consultas con pais
     fallaban, se caia a una generica ("city skyline economy") y ahi aparecia
@@ -167,25 +215,55 @@ def consultas(titulo, lugares, tema):
     generica de otro sitio es peor que ninguna foto: el lector supone que es el
     lugar del que se habla. Si la pieza no tiene lugar, si vale la generica,
     porque entonces no promete ningun sitio.
+
+    Y LO CONCRETO NO EXIME DE MIRAR LA FOTO. Buscando "Times Square" para la
+    nota del ataque del 31/08/2026, la segunda candidata era un Lamborghini
+    cromado rodeado de turistas. Era del sitio correcto y era inservible. El
+    filtro de sirve() no ve lo que sale en la imagen: eso lo mira una persona.
     """
     pais = EN_INGLES.get(lugares[0]) if lugares else ""
     generica = POR_TEMA.get(tema, "economy city")
 
     plano = _plano(titulo)
-    palabras = [p for p in re.findall(r"[a-z]{5,}", plano) if p not in VACIAS][:2]
+    # Tres y no dos: con dos, un titular largo se quedaba en el verbo y el
+    # sujeto, que es lo que menos se puede fotografiar.
+    palabras = [p for p in re.findall(r"[a-z]{5,}", plano) if p not in VACIAS][:3]
+
+    # Lo que dice el editor grafico va DELANTE de todo: son sustantivos en
+    # ingles, que es como esta indexado Commons, y describen que se tiene que
+    # ver. Si el modelo no contesto, esta lista viene vacia y sigue todo igual.
+    # El termino suelto va primero: una bolsa de cocaina o la torre de un banco
+    # se fotografian igual en cualquier sitio, y atarlo al pais deja fuera la
+    # unica imagen que dice de que va la nota.
+    if pais:
+        intentos = [d for x in (describir or []) for d in (x, "%s %s" % (x, pais))]
+    else:
+        intentos = list(describir or [])
 
     if not pais:
-        return [generica]
-    intentos = ["%s %s" % (generica, pais)]
+        intentos += [" ".join(palabras)] if palabras else [generica]
+        return intentos
     if palabras:
         intentos.append("%s %s" % (" ".join(palabras), pais))
+        # Lo concreto SIN el pais: una bolsa de cocaina o un buque metanero se
+        # fotografian igual en cualquier sitio, y atar la busqueda al pais deja
+        # fuera la unica imagen que dice de que va la nota. sirve() sigue
+        # comprobando que la candidata no prometa un lugar que no es.
+        intentos.append(" ".join(palabras))
+    intentos.append("%s %s" % (generica, pais))
     intentos.append(pais + " " + tema.split()[0].lower())
     return intentos
 
 
-def para(titulo, lugares, tema, explicar=False):
+def para(titulo, lugares, tema, explicar=False, resumen=""):
     """Devuelve {url, credito, ...} o None. Ver la cabecera del archivo."""
     from buscar_foto import buscar
+
+    # Que se tiene que ver, en ingles. Si el modelo no responde, vuelve vacio y
+    # la busqueda sigue con las palabras del titular, como antes.
+    describir = que_fotografiar(titulo, resumen)
+    if describir:
+        print("   [foto] buscar: %s" % ", ".join(describir))
 
     pais = lugares[0] if lugares else None
     if not pais:
@@ -201,7 +279,7 @@ def para(titulo, lugares, tema, explicar=False):
     # foto: si buscamos una refineria, que ponga "refinery" en alguna parte.
     asunto = [p for p in POR_TEMA.get(tema, "").split() if p not in ASUNTO_VACIO]
     descartes = []
-    for consulta in consultas(titulo, lugares, tema):
+    for consulta in consultas(titulo, lugares, tema, describir):
         for c in buscar(consulta, n=8):
             bien, motivo = sirve(c, pais, asunto)
             if bien:
