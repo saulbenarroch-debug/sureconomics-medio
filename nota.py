@@ -22,6 +22,7 @@ que llego por el chat. Si ya esta, lo dice y no gasta nada.
 """
 
 import argparse
+import os
 import pathlib
 import re
 import subprocess
@@ -299,8 +300,17 @@ def main():
 
     # El correo va primero y siempre. Esto es un extra: quien la pidio por el
     # chat la recibe por el chat, sin cambiar de aplicacion para leerla.
+    #
+    # Y VA ENVUELTO PORQUE ES UN EXTRA. La primera version no lo estaba y un
+    # simple "import os" que faltaba tumbo la corrida entera DESPUES de haber
+    # escrito la pieza y mandado el correo: el trabajo estaba hecho, la nota
+    # entregada, y GitHub mando un aviso de fallo. Nada que ocurra despues de la
+    # entrega puede marcar la corrida como fallida.
     if args.chat:
-        mandar_al_chat(borrador, args.chat, args.quien)
+        try:
+            mandar_al_chat(borrador, args.chat, args.quien)
+        except Exception as exc:  # noqa: BLE001
+            print("  [chat] no se pudo mandar (%s). El correo ya salio." % str(exc)[:90])
 
     print("\nListo. Queda en borrador, como todo.")
     return 0
