@@ -40,7 +40,8 @@ REPO = "saulbenarroch-debug/sureconomics-medio"
 
 ORIGENES = {
     r"C:\Users\saulb\telegram-finance-bot\.env":
-        ["GEMINI_API_KEY", "GROQ_API_KEY", "TAVILY_API_KEY"],
+        ["GEMINI_API_KEY", "GROQ_API_KEY", "TAVILY_API_KEY",
+         "TELEGRAM_TOKEN", "CHAT_ID"],
     r"C:\Users\saulb\wallstreet-bot\.env":
         ["SMTP_USUARIO", "SMTP_CLAVE"],
 }
@@ -75,6 +76,17 @@ def reunir():
             else:
                 print("  %s no esta en %s" % (n, pathlib.Path(ruta).name))
     valores.update(FIJOS)
+
+    # LA VIGILANCIA AVISA SOLO AL DUEÑO. CHAT_ID lleva tres personas y son los
+    # destinatarios del boletin, no un grupo de guardia: una alerta cada hora a
+    # gente que no la pidio se vuelve ruido, y el ruido se ignora. Se sube el
+    # primero de la lista, que es el suyo, y ampliarlo es decision suya.
+    #
+    # CHAT_ID entero NO se sube: desde el repo del medio no tiene que poder
+    # salir un mensaje a los tres por un descuido.
+    lista = [x.strip() for x in valores.pop("CHAT_ID", "").split(",") if x.strip()]
+    if lista:
+        valores["VIGILANCIA_CHAT_ID"] = lista[0]
     return valores
 
 
