@@ -53,6 +53,9 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 BASE = os.environ.get("SURECONOMICS_API",
                       "https://sureconomics-backend.onrender.com").rstrip("/")
 
+# Con la E alta, que es la grafia de la marca. Ver crear_borrador().
+FIRMA_REDACCION = "Redacción SurEconomics"
+
 
 class Panel:
     def __init__(self, token):
@@ -136,7 +139,19 @@ class Panel:
             "title": pieza["titulo"],
             "excerpt": pieza["resumen_html"],
             "content": pieza["cuerpo_html"],
-            "byline": pieza.get("firma") or "",
+            # LO QUE ESCRIBE EL MOTOR VA FIRMADO POR LA REDACCION. Decision del
+            # dueño el 01/09/2026. Hasta hoy subia con la firma vacia y el sitio
+            # mostraba la pieza sin autor: catorce quedaron asi y hubo que
+            # firmarlas a mano una por una.
+            #
+            # Se respeta la firma que traiga la pieza, que es como se acredita a
+            # una persona: el articulo #389 lleva la de Óscar Doval porque el
+            # analisis es suyo. Solo se rellena cuando viene vacia.
+            #
+            # La E va alta. Convivian "Redacción SurEconomics", "Redacción
+            # Sureconomics" y "Equipo de Redacción Sureconomics" en el mismo
+            # sitio; se unificaron las 150 ese dia.
+            "byline": pieza.get("firma") or FIRMA_REDACCION,
             # La API pide {name, url} en ingles y nuestra carga los guarda como
             # {nombre, url}. Enviarlos en español devuelve un 422 con
             # "Missing data for required field" por cada fuente. Se descubrio

@@ -1,0 +1,148 @@
+{
+  "pieza": {
+    "tipo": "Noticia",
+    "titulo": "MUERE APUÑALADA EN TIMES SQUARE UNA VICEPRESIDENTA DE BANK OF AMERICA",
+    "autor": null,
+    "fecha_publicacion": "2026-09-01",
+    "cuerpo": "Una empleada de Bank of America murió y un hombre resultó herido en un ataque con arma blanca ocurrido el lunes por la tarde en Times Square, en el centro de Manhattan. La agresora fue abatida por la policía en el lugar de los hechos. La comisionada del Departamento de Policía de Nueva York, Jessica Tisch, describió el episodio como un ataque aleatorio y no provocado.\n\nLa víctima mortal fue identificada por la policía como Erin Piacenti, de 32 años y residente de Chester, Nueva Jersey. Murió en el hospital al que fue trasladada. Se desempeñaba como vice president de selección de negocios y conflictos en Bank of America, un área de cumplimiento normativo, en una oficina situada a una manzana del lugar del ataque. En la banca estadounidense, vice president es un rango profesional intermedio y no un puesto de la alta dirección de la entidad.\n\nEl ataque se produjo alrededor de las 4:30 de la tarde, hora de Nueva York, en la Séptima Avenida a la altura de la calle 42 Oeste. Según el relato de las autoridades, una mujer que portaba varios cuchillos apuñaló a Piacenti y a un hombre de 68 años en cuestión de segundos. El segundo herido permanecía hospitalizado en condición estable.\n\nLa policía identificó a la agresora como Pamela Cisneros, de 49 años, residente de Queens. Los agentes intentaron primero reducirla con una pistola eléctrica y, al fallar ese intento y avanzar ella hacia ellos sin soltar las armas, dispararon. Cisneros fue declarada muerta en el hospital. Tisch indicó que no tenía antecedentes penales, pero sí varios contactos previos con la policía por episodios de salud mental.\n\nTisch calificó lo ocurrido, en rueda de prensa, como una situación extraordinariamente peligrosa desarrollada en el corazón de Times Square. El alcalde de Nueva York, Zohran Mamdani, sostuvo que los agentes intervinieron y evitaron que el ataque fuera todavía peor.\n\nBank of America difundió un comunicado en el que se declaró conmocionado y profundamente entristecido por la pérdida de su colega, a la que describió como una compañera valiosa a la que se echará mucho de menos, y trasladó sus condolencias a la familia y a los allegados de Piacenti.\n\nLas declaraciones de las autoridades y del banco fueron pronunciadas originalmente en inglés y aquí se recogen en estilo indirecto.",
+    "bloque_sureconomics": "",
+    "etiquetas": {
+      "region": "Latinoamérica",
+      "subregion": "Norteamérica",
+      "pais": "EE. UU.",
+      "topico": "Política",
+      "vigencia": "Perecedero",
+      "idioma": "ES"
+    },
+    "cifras_usadas": [],
+    "fuentes_usadas": [
+      "man1"
+    ],
+    "cifras_hipoteticas": [],
+    "cifras_de_definicion": [],
+    "faltantes": [],
+    "sacado_de": "Sacado de: Fortune, 2026-09-01 · https://fortune.com/2026/09/01/bank-of-america-vice-president-identified-as-victim-in-random-times-square-stabbing/"
+  },
+  "bloqueada": false,
+  "hallazgos": [
+    {
+      "nivel": "aviso",
+      "codigo": "revision-humana",
+      "mensaje": "revisar a mano: que el cuerpo informe y no opine, y que el titular no afirme mas que el cuerpo"
+    }
+  ],
+  "critica_economista": {
+    "veredicto": "revisar",
+    "observaciones": [
+      {
+        "gravedad": "alta",
+        "que": "El bloque 'SurEconomics:' se encuentra completamente vacío.",
+        "por_que": "Como medio económico, publicamos noticias policiales o generales únicamente si hay un ángulo socioeconómico relevante (en este caso, la desigualdad urbana, la salud mental o la seguridad en zonas comerciales clave), el cual debe explicarse en el bloque final.",
+        "sugerencia": "Añadir un análisis breve en el bloque SurEconomics que conecte este hecho de violencia urbana con las tensiones socioeconómicas de la ciudad o la precariedad en el acceso a servicios de salud mental y seguridad pública."
+      },
+      {
+        "gravedad": "media",
+        "que": "Falta la atribución obligatoria al medio fuente (Fortune) al final de la pieza.",
+        "por_que": "Las advertencias del paquete de datos establecen explícitamente que la pieza debe cerrar con el enlace o la atribución a la nota de Fortune.",
+        "sugerencia": "Incluir al final del cuerpo o como enlace de cierre la atribución correspondiente a la cobertura original de Fortune."
+      }
+    ],
+    "sobra": [],
+    "falta": [
+      "Un análisis en el bloque SurEconomics sobre el contexto socioeconómico o de salud mental que rodea este tipo de incidentes urbanos.",
+      "La atribución obligatoria al medio fuente (Fortune) al final de la nota."
+    ]
+  },
+  "paquete": {
+    "hecho": "Muere apuñalada en Times Square una empleada de Bank of America",
+    "fecha_hecho": "2026-08-31",
+    "cifras": [
+      {
+        "clave": "edad_victima",
+        "valor": "32",
+        "unidad": "años",
+        "periodo": "31/08/2026",
+        "fuente_id": "fortune",
+        "valor_crudo": 32,
+        "nota": "Erin Piacenti, identificada por la policia de Nueva York",
+        "rol": "hecho"
+      },
+      {
+        "clave": "edad_segundo_herido",
+        "valor": "68",
+        "unidad": "años",
+        "periodo": "31/08/2026",
+        "fuente_id": "foxbusiness",
+        "valor_crudo": 68,
+        "nota": "hospitalizado en condicion estable",
+        "rol": "hecho"
+      },
+      {
+        "clave": "edad_agresora",
+        "valor": "49",
+        "unidad": "años",
+        "periodo": "31/08/2026",
+        "fuente_id": "foxbusiness",
+        "valor_crudo": 49,
+        "nota": "Pamela Cisneros, de Queens",
+        "rol": "hecho"
+      },
+      {
+        "clave": "hora_ataque",
+        "valor": "4",
+        "unidad": "de la tarde",
+        "periodo": "31/08/2026",
+        "fuente_id": "aljazeera",
+        "valor_crudo": 4,
+        "nota": "Al Jazeera dice 'about 4:30pm'; Fortune precisa las 4:24 pm",
+        "rol": "hecho"
+      },
+      {
+        "clave": "minuto_ataque",
+        "valor": "30",
+        "unidad": "minutos",
+        "periodo": "31/08/2026",
+        "fuente_id": "aljazeera",
+        "valor_crudo": 30,
+        "nota": "ver hora_ataque",
+        "rol": "hecho"
+      },
+      {
+        "clave": "calle",
+        "valor": "42",
+        "unidad": "calle Oeste",
+        "periodo": "31/08/2026",
+        "fuente_id": "aljazeera",
+        "valor_crudo": 42,
+        "nota": "Al Jazeera y Fox Business dicen 42; Fortune dice 41",
+        "rol": "hecho"
+      }
+    ],
+    "fuentes": [
+      {
+        "id": "fortune",
+        "institucion": "Fortune",
+        "documento": "Bank of America vice president identified as victim in random Times Square stabbing",
+        "url": "https://fortune.com/2026/09/01/bank-of-america-vice-president-identified-as-victim-in-random-times-square-stabbing/",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "aljazeera",
+        "institucion": "Al Jazeera",
+        "documento": "Bank of America vice president identified as victim in Times Square attack",
+        "url": "https://www.aljazeera.com/news/2026/9/1/bank-of-america-vice-president-identified-as-killed-in-times-square-attack",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      },
+      {
+        "id": "foxbusiness",
+        "institucion": "Fox Business",
+        "documento": "Bank of America VP killed in Times Square stabbing",
+        "url": "https://www.foxbusiness.com/fox-news-us/bank-america-vp-killed-times-square-stabbing-attack",
+        "url_datos": "",
+        "portada_es_la_fuente": false
+      }
+    ]
+  }
+}
