@@ -50,9 +50,14 @@ def _plano(t):
 
 
 def _apodo(texto):
-    """Nombre de archivo corto y sin sorpresas."""
+    """Nombre de archivo corto y sin sorpresas.
+
+    Se recorta y DESPUES se quitan los guiones: al reves, cortar a 38 puede
+    dejar uno al final, y agregar_fuente.py se lo quita al registrar. Ver el
+    comentario de main() sobre los dos nombres que no coincidian.
+    """
     s = re.sub(r"[^a-z0-9]+", "-", _plano(texto)).strip("-")
-    return (s[:38] or "peticion")
+    return (s[:38].strip("-") or "peticion")
 
 
 def leer_enlace(url):
@@ -248,6 +253,20 @@ def main():
         print("  No se pudo registrar la fuente:")
         print((r.stdout or "") + (r.stderr or "")[-300:])
         return 1
+
+    # SE LEE EL NOMBRE QUE DICE EL REGISTRO, no se vuelve a calcular aqui.
+    # agregar_fuente.py limpia el nombre a su manera y le quita el guion final;
+    # _apodo() corta a 38 caracteres y puede dejarlo. El 01/09/2026 una peticion
+    # se guardo como "u-s-strikes-iran-as-tehran-retaliates" y se pidio como
+    # "...retaliates-": el extractor no la encontro y la corrida murio despues de
+    # haber bajado la fuente. Dos sitios calculando el mismo nombre con reglas
+    # distintas se desincronizan siempre; uno lo dice y el otro obedece.
+    dicho = re.search(r"manual:(\S+)", r.stdout or "")
+    if dicho:
+        nombre = dicho.group(1)
+    else:
+        nombre = nombre.rstrip("-")
+        print("  [aviso] el registro no dijo el nombre; uso '%s'" % nombre)
     print("  fuente registrada como '%s'" % nombre)
 
     print("\n--- 3. ESCRIBIR Y AUDITAR ---")
