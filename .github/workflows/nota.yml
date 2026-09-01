@@ -26,6 +26,9 @@ on:
       chat:
         description: "Chat de Telegram al que devolver el borrador"
         default: ""
+      encargo:
+        description: "Instruccion de edicion (en Telegram, el pie de foto)"
+        default: ""
 
 jobs:
   escribir:
@@ -55,7 +58,7 @@ jobs:
           # esto es un extra, no el canal principal.
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         run: |
-          python nota.py "${{ github.event.inputs.enlace }}" --foto "${{ github.event.inputs.foto }}" --tipo "${{ github.event.inputs.tipo }}" --quien "${{ github.event.inputs.quien }}" --chat "${{ github.event.inputs.chat }}"
+          python nota.py "${{ github.event.inputs.enlace }}" --foto "${{ github.event.inputs.foto }}" --tipo "${{ github.event.inputs.tipo }}" --quien "${{ github.event.inputs.quien }}" --chat "${{ github.event.inputs.chat }}" --encargo "${{ github.event.inputs.encargo }}"
 
       - name: Guardar lo producido
         if: always()

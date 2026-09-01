@@ -50,6 +50,40 @@ def _plano(t):
     return "".join(c for c in t if not unicodedata.combining(c))
 
 
+TIPOS = ["Noticia", "Opinión", "Editorial", "Investigación", "Educación"]
+
+
+def leer_encargo(texto, tipo_por_defecto="Noticia"):
+    """Del pie de foto saca el tipo de pieza y deja el resto como instruccion.
+
+    El pie es lo que la persona escribio junto a la captura: "hazla editorial",
+    "enfocala en Venezuela". Lo primero cambia el tipo, lo segundo es una orden
+    de edicion y viaja en --encargo, que es el mismo camino por el que entro la
+    tesis de Óscar en la serie del acuerdo petrolero.
+
+    "ARTICULO" NO ES UN TIPO QUE EL MOTOR SEPA ESCRIBIR. El panel lo tiene como
+    formato y el redactor no: sus cinco prompts son Noticia, Opinion, Editorial,
+    Investigacion y Educacion. Si alguien lo pide, se dice en vez de mandar
+    calladamente una noticia y que parezca que se ignoro la instruccion.
+    """
+    texto = (texto or "").strip()
+    if not texto:
+        return tipo_por_defecto, "", ""
+
+    plano = _plano(texto)
+    for t in TIPOS:
+        # Se busca la raiz para que valgan "editorial", "un editorial",
+        # "hazla editorial" y "opinion" tanto con tilde como sin ella.
+        if re.search(r"\b" + _plano(t)[:6], plano):
+            return t, texto, ""
+    if re.search(r"\barticulo", plano):
+        return (tipo_por_defecto, texto,
+                "Pediste artículo. El motor escribe Noticia, Opinión, Editorial, "
+                "Investigación o Educación; va como %s y el resto del pie se "
+                "usa igual." % tipo_por_defecto)
+    return tipo_por_defecto, texto, ""
+
+
 def _apodo(texto):
     """Nombre de archivo corto y sin sorpresas.
 
@@ -225,11 +259,21 @@ def main():
     ap.add_argument("--correo", default="saul@rendigroup.com")
     ap.add_argument("--quien", default="", help="quien la pidio, para el correo")
     ap.add_argument("--chat", default="", help="chat de Telegram al que devolverla")
+    ap.add_argument("--encargo", default="",
+                    help="instruccion de edicion; en Telegram, el pie de foto")
     args = ap.parse_args()
 
     peticion = args.peticion.strip()
     print("=" * 70)
+    # El pie de foto manda sobre el --tipo del workflow: lo escribio una persona
+    # ahora mismo, y el otro es el valor por defecto del formulario.
+    tipo, encargo, aviso_tipo = leer_encargo(args.encargo, args.tipo)
     print("NOTA A PETICION%s" % (" · pedida por " + args.quien if args.quien else ""))
+    if encargo:
+        print("pie de foto: %s" % encargo[:110])
+        print("se escribe como: %s" % tipo)
+    if aviso_tipo:
+        print("[aviso] %s" % aviso_tipo)
     print(peticion[:100] if peticion else "(captura de pantalla)")
     print("=" * 70)
 
@@ -337,7 +381,7 @@ def main():
     print("\n--- 3. ESCRIBIR Y AUDITAR ---")
     r = subprocess.run(
         [sys.executable, str(AQUI / "motor" / "producir.py"),
-         "--tipo", args.tipo, "--manual", nombre],
+         "--tipo", tipo, "--manual", nombre, "--encargo", encargo],
         capture_output=True, text=True, encoding="utf-8", errors="replace",
         timeout=25 * 60)
     print((r.stdout or "")[-1500:])
