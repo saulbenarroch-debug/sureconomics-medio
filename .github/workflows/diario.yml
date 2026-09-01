@@ -1,16 +1,26 @@
 name: Corrida diaria
 
-# 8:00 de la mañana en Venezuela = 12:00 UTC.
+# DOS TANDAS AL DIA, hora de Venezuela:
+#   8:00 am  = 12:00 UTC   (tanda "manana")
+#   2:00 pm  = 18:00 UTC   (tanda "tarde")
 #
-# Se deja el disparo manual ademas del programado a proposito. En este mismo
-# grupo de proyectos ya se aprendio que el "schedule" de GitHub llega con
-# retrasos de hasta media hora, y por eso el bot de Telegram lo dispara desde
-# un cron externo (cron-job.org) que llama a workflow_dispatch. Aqui el
-# schedule queda como red de seguridad: si el cron externo falla, la corrida
-# sale igual aunque sea tarde.
+# La de la tarde NO repite la de la mañana: orquestar.py consulta la API publica
+# del sitio y descarta lo que ya esta publicado (ver motor/memoria.py). Por eso
+# pide el triple de candidatos de los que necesita, para que le quede margen
+# despues de filtrar.
+#
+# Se deja el disparo manual ademas del programado a proposito. En este grupo de
+# proyectos ya se aprendio que el "schedule" de GitHub llega con retrasos de
+# hasta media hora, y por eso el bot de Telegram lo dispara desde un cron
+# externo (cron-job.org) que llama a workflow_dispatch. Aqui el schedule queda
+# como red de seguridad: si el cron externo falla, la corrida sale igual aunque
+# sea tarde.
 on:
   workflow_dispatch:
     inputs:
+      tanda:
+        description: "manana o tarde"
+        default: "manana"
       piezas:
         description: "Cuantas piezas producir"
         default: "6"
@@ -18,7 +28,8 @@ on:
         description: "true = solo correo, no toca el panel"
         default: "false"
   schedule:
-    - cron: "0 12 * * 1-5"
+    - cron: "0 12 * * 1-5"   # 8:00 am Venezuela
+    - cron: "0 18 * * 1-5"   # 2:00 pm Venezuela
 
 jobs:
   producir:
@@ -37,6 +48,19 @@ jobs:
 
       - run: pip install -r requirements.txt
 
+      # El schedule no puede pasar inputs, asi que la tanda se deduce de la hora
+      # a la que arranco. En un disparo manual manda lo que se haya elegido.
+      - name: Que tanda es
+        id: tanda
+        run: |
+          if [ -n "${{ github.event.inputs.tanda }}" ]; then
+            echo "cual=${{ github.event.inputs.tanda }}" >> $GITHUB_OUTPUT
+          elif [ "$(date -u +%H)" -lt 15 ]; then
+            echo "cual=manana" >> $GITHUB_OUTPUT
+          else
+            echo "cual=tarde" >> $GITHUB_OUTPUT
+          fi
+
       - name: Corrida
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -49,8 +73,11 @@ jobs:
           # Envio del correo, reutiliza la cuenta de La Campana.
           SMTP_USUARIO: ${{ secrets.SMTP_USUARIO }}
           SMTP_CLAVE: ${{ secrets.SMTP_CLAVE }}
+          DESTINATARIOS: ${{ secrets.DESTINATARIOS }}
+          REMITENTE_NOMBRE: ${{ secrets.REMITENTE_NOMBRE }}
         run: |
           python orquestar.py \
+            --tanda "${{ steps.tanda.outputs.cual }}" \
             --piezas "${{ github.event.inputs.piezas || '6' }}" \
             ${{ github.event.inputs.sin_subir == 'true' && '--sin-subir' || '' }}
 
@@ -60,7 +87,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: borradores
+          name: borradores-${{ steps.tanda.outputs.cual }}
           path: |
             corrida-*/
             carga-*.json

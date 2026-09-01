@@ -86,17 +86,23 @@ def main():
     ap.add_argument("--con-foto", action="store_true",
                     help="deja que el codigo elija foto. Acierta con el lugar y "
                          "falla con el asunto: leer armar_carga.py antes")
+    # Las dos tandas del dia escriben en carpetas distintas. Si compartieran
+    # carpeta, la segunda numeraria encima de la primera y el correo saldria con
+    # el mismo asunto dos veces, sin forma de saber cual es cual en la bandeja.
+    ap.add_argument("--tanda", default="", help="etiqueta: manana, tarde...")
     args = ap.parse_args()
 
     hoy = datetime.date.today().isoformat()
-    carpeta = AQUI / ("corrida-" + hoy)
+    nombre = "corrida-" + hoy + ("-" + args.tanda if args.tanda else "")
+    carpeta = AQUI / nombre
     carpeta.mkdir(exist_ok=True)
     # Marca de tiempo para distinguir lo escrito HOY de lo que ya hubiera en
     # borradores/. Sin esto, una corrida mandaria por correo todo el historico.
     arranque = __import__("time").time()
 
     print("=" * 70)
-    print("CORRIDA DIARIA  %s   %d piezas" % (hoy, args.piezas))
+    print("CORRIDA %s  %s   %d piezas"
+          % ((args.tanda or "diaria").upper(), hoy, args.piezas))
     print("=" * 70)
 
     if not hay_con_que():
@@ -104,19 +110,57 @@ def main():
 
     # 1. Que hay hoy. El orden lo pone criterio.py, que ya puntua y diversifica
     #    por pais para que un solo asunto no cope la jornada.
+    #
+    #    SE PIDEN MAS CANDIDATOS DE LOS QUE HACEN FALTA. Con dos tandas al dia,
+    #    buena parte de lo que trae la segunda ya se conto en la primera. Si se
+    #    pidieran seis justos y cuatro fueran repetidos, la tanda saldria con
+    #    dos piezas. Se pide el triple y se recorta despues de filtrar.
     print("\n--- 1. RECOLECTAR ---")
     candidatos = carpeta / "candidatos.json"
     r = correr([PYTHON, AQUI / "recolectar.py", "--horas", args.horas,
-                "--limite", args.piezas, "--guardar", candidatos])
+                "--limite", args.piezas * 3, "--guardar", candidatos])
     print((r.stdout or "")[-900:])
     if not candidatos.exists():
         print("Sin candidatos. Nada que hacer hoy.")
         return 1
 
-    temas = json.loads(candidatos.read_text(encoding="utf-8"))
+    crudos = json.loads(candidatos.read_text(encoding="utf-8"))
+
+    # 1b. Quitar lo que ya esta publicado. Ver motor/memoria.py: la fuente de
+    #     verdad es el propio sitio, asi que tambien se ve lo que subio una
+    #     persona a mano.
+    print("\n--- 1b. DESCARTAR LO YA PUBLICADO ---")
+    try:
+        from motor import memoria
+        temas, repetidos = memoria.filtrar(crudos, clave="hecho")
+        for c, ya in repetidos:
+            print("   ya publicado: %s" % str(c.get("hecho", ""))[:60])
+            print("       coincide con: %s" % ya["titulo"][:60])
+        print("   %d nuevos, %d repetidos" % (len(temas), len(repetidos)))
+    except Exception as exc:  # noqa: BLE001
+        # Si la memoria falla NO se para la corrida: se avisa y se sigue con
+        # todo. Publicar una repetida es un incordio; no publicar nada porque
+        # no se pudo comprobar es peor.
+        print("   [aviso] la memoria fallo (%s). Se sigue SIN filtrar."
+              % str(exc)[:70])
+        temas = crudos
+
+    temas = temas[:args.piezas]
+    if not temas:
+        print("\nTodo lo que hay hoy ya se publico. No se escribe nada.")
+        # Se manda el correo igual, aunque vaya vacio: es el unico aviso de que
+        # la corrida ocurrio y de que no habia nada nuevo.
+        correr([PYTHON, AQUI / "enviar.py", carpeta, args.correo], minutos=15)
+        return 0
+
     print("\n%d temas elegidos:" % len(temas))
     for t in temas:
         print("   - " + str(t.get("hecho", "?"))[:88])
+
+    # producir.py entra por posicion en el archivo, asi que hay que reescribirlo
+    # con la lista ya filtrada o los indices apuntarian a los candidatos viejos.
+    candidatos.write_text(json.dumps(temas, ensure_ascii=False, indent=2),
+                          encoding="utf-8")
 
     # 2. Escribir y auditar, una por una. Si una revienta, las demas siguen: una
     #    corrida que se cae entera por un tema es una corrida que no sirve.
