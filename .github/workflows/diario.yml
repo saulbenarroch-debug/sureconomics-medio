@@ -59,15 +59,30 @@ jobs:
       - name: Que tanda es, y si ya salio
         id: mirar
         run: |
-          # El schedule no puede pasar inputs, asi que la tanda se deduce de la
-          # hora a la que arranco. En un disparo manual manda lo que se eligio.
+          # El schedule no puede pasar inputs, pero SI dice que cron lo disparo,
+          # y eso es lo que hay que mirar. Deducirlo del reloj estaba mal: el
+          # 01/09/2026 el cron de las 12:00 UTC llego a las 16:22, con cuatro
+          # horas y veinte de retraso, y como la regla era "antes de las 15 es
+          # mañana", la tanda de la mañana se etiqueto "tarde". Con la guardia
+          # puesta eso ademas habria bloqueado la tanda real de las 18:00: la de
+          # la mañana no habria salido y la de la tarde tampoco.
+          #
+          # github.event.schedule trae la expresion exacta, sin importar cuanto
+          # tarde en llegar.
+          CRON="${{ github.event.schedule }}"
           if [ -n "${{ github.event.inputs.tanda }}" ]; then
             TANDA="${{ github.event.inputs.tanda }}"
-          elif [ "$(date -u +%H)" -lt 15 ]; then
+          elif [ "$CRON" = "0 12 * * 1-5" ]; then
             TANDA="manana"
-          else
+          elif [ "$CRON" = "0 18 * * 1-5" ]; then
             TANDA="tarde"
+          else
+            # Cron desconocido: alguien toco los horarios y no actualizo esto.
+            # Se avisa en vez de adivinar en silencio.
+            echo "::warning::cron '$CRON' no reconocido; deduzco la tanda del reloj"
+            if [ "$(date -u +%H)" -lt 15 ]; then TANDA="manana"; else TANDA="tarde"; fi
           fi
+          echo "cron que disparo: '$CRON' -> tanda '$TANDA'"
           echo "tanda=$TANDA" >> $GITHUB_OUTPUT
 
           HOY=$(date -u +%F)
