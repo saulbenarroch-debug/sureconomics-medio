@@ -13,7 +13,10 @@ on:
     inputs:
       enlace:
         description: "Direccion de la nota"
-        required: true
+        default: ""
+      foto:
+        description: "file_id de una captura mandada al bot"
+        default: ""
       quien:
         description: "Quien la pidio (para el correo)"
         default: ""
@@ -52,7 +55,7 @@ jobs:
           # esto es un extra, no el canal principal.
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         run: |
-          python nota.py "${{ github.event.inputs.enlace }}" --tipo "${{ github.event.inputs.tipo }}" --quien "${{ github.event.inputs.quien }}" --chat "${{ github.event.inputs.chat }}"
+          python nota.py "${{ github.event.inputs.enlace }}" --foto "${{ github.event.inputs.foto }}" --tipo "${{ github.event.inputs.tipo }}" --quien "${{ github.event.inputs.quien }}" --chat "${{ github.event.inputs.chat }}"
 
       - name: Guardar lo producido
         if: always()

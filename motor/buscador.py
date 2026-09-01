@@ -57,9 +57,29 @@ REFERENCIA = [
 ]
 
 
+# DONDE VIVEN LOS ARTICULOS de los medios cuyo feed esta en otro dominio. No es
+# ampliar la lista blanca: estos medios YA estan aprobados, lo que faltaba era
+# el dominio donde se leen sus notas. La lista guarda la direccion del RSS y de
+# ahi se deducia el dominio, asi que de El Pais solo constaba
+# "feeds.elpais.com" y una busqueda restringida no podia encontrar jamas un
+# articulo suyo. Se vio el 01/09/2026 con una captura real de El Pais: la
+# busqueda devolvio tres paginas de Euronews y ninguna era la noticia.
+ARTICULOS_DE = {
+    "feeds.bbci.co.uk": "bbc.com",          # BBC Mundo publica en bbc.com
+}
+
+
 def dominios_permitidos():
-    de_la_lista = {urlparse(m["url"]).netloc.replace("www.", "")
-                   for m in MEDIOS.values()}
+    de_la_lista = set()
+    for m in MEDIOS.values():
+        host = urlparse(m["url"]).netloc.replace("www.", "")
+        de_la_lista.add(host)
+        if host in ARTICULOS_DE:
+            de_la_lista.add(ARTICULOS_DE[host])
+        # Caso general: feeds.elpais.com -> elpais.com. El prefijo "feeds." es
+        # del servidor de RSS, no del medio.
+        elif host.startswith("feeds."):
+            de_la_lista.add(host[len("feeds."):])
     return sorted(de_la_lista | set(REFERENCIA))
 
 

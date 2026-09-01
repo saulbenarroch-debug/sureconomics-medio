@@ -22,20 +22,26 @@ MODELOS_GEMINI = ["gemini-3.5-flash", "gemini-3.5-flash-lite"]
 MODELO_GROQ = "openai/gpt-oss-120b"
 
 
-def _gemini(prompt, temperatura, reintentos=2):
+def _gemini(prompt, temperatura, reintentos=2, imagen=None):
+    """imagen: (bytes, mime) para leer una captura. Ver pedir_json()."""
     from google import genai
+    from google.genai import types
 
     clave = os.environ.get("GEMINI_API_KEY", "").strip()
     if not clave:
         raise RuntimeError("falta GEMINI_API_KEY")
     cliente = genai.Client(api_key=clave)
+    contenido = prompt
+    if imagen:
+        datos, mime = imagen
+        contenido = [types.Part.from_bytes(data=datos, mime_type=mime), prompt]
     ultimo = None
     for modelo in MODELOS_GEMINI:
         espera = 5
         for intento in range(1, reintentos + 1):
             try:
                 r = cliente.models.generate_content(
-                    model=modelo, contents=prompt,
+                    model=modelo, contents=contenido,
                     config={"response_mime_type": "application/json",
                             "temperature": temperatura})
                 return r.text, modelo
@@ -83,15 +89,24 @@ def _groq(prompt, temperatura):
     return r.json()["choices"][0]["message"]["content"], MODELO_GROQ
 
 
-def pedir_json(prompt, etiqueta="ia", temperatura=0.4):
+def pedir_json(prompt, etiqueta="ia", temperatura=0.4, imagen=None):
     """Devuelve el objeto que responda el modelo, o None si nadie contesta.
 
     Degradacion suave: si ningun modelo responde, no hay resultado. Nunca se
     devuelve algo inventado para rellenar.
+
+    imagen es (bytes, mime) y sirve para leer una captura de pantalla. OJO: el
+    respaldo de Groq es un modelo de TEXTO y no puede ver imagenes, asi que con
+    imagen no hay respaldo. Se dice y se devuelve None en vez de mandarle el
+    prompt a ciegas, que es como se acaba describiendo una foto que nadie miro.
     """
     try:
-        crudo, modelo = _gemini(prompt, temperatura)
+        crudo, modelo = _gemini(prompt, temperatura, imagen=imagen)
     except Exception as exc:  # noqa: BLE001
+        if imagen:
+            print(f"[error] Gemini no disponible ({str(exc)[:70]}) y Groq no ve "
+                  "imagenes. Sin lectura de la captura.")
+            return None
         print(f"[aviso] Gemini no disponible ({str(exc)[:70]}); uso Groq")
         try:
             crudo, modelo = _groq(prompt, temperatura)

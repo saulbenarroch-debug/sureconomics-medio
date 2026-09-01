@@ -124,6 +124,39 @@ def _trozos(texto, tope=3900):
     return partes
 
 
+def _mensaje_telegram(chat, texto):
+    """Un mensaje suelto al chat. Devuelve True si Telegram lo acepto."""
+    import json as _json
+
+    ficha = os.environ.get("TELEGRAM_TOKEN", "").strip()
+    if not ficha or not chat:
+        return False
+    pet = urllib.request.Request(
+        "https://api.telegram.org/bot%s/sendMessage" % ficha,
+        data=_json.dumps({"chat_id": chat, "text": texto, "parse_mode": "HTML",
+                          "disable_web_page_preview": True}).encode(),
+        headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(pet, timeout=30):
+        return True
+
+
+def _avisar_captura(chat, hallado):
+    """Le dice a quien mando la captura por que no se escribio.
+
+    Se le contesta SIEMPRE. Mandar una foto y no recibir nada parece que el bot
+    esta roto, y a la tercera vez la gente deja de mandarlas.
+    """
+    lectura = hallado.get("lectura") or {}
+    partes = ["🔍 <b>No escribo esta.</b>", "", _escapar(hallado.get("motivo", ""))]
+    if lectura.get("titular"):
+        partes += ["", "Lo que leí en la imagen:",
+                   "<i>" + _escapar(lectura["titular"][:200]) + "</i>"]
+    partes += ["", "Solo escribo desde el artículo original de un medio de la "
+               "lista, para que las cifras se puedan verificar. Si tienes el "
+               "enlace, mándalo con <code>/nota &lt;enlace&gt;</code>."]
+    return _mensaje_telegram(chat, "\n".join(partes))
+
+
 def mandar_al_chat(borrador, chat, quien=""):
     """Manda el borrador al chat que lo pidio. Devuelve True si salio.
 
@@ -184,7 +217,10 @@ def mandar_al_chat(borrador, chat, quien=""):
 
 def main():
     ap = argparse.ArgumentParser(description="Una pieza a peticion")
-    ap.add_argument("peticion", help="un enlace, o un tema en palabras")
+    ap.add_argument("peticion", nargs="?", default="",
+                    help="un enlace, o un tema en palabras")
+    ap.add_argument("--foto", default="",
+                    help="file_id de una captura mandada al bot de Telegram")
     ap.add_argument("--tipo", default="Noticia")
     ap.add_argument("--correo", default="saul@rendigroup.com")
     ap.add_argument("--quien", default="", help="quien la pidio, para el correo")
@@ -192,11 +228,39 @@ def main():
     args = ap.parse_args()
 
     peticion = args.peticion.strip()
-    es_enlace = peticion.startswith("http://") or peticion.startswith("https://")
     print("=" * 70)
     print("NOTA A PETICION%s" % (" · pedida por " + args.quien if args.quien else ""))
-    print(peticion[:100])
+    print(peticion[:100] if peticion else "(captura de pantalla)")
     print("=" * 70)
+
+    # UNA CAPTURA ES UNA PISTA, NO UNA FUENTE. Se lee para saber QUE buscar y se
+    # escribe desde el articulo original. Si no aparece en la lista blanca, no
+    # se escribe: decision del dueño el 01/09/2026, sabiendo que a veces dira
+    # que no. Ver el encabezado de motor/captura.py.
+    if args.foto:
+        print("\n--- 0. LEER LA CAPTURA ---")
+        from motor import captura
+        hallado = captura.desde_telegram(args.foto)
+        lectura = hallado.get("lectura") or {}
+        if lectura.get("titular"):
+            print("  dice: %s" % lectura["titular"][:88])
+            if lectura.get("medio"):
+                print("  medio que aparece: %s" % lectura["medio"][:50])
+        if not hallado.get("ok"):
+            print("\n  %s" % hallado.get("motivo", "no se pudo usar la captura"))
+            print("\nNo se escribe nada. Si tienes el enlace de la nota, mandalo")
+            print("con /nota y se escribe desde ahi.")
+            if args.chat:
+                try:
+                    _avisar_captura(args.chat, hallado)
+                except Exception as exc:  # noqa: BLE001
+                    print("  [chat] no pude avisar (%s)" % str(exc)[:70])
+            return 0
+        peticion = hallado["url"]
+        print("  original encontrado: %s" % hallado.get("medio", "")[:40])
+        print("  %s" % peticion[:100])
+
+    es_enlace = peticion.startswith("http://") or peticion.startswith("https://")
 
     if not es_enlace:
         # Sin enlace no hay documento que verificar. Se podria buscar en los
