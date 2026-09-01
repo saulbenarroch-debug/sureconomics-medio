@@ -90,12 +90,99 @@ def medio_de(url):
     return d.split(".")[0].replace("-", " ").title()
 
 
+def _escapar(t):
+    return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _trozos(texto, tope=3900):
+    """Parte por parrafos, nunca a mitad de frase.
+
+    Telegram corta en 4096 caracteres. Partir por el numero pelado deja una nota
+    cortada en mitad de una cifra, que es justo donde no se puede cortar en un
+    medio que publica cifras.
+    """
+    partes, actual = [], ""
+    for parrafo in texto.split("\n\n"):
+        if len(actual) + len(parrafo) + 2 > tope and actual:
+            partes.append(actual.rstrip())
+            actual = ""
+        # Un parrafo mas largo que el tope entero: se parte por lineas.
+        while len(parrafo) > tope:
+            corte = parrafo.rfind(" ", 0, tope)
+            corte = corte if corte > tope // 2 else tope
+            partes.append(parrafo[:corte])
+            parrafo = parrafo[corte:].lstrip()
+        actual += parrafo + "\n\n"
+    if actual.strip():
+        partes.append(actual.rstrip())
+    return partes
+
+
+def mandar_al_chat(borrador, chat, quien=""):
+    """Manda el borrador al chat que lo pidio. Devuelve True si salio.
+
+    EL CORREO SIGUE SIENDO EL CANAL PRINCIPAL y esto no lo sustituye: si
+    Telegram falla, la pieza ya se envio por correo y no se pierde. Por eso los
+    fallos aqui se avisan y no cortan nada.
+    """
+    import json as _json
+    import urllib.error
+
+    ficha = os.environ.get("TELEGRAM_TOKEN", "").strip()
+    if not ficha or not chat:
+        print("  [chat] sin TELEGRAM_TOKEN o sin chat: no se manda.")
+        return False
+
+    lineas = [l for l in borrador.read_text(encoding="utf-8").split("\n")]
+    # El archivo trae [Noticia] [tags], titulo, [Fecha] y luego el cuerpo.
+    utiles = [l.strip() for l in lineas if l.strip()]
+    titulo = next((l for l in utiles[:4] if l.isupper() and len(l) > 25), "(sin titulo)")
+    desde = utiles.index(titulo) + 1
+    cuerpo = [l for l in utiles[desde:]
+              if not l.startswith(("[Fecha]", "Perecedero", "[Autor]"))]
+
+    # Si el auditor la bloqueo hay que decirlo ARRIBA. Un borrador que llega al
+    # chat sin esa marca invita a publicarlo tal cual.
+    estado = ""
+    ruta_json = borrador.with_suffix(".json")
+    if ruta_json.exists():
+        try:
+            if _json.loads(ruta_json.read_text(encoding="utf-8")).get("bloqueada"):
+                estado = "⛔ <b>BLOQUEADA POR EL AUDITOR.</b> No publicar sin revisar.\n\n"
+        except Exception:  # noqa: BLE001
+            pass
+
+    cabecera = "📝 <b>Borrador listo</b>%s\n\n" % (" · pedido por " + _escapar(quien) if quien else "")
+    texto = (cabecera + estado + "<b>" + _escapar(titulo) + "</b>\n\n"
+             + "\n\n".join(_escapar(l) for l in cuerpo)
+             + "\n\n<i>Queda en borrador. No se publica solo.</i>")
+
+    enviados = 0
+    for i, trozo in enumerate(_trozos(texto)):
+        cuerpo_pet = _json.dumps({"chat_id": chat, "text": trozo,
+                                  "parse_mode": "HTML",
+                                  "disable_web_page_preview": True}).encode()
+        pet = urllib.request.Request(
+            "https://api.telegram.org/bot%s/sendMessage" % ficha,
+            data=cuerpo_pet, headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(pet, timeout=30):
+                enviados += 1
+        except urllib.error.HTTPError as exc:
+            print("  [chat] trozo %d rechazado: %s" % (i + 1, exc.read().decode()[:130]))
+        except Exception as exc:  # noqa: BLE001
+            print("  [chat] trozo %d fallo: %s" % (i + 1, str(exc)[:90]))
+    print("  [chat] %d mensaje(s) enviados a %s" % (enviados, chat))
+    return enviados > 0
+
+
 def main():
     ap = argparse.ArgumentParser(description="Una pieza a peticion")
     ap.add_argument("peticion", help="un enlace, o un tema en palabras")
     ap.add_argument("--tipo", default="Noticia")
     ap.add_argument("--correo", default="saul@rendigroup.com")
     ap.add_argument("--quien", default="", help="quien la pidio, para el correo")
+    ap.add_argument("--chat", default="", help="chat de Telegram al que devolverla")
     args = ap.parse_args()
 
     peticion = args.peticion.strip()
@@ -190,6 +277,12 @@ def main():
     r = subprocess.run([sys.executable, str(AQUI / "enviar.py"), str(carpeta), args.correo],
                        capture_output=True, text=True, encoding="utf-8", errors="replace")
     print((r.stdout or "")[-300:])
+
+    # El correo va primero y siempre. Esto es un extra: quien la pidio por el
+    # chat la recibe por el chat, sin cambiar de aplicacion para leerla.
+    if args.chat:
+        mandar_al_chat(borrador, args.chat, args.quien)
+
     print("\nListo. Queda en borrador, como todo.")
     return 0
 

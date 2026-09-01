@@ -20,6 +20,9 @@ on:
       tipo:
         description: "Noticia, Opinión, Editorial, Investigación, Educación"
         default: "Noticia"
+      chat:
+        description: "Chat de Telegram al que devolver el borrador"
+        default: ""
 
 jobs:
   escribir:
@@ -45,10 +48,11 @@ jobs:
           SMTP_CLAVE: ${{ secrets.SMTP_CLAVE }}
           DESTINATARIOS: ${{ secrets.DESTINATARIOS }}
           REMITENTE_NOMBRE: ${{ secrets.REMITENTE_NOMBRE }}
+          # Para devolver el borrador al chat que lo pidio. El correo va igual:
+          # esto es un extra, no el canal principal.
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         run: |
-          python nota.py "${{ github.event.inputs.enlace }}" \
-            --tipo "${{ github.event.inputs.tipo }}" \
-            --quien "${{ github.event.inputs.quien }}"
+          python nota.py "${{ github.event.inputs.enlace }}" --tipo "${{ github.event.inputs.tipo }}" --quien "${{ github.event.inputs.quien }}" --chat "${{ github.event.inputs.chat }}"
 
       - name: Guardar lo producido
         if: always()
