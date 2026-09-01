@@ -205,8 +205,20 @@ def main():
     try:
         from motor import memoria
         nuevos, repetidos = memoria.filtrar(fuertes, clave="titular")
+        # SE DICE CONTRA QUE COINCIDIO, y cuanto. Sin esto el registro solo dice
+        # "ya publicado" y no hay forma de saber si acerto o si tapo una noticia
+        # nueva: el 01/09/2026 una nota sobre sanciones a Iran salio como
+        # repetida, para cuando se fue a mirar ya no estaba en la ventana de
+        # busqueda, y se quedo sin diagnosticar. Un filtro que descarta sin
+        # decir por que no se puede auditar.
+        peso = memoria.pesos(memoria.publicadas()) if repetidos else None
         for c, ya in repetidos:
-            print("  ya publicado: %s" % c["titular"][:60])
+            print("  ya publicado: %s" % c["titular"][:70])
+            print("      coincide con: %s  (%.3f, comun: %s)" % (
+                ya["titulo"][:60],
+                memoria.parecido(c["titular"], ya["titulo"], peso),
+                ", ".join(sorted(memoria._palabras(c["titular"])
+                                 & memoria._palabras(ya["titulo"])))))
     except Exception as exc:  # noqa: BLE001
         print("  [aviso] la memoria fallo (%s). Se avisa igual." % str(exc)[:60])
         nuevos = fuertes
