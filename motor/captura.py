@@ -89,11 +89,25 @@ def leer(imagen):
             ("titular", "medio", "fecha", "texto", "busqueda", "legible")}
 
 
-# Cuanto tiene que parecerse el candidato al titular de la captura. Sale de
-# medirlo, igual que el umbral de memoria.py: ver la prueba del 01/09/2026 en
-# pruebas_captura.py. Es MAS EXIGENTE que el de duplicados (0.31) a proposito:
-# alli equivocarse significa no publicar algo nuevo, aqui significa publicar una
-# noticia distinta de la que mandaron.
+# DOS UMBRALES, PORQUE UN NUMERO SOLO NO PUEDE DECIDIR ESTO.
+#
+# Medido el 01/09/2026 con capturas reales:
+#   1.000  el mismo titular, redactado igual        -> es la nota, seguro
+#   0.571  captura en español, original en portugues -> es la nota, pero dudoso
+#   0.500  "inflacion de la Fed" contra "inflacion de la zona euro" -> NO es
+#
+# Fijate en el problema: el falso positivo (0.500) puntua casi igual que el
+# acierto dificil (0.571). No es que el umbral este mal calibrado, es que dos
+# titulares sobre inflacion son casi identicos como texto y lo que los separa es
+# la entidad, "Fed" contra "euro". Ninguna medida de parecido entre titulares va
+# a distinguir eso de forma fiable, y afinar el numero solo mueve el error de
+# sitio.
+#
+# Asi que por encima de AUTOMATICO se escribe sin preguntar, y en la franja de
+# en medio se le manda al que pidio la nota lo que se encontro y decide el. Es
+# la unica parte de todo esto que de verdad necesita criterio humano, y es
+# barata: un mensaje. Publicar la noticia equivocada no lo es.
+PARECIDO_AUTOMATICO = 0.75
 PARECIDO_MINIMO = 0.45
 
 
@@ -134,12 +148,11 @@ def buscar_original(lectura, dias=15, umbral=PARECIDO_MINIMO):
     crudos = []
     try:
         from motor.fuentes import noticias
-        for paq in noticias.extraer(horas=max(24, dias * 24 // 8), limite=60):
-            f = paq.fuentes[0] if paq.fuentes else None
-            if f and f.url:
-                crudos.append({"titular": paq.hecho, "url": f.url,
-                               "medio": f.institucion, "fecha": paq.fecha_hecho,
-                               "extracto": "", "via": "feed"})
+        # titulares() y no extraer(): el 'limite' de extraer es un tope GLOBAL y
+        # retorna en cuanto lo alcanza, asi que con 60 solo se leian los tres
+        # primeros medios de la lista y los otros cuarenta y siete ni se
+        # consultaban. Aqui hace falta amplitud, no profundidad.
+        crudos += noticias.titulares(horas=max(24, dias * 24 // 8), por_medio=12)
     except Exception as exc:  # noqa: BLE001
         print("  [aviso] no pude leer los feeds (%s); voy al buscador" % str(exc)[:70])
 
@@ -187,6 +200,14 @@ def desde_telegram(file_id, dias=15):
     if not candidatos:
         return {"ok": False, "lectura": lectura,
                 "motivo": "no encuentro esta noticia en ninguna fuente verificable"}
+
+    # Solo se escribe solo cuando no hay duda. Ver los dos umbrales arriba.
+    if candidatos[0]["parecido"] < PARECIDO_AUTOMATICO:
+        return {"ok": False, "lectura": lectura, "candidatos": candidatos[:3],
+                "dudoso": True,
+                "motivo": "encontré algo parecido, pero no estoy seguro de que "
+                          "sea la misma noticia"}
+
     return {"ok": True, "lectura": lectura, "candidatos": candidatos,
             "url": candidatos[0]["url"], "titular": candidatos[0]["titular"],
             "medio": candidatos[0].get("medio", "")}

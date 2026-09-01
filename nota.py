@@ -185,9 +185,23 @@ def _avisar_captura(chat, hallado):
     if lectura.get("titular"):
         partes += ["", "Lo que leí en la imagen:",
                    "<i>" + _escapar(lectura["titular"][:200]) + "</i>"]
-    partes += ["", "Solo escribo desde el artículo original de un medio de la "
-               "lista, para que las cifras se puedan verificar. Si tienes el "
-               "enlace, mándalo con <code>/nota &lt;enlace&gt;</code>."]
+
+    # CUANDO HAY CANDIDATOS DUDOSOS SE ENSEÑAN. Decir "no la encuentro" cuando
+    # en realidad hay algo parecido pero incierto desperdicia el trabajo y deja
+    # a la persona sin nada que hacer. Con el enlace delante, decide en dos
+    # segundos algo que ninguna medida de parecido decide bien.
+    if hallado.get("dudoso") and hallado.get("candidatos"):
+        partes += ["", "Lo más parecido que encontré:"]
+        for c in hallado["candidatos"]:
+            partes.append("· <b>%s</b> · %s\n<code>/nota %s</code>" % (
+                _escapar((c.get("medio") or "")[:26]),
+                _escapar((c.get("titular") or "")[:110]),
+                _escapar(c.get("url") or "")))
+        partes += ["", "Si alguna es, cópiame su línea <code>/nota</code>."]
+    else:
+        partes += ["", "Solo escribo desde el artículo original de un medio de "
+                   "la lista, para que las cifras se puedan verificar. Si tienes "
+                   "el enlace, mándalo con <code>/nota &lt;enlace&gt;</code>."]
     return _mensaje_telegram(chat, "\n".join(partes))
 
 

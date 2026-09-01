@@ -293,6 +293,59 @@ def cifras_del_texto(texto, fuente_id, medio):
     return encontradas
 
 
+def titulares(medios=None, horas=24, por_medio=15):
+    """Solo titular, enlace y medio, de TODA la lista blanca. Sin expediente.
+
+    POR QUE NO SIRVE extraer() PARA ESTO. Su 'limite' es un tope global y la
+    funcion RETORNA en cuanto lo alcanza, recorriendo los medios en orden: con
+    limite=60 los tres primeros llenaban el cupo y los otros cuarenta y siete ni
+    se consultaban. Para armar el pool del dia eso esta bien, porque lo que se
+    quiere son N piezas; para emparejar una captura con su original hace falta
+    lo contrario, mirar en TODOS aunque sea por encima.
+
+    Ademas extraer() construye el expediente completo de cada nota, que es caro
+    y aqui no hace falta: para saber si un titular es el mismo hecho basta el
+    titular.
+
+    Se descubrio el 01/09/2026: una captura sobre la inflacion de la Fed no
+    encontraba original y el motivo no era la noticia, era que solo se habian
+    leido tres medios.
+    """
+    claves = medios or list(MEDIOS)
+    corte = datetime.now(timezone.utc).timestamp() - horas * 3600
+    salida, vistos = [], set()
+
+    for clave in claves:
+        medio = MEDIOS.get(clave)
+        if not medio:
+            continue
+        try:
+            feed = feedparser.parse(medio["url"], agent=AGENTE)
+            if not feed.entries:      # ver el comentario de extraer()
+                feed = feedparser.parse(medio["url"])
+        except Exception:  # noqa: BLE001 - un diario caido no detiene al resto
+            continue
+
+        puestos = 0
+        for entrada in feed.entries:
+            if puestos >= por_medio:
+                break
+            titular = (entrada.get("title") or "").strip()
+            enlace = _enlace_real((entrada.get("link") or "").strip())
+            if not titular or not enlace.startswith("http") or enlace in vistos:
+                continue
+            if criterio.JUNK.search(titular) or criterio.JUNK_URL.search(enlace):
+                continue
+            marca = entrada.get("published_parsed") or entrada.get("updated_parsed")
+            if marca and timegm(marca) < corte:
+                continue
+            vistos.add(enlace)
+            salida.append({"titular": titular, "url": enlace,
+                           "medio": medio["nombre"], "fecha": "", "via": "feed"})
+            puestos += 1
+    return salida
+
+
 def extraer(medios=None, horas=24, limite=6, tema=None):
     """Lee la lista blanca y devuelve un paquete por noticia.
 
