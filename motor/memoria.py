@@ -33,6 +33,11 @@ Un umbral calibrado con pocos casos es un umbral provisional: cada duplicado
 nuevo que aparezca hay que meterlo en pruebas_memoria.py y volver a mirar el
 hueco, no ajustar el numero a ojo.
 
+Y HACEN FALTA DOS PALABRAS EN COMUN COMO MINIMO. Una sola no es prueba de nada
+por rara que sea: los titulares en ingles aportan cuatro palabras utiles y una
+coincidencia como "iran" se llevaba mas de un tercio del parecido. Ver el
+comentario de parecido().
+
 Ante la duda, el sesgo va a NO bloquear. Un falso positivo significa no publicar
 una noticia que si era nueva, y eso no lo echa nadie de menos porque nadie sabe
 que falta. Una repetida, en cambio, se ve enseguida y se borra.
@@ -118,9 +123,25 @@ def parecido(a, b, peso=None):
     pa, pb = _palabras(a), _palabras(b)
     if not pa or not pb:
         return 0.0
+
+    # UNA SOLA PALABRA EN COMUN NO ES PRUEBA DE NADA, por rara que sea. Lo
+    # descubrio la ronda de vigilancia del 01/09/2026: "U.S.-Iran Strikes Put
+    # $100 Oil Back in Focus" puntuo 0.369 contra una pieza nuestra sobre la
+    # venta de combustible de aviacion a España, y quedo tapada. Lo unico que
+    # compartian era "iran".
+    #
+    # Le pasa a los titulares en INGLES, que es el agujero: aportan cuatro
+    # palabras utiles, comparten una, y como esa palabra es rara pesa mucho y el
+    # divisor es el menor de los dos. Cualquier titular corto en ingles que
+    # nombre un pais ya cubierto se bloqueaba solo. Y los feeds en ingles son
+    # material legitimo para un medio en español.
+    comunes = pa & pb
+    if len(comunes) < 2:
+        return 0.0
+
     # Una palabra que no esta en el catalogo es nueva, o sea muy distintiva.
     w = (lambda p: peso.get(p, 2.0)) if peso else (lambda p: 1.0)
-    comun = sum(w(p) for p in pa & pb)
+    comun = sum(w(p) for p in comunes)
     # Se divide por el MENOR de los dos, no por la union: un titular corto
     # contenido en uno largo es el mismo hecho contado con mas detalle.
     base = min(sum(w(p) for p in pa), sum(w(p) for p in pb))

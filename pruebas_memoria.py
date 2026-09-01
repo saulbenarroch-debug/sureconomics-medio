@@ -31,6 +31,10 @@ REPETIDOS = [
     # escapaba por milesimas, y el motor iba a reescribir una nota publicada.
     "Colombia ya exporta más cocaína que petróleo y es el país que pone 70 % de esta droga a nivel mundial",
     "Venezuela reubicará a alumnos de 91 centros afectados por sismos",
+    # De la ronda de vigilancia del 01/09: es el mismo hecho que publicamos
+    # (Ormuz, el crudo por encima de 90) contado un dia despues y con otra
+    # cifra. Tiene que seguir bloqueandose despues del arreglo de abajo.
+    "El petróleo sube un 4% y toca los 94 dólares tras los últimos ataques de EEUU a Irán",
 ]
 
 # Cosas que NO hemos publicado. Si alguna sale como repetida, la memoria estaria
@@ -43,6 +47,13 @@ NUEVOS = [
     # Este salio de la ronda de vigilancia del 01/09: es del mismo mundo que lo
     # que publicamos (petroleo, mercados) y aun asi tiene que pasar.
     "Wall Street cae y los bonos se desploman ante el temor a una inflación impulsada por el petróleo",
+    # EL CASO QUE DESTAPO EL AGUJERO DE LOS TITULARES EN INGLES. Puntuaba 0.369
+    # contra nuestra pieza de la venta de combustible de aviacion a España, con
+    # la que solo comparte la palabra "iran", y quedaba tapado. Un titular en
+    # ingles aporta cuatro palabras utiles: una coincidencia rara se llevaba mas
+    # de un tercio del parecido. Si esto vuelve a salir como repetido, alguien
+    # quito la regla de las dos palabras en memoria.parecido().
+    "U.S.-Iran Strikes Put $100 Oil Back in Focus",
 ]
 
 
