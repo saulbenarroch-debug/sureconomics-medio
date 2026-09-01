@@ -22,12 +22,16 @@ titulares sobre el mismo hecho comparten los nombres propios y los sustantivos
 raros ("Datanalisis", "dolarizacion", "Malvinas") aunque esten redactados
 distinto. Las palabras vacias se descartan porque aparecen en todo.
 
-EL UMBRAL SALE DE MEDIRLO, NO DE ELEGIRLO A OJO. Contra los titulares reales
-del 31/08/2026, los que ya estaban publicados puntuaron entre 0.53 y 1.00, y
-los que eran noticia nueva entre 0.00 y 0.24. Con esa separacion, 0.40 queda en
-medio y con margen por los dos lados. Si algun dia los dos grupos se acercan,
-el umbral hay que volver a medirlo, no moverlo por intuicion: pruebas_memoria.py
-imprime las puntuaciones.
+EL UMBRAL SALE DE MEDIRLO, NO DE ELEGIRLO A OJO. Contra titulares reales, los
+que ya estaban publicados puntuan entre 0.384 y 1.000, y los que son noticia
+nueva entre 0.000 y 0.240. El umbral va en 0.31, en medio del hueco.
+
+La primera medicion dio 0.40 porque el peor duplicado que se habia probado
+puntuaba 0.53. Al llegar el titular original de Valora Analitik, que puntua
+0.399, se colo por milesimas y el motor iba a reescribir una nota ya publicada.
+Un umbral calibrado con pocos casos es un umbral provisional: cada duplicado
+nuevo que aparezca hay que meterlo en pruebas_memoria.py y volver a mirar el
+hueco, no ajustar el numero a ojo.
 
 Ante la duda, el sesgo va a NO bloquear. Un falso positivo significa no publicar
 una noticia que si era nueva, y eso no lo echa nadie de menos porque nadie sabe
@@ -52,7 +56,7 @@ VACIAS = {
     "puede", "pueden", "hace", "hacen", "dice", "dicen", "ser", "haber",
 }
 
-UMBRAL = 0.40
+UMBRAL = 0.31
 
 
 def _plano(texto):

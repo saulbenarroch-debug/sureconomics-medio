@@ -15,6 +15,13 @@ name: Corrida diaria
 # externo (cron-job.org) que llama a workflow_dispatch. Aqui el schedule queda
 # como red de seguridad: si el cron externo falla, la corrida sale igual aunque
 # sea tarde.
+#
+# Y POR ESO EXISTE EL JOB "guardia". Con el cron externo puesto, las dos vias
+# disparan la misma tanda y salen DOCE borradores en vez de seis. La memoria no
+# lo evita, porque la primera tanda deja borradores y la memoria solo ve lo
+# publicado. La guardia bloquea al segundo, pero SOLO cuando viene del schedule:
+# si lo pide una persona o el cron externo, corre siempre, porque un disparo
+# pedido a mano es una decision y no un accidente.
 on:
   workflow_dispatch:
     inputs:
@@ -31,8 +38,58 @@ on:
     - cron: "0 12 * * 1-5"   # 8:00 am Venezuela
     - cron: "0 18 * * 1-5"   # 2:00 pm Venezuela
 
+# Se apunta que tanda salio y cuando, para que la guardia lo sepa.
+permissions:
+  contents: write
+
+# Dos corridas a la vez se pisarian los archivos de trabajo. La segunda espera.
+concurrency:
+  group: corrida-diaria
+  cancel-in-progress: false
+
 jobs:
+  guardia:
+    runs-on: ubuntu-latest
+    outputs:
+      seguir: ${{ steps.mirar.outputs.seguir }}
+      tanda: ${{ steps.mirar.outputs.tanda }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Que tanda es, y si ya salio
+        id: mirar
+        run: |
+          # El schedule no puede pasar inputs, asi que la tanda se deduce de la
+          # hora a la que arranco. En un disparo manual manda lo que se eligio.
+          if [ -n "${{ github.event.inputs.tanda }}" ]; then
+            TANDA="${{ github.event.inputs.tanda }}"
+          elif [ "$(date -u +%H)" -lt 15 ]; then
+            TANDA="manana"
+          else
+            TANDA="tarde"
+          fi
+          echo "tanda=$TANDA" >> $GITHUB_OUTPUT
+
+          HOY=$(date -u +%F)
+          # Se arma el patron con comillas sueltas para no meter barras
+          # invertidas: en este proyecto ya se han perdido dos veces por el
+          # camino y una barra mal escapada no la ve ningun comprobador.
+          MARCA='"'$TANDA'": "'$HOY'"'
+
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "Disparo pedido. Corre igual."
+            echo "seguir=si" >> $GITHUB_OUTPUT
+          elif [ -f ultima_corrida.json ] && grep -qF "$MARCA" ultima_corrida.json; then
+            echo "La tanda '$TANDA' de hoy ya salio. El schedule no la repite."
+            echo "seguir=no" >> $GITHUB_OUTPUT
+          else
+            echo "La tanda '$TANDA' de hoy no ha salido."
+            echo "seguir=si" >> $GITHUB_OUTPUT
+          fi
+
   producir:
+    needs: guardia
+    if: needs.guardia.outputs.seguir == 'si'
     runs-on: ubuntu-latest
     # Escribir seis piezas con auditoria lleva su tiempo. El limite existe para
     # que una corrida colgada no se coma la cuota de Actions del mes.
@@ -46,20 +103,26 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - run: pip install -r requirements.txt
-
-      # El schedule no puede pasar inputs, asi que la tanda se deduce de la hora
-      # a la que arranco. En un disparo manual manda lo que se haya elegido.
-      - name: Que tanda es
-        id: tanda
+      # SE APUNTA ANTES DE EMPEZAR, no al terminar. Una corrida dura cuarenta
+      # minutos y el schedule puede llegar con media hora de retraso: si se
+      # apuntara al final, el duplicado arrancaria mientras esta corriendo la
+      # primera y la guardia no habria servido de nada.
+      - name: Apuntar la tanda
         run: |
-          if [ -n "${{ github.event.inputs.tanda }}" ]; then
-            echo "cual=${{ github.event.inputs.tanda }}" >> $GITHUB_OUTPUT
-          elif [ "$(date -u +%H)" -lt 15 ]; then
-            echo "cual=manana" >> $GITHUB_OUTPUT
-          else
-            echo "cual=tarde" >> $GITHUB_OUTPUT
-          fi
+          python -c "
+          import json, pathlib, sys
+          p = pathlib.Path('ultima_corrida.json')
+          d = json.loads(p.read_text()) if p.exists() else {}
+          d[sys.argv[1]] = sys.argv[2]
+          p.write_text(json.dumps(d, indent=2, sort_keys=True) + chr(10))
+          " "${{ needs.guardia.outputs.tanda }}" "$(date -u +%F)"
+          git config user.name "corrida"
+          git config user.email "corrida@sureconomics.com"
+          git add ultima_corrida.json
+          git commit -m "Tanda ${{ needs.guardia.outputs.tanda }} en marcha [skip ci]" || true
+          git push || echo "No pude apuntar la tanda. Sigo: es peor no publicar."
+
+      - run: pip install -r requirements.txt
 
       - name: Corrida
         env:
@@ -76,10 +139,7 @@ jobs:
           DESTINATARIOS: ${{ secrets.DESTINATARIOS }}
           REMITENTE_NOMBRE: ${{ secrets.REMITENTE_NOMBRE }}
         run: |
-          python orquestar.py \
-            --tanda "${{ steps.tanda.outputs.cual }}" \
-            --piezas "${{ github.event.inputs.piezas || '6' }}" \
-            ${{ github.event.inputs.sin_subir == 'true' && '--sin-subir' || '' }}
+          python orquestar.py --tanda "${{ needs.guardia.outputs.tanda }}" --piezas "${{ github.event.inputs.piezas || '6' }}" ${{ github.event.inputs.sin_subir == 'true' && '--sin-subir' || '' }}
 
       # Los borradores del dia se guardan aunque la subida al panel falle. Si
       # algo sale mal, el texto no se pierde: queda aqui para rescatarlo.
@@ -87,7 +147,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: borradores-${{ steps.tanda.outputs.cual }}
+          name: borradores-${{ needs.guardia.outputs.tanda }}
           path: |
             corrida-*/
             carga-*.json

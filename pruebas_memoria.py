@@ -26,6 +26,11 @@ REPETIDOS = [
     "Colombia ya exporta más cocaína que petróleo: ventas al exterior llegan a US$16.500 millones",
     "Steve Hanke entregó su proyecto de dolarización de Venezuela a la administración Trump",
     "Expertos y abogados, desconcertados por el acuerdo petrolero entre Estados Unidos y Venezuela",
+    # Los dos casos limite, los que casi se cuelan. El primero es el titular
+    # original de Valora Analitik: puntua 0.399 y con el umbral en 0.40 se
+    # escapaba por milesimas, y el motor iba a reescribir una nota publicada.
+    "Colombia ya exporta más cocaína que petróleo y es el país que pone 70 % de esta droga a nivel mundial",
+    "Venezuela reubicará a alumnos de 91 centros afectados por sismos",
 ]
 
 # Cosas que NO hemos publicado. Si alguna sale como repetida, la memoria estaria
@@ -35,6 +40,9 @@ NUEVOS = [
     "Brasil anuncia un nuevo paquete de crédito para la agricultura familiar",
     "El desempleo en Perú cae al 6,2 % en el segundo trimestre",
     "México y Canadá acuerdan revisar el capítulo automotriz del tratado comercial",
+    # Este salio de la ronda de vigilancia del 01/09: es del mismo mundo que lo
+    # que publicamos (petroleo, mercados) y aun asi tiene que pasar.
+    "Wall Street cae y los bonos se desploman ante el temor a una inflación impulsada por el petróleo",
 ]
 
 
