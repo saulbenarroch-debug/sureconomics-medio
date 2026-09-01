@@ -1,0 +1,43 @@
+{
+  "generado": "2026-09-01",
+  "que_es": "Que imagen llevaba cada pieza antes de migrar a Cloudflare R2. Sin esto, las imagenes respaldadas son 178 archivos sueltos que nadie sabe donde iban.",
+  "como_leerlo": "post_a_asset: {id de la pieza: id del asset}. El archivo de esa imagen es respaldo-imagenes/<asset con 4 digitos>.<ext>, y su ficha esta en registro.json.",
+
+  "post_a_asset": {
+    "225": 1, "226": 54, "240": 2, "241": 3, "242": 4, "243": 5, "249": 53,
+    "251": 8, "258": 16, "261": 18, "264": 19, "265": 20, "266": 22, "267": 23,
+    "268": 9, "269": 10, "270": 11, "271": 24, "272": 25, "273": 12, "274": 13,
+    "275": 26, "276": 27, "277": 28, "278": 17, "279": 50, "286": 29, "287": 30,
+    "288": 32, "289": 33, "290": 34, "291": 35, "292": 37, "293": 42, "294": 43,
+    "295": 45, "296": 48, "297": 49, "299": 47, "300": 52, "301": 55, "303": 56,
+    "304": 57, "305": 69, "306": 58, "307": 74, "308": 61, "309": 73, "310": 60,
+    "311": 59, "313": 75, "314": 72, "315": 70, "316": 68, "317": 67, "318": 66,
+    "319": 62, "320": 63, "321": 64, "322": 65, "323": 77, "324": 78, "325": 79,
+    "326": 80, "327": 81, "328": 82, "329": 83, "330": 84, "331": 85, "332": 87,
+    "333": 88, "334": 89, "335": 90, "336": 93, "337": 92, "338": 94, "339": 95,
+    "340": 113, "341": 97, "342": 98, "343": 99, "344": 100, "345": 101,
+    "346": 102, "347": 103, "348": 104, "349": 105, "350": 106, "351": 107,
+    "352": 108, "353": 109, "354": 111, "355": 114, "356": 116, "357": 117,
+    "358": 118, "359": 119, "360": 120, "361": 121, "362": 122, "363": 123,
+    "364": 124, "365": 125, "366": 126, "367": 127, "368": 128, "369": 129,
+    "370": 130, "371": 131, "372": 132, "373": 133, "374": 134, "375": 135,
+    "376": 136, "377": 137, "378": 138, "379": 139, "380": 140, "381": 141,
+    "382": 147, "383": 142, "384": 144, "385": 145, "386": 162, "387": 179,
+    "388": 143, "389": 152, "390": 163, "391": 177, "392": 178, "393": 157,
+    "394": 164, "395": 180, "396": 159, "397": 172, "398": 173, "399": 181
+  },
+
+  "url_suelta_sin_asset": {
+    "que_es": "Treinta piezas antiguas NO usan asset: guardan la direccion en el campo de texto featured_image_url y tiran de un servidor ajeno. La migracion a R2 no las toca, porque nunca estuvieron en el almacen del sitio, pero se caen igual el dia que ese servidor cambie. Veintiocho apuntan a Cloudinary y se van a caer con lo demas.",
+    "102": "estaticos.sfo2.digitaloceanspaces.com",
+    "101": "semana.com",
+    "103,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,224": "res.cloudinary.com"
+  },
+
+  "assets_huerfanos": {
+    "que_son": "Estan en el almacen y ninguna pieza los usa. No hay que restaurarlos, pero conviene saber por que existen.",
+    "7": "NO es una imagen: es la direccion de un articulo del New York Times registrada como asset. Da 403.",
+    "148": "Wikimedia, da 404. Ruta mal deducida al adjuntarla; se corrigio y quedo el registro suelto.",
+    "149": "Wikimedia, da 404. Mismo caso que la 148."
+  }
+}

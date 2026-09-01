@@ -28,3 +28,13 @@ ilustracion.png
 prueba_ilustracion.png
 28-articulo/
 *.b64
+
+# Respaldo de imagenes antes de migrar a Cloudflare R2: 340 MB de originales.
+# Los INVENTARIOS si van al repo (las excepciones de abajo): sin ellos los
+# archivos son bytes sueltos y nadie sabe que imagen era de que pieza.
+respaldo-imagenes/*
+!respaldo-imagenes/registro.json
+!respaldo-imagenes/mapa-portadas.json
+!respaldo-imagenes/sin-asset/
+respaldo-imagenes/sin-asset/*
+!respaldo-imagenes/sin-asset/registro.json
