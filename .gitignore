@@ -33,8 +33,16 @@ prueba_ilustracion.png
 # Los INVENTARIOS si van al repo (las excepciones de abajo): sin ellos los
 # archivos son bytes sueltos y nadie sabe que imagen era de que pieza.
 respaldo-imagenes/*
+!respaldo-imagenes/LEEME.md
 !respaldo-imagenes/registro.json
 !respaldo-imagenes/mapa-portadas.json
 !respaldo-imagenes/sin-asset/
 respaldo-imagenes/sin-asset/*
 !respaldo-imagenes/sin-asset/registro.json
+
+# El zip para los desarrolladores: 340 MB, se rehace con armar_zip_imagenes.py
+sureconomics-imagenes-para-R2.zip
+
+# Ningun zip del respaldo va al repo: son 340 MB cada uno y se rehacen con
+# armar_zip_imagenes.py. Uno se colo en un commit el 01/09 y dejo .git en 330 MB.
+*.zip
