@@ -37,9 +37,40 @@
   .se-cinta__var--baja { color: var(--se-baja); }
   .se-cinta__var--igual { color: var(--se-apagado); }
 
-  /* El widget de TradingView ocupa el resto. */
-  .se-cinta__global { flex: 1 1 auto; min-width: 0; }
+  /* El widget de TradingView ocupa el resto.
+     EL WIDGET NO DESFILA SOLO. Es una tira que se arrastra con el raton, no una
+     marquesina; probado el 02/09/2026. Para que gire se mueve el IFRAME ENTERO
+     con una animacion nuestra: los datos siguen dentro de TradingView y bajo su
+     licencia, que es la condicion de todo esto. Solo se desplaza la caja.
+     Para que el bucle no pegue un salto, la lista de simbolos va DUPLICADA
+     dentro del propio widget: asi la segunda mitad del iframe es identica a la
+     primera y desplazar un 50 % vuelve al punto de partida sin costura. Se hace
+     con un solo widget a proposito; dos instancias serian dos conexiones. */
+  .se-cinta__global { flex: 1 1 auto; min-width: 0; overflow: hidden; }
   .se-cinta__global .tradingview-widget-copyright { display: none; }
+  /* SE ANIMA .tradingview-widget-container Y NO UN DIV NUESTRO. El script del
+     widget ELIMINA cualquier envoltorio que se le ponga por fuera: la primera
+     version metia un div .se-cinta__pista, aparecia en el HTML y no en el DOM
+     renderizado, y la animacion no existia. Este contenedor es del propio
+     widget y sobrevive. */
+  .se-cinta__global .tradingview-widget-container {
+    /* !important porque el widget se escribe "width: 100%" EN LINEA sobre su
+       propio contenedor en cuanto carga, y un estilo en linea gana a la hoja.
+       Sin esto el contenedor se queda al ancho del hueco, el iframe pinta solo
+       tres simbolos y no hay nada que desplazar. */
+    width: 6400px !important;  /* sitio de sobra para que pinte los 38 en fila */
+    animation: se-desfile 150s linear infinite !important;
+  }
+  .se-cinta__global:hover .tradingview-widget-container { animation-play-state: paused; }
+  @keyframes se-desfile {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  /* Quien pidio no ver movimiento no lo ve. Se queda la tira quieta y
+     arrastrable, que es como viene el widget de fabrica. */
+  @media (prefers-reduced-motion: reduce) {
+    .se-cinta__global .tradingview-widget-container { animation: none !important; width: 100% !important; }
+  }
 
   /* La atribucion de TradingView es obligatoria por su licencia. Va aqui,
      visible, y NO se quita: es el precio de poder mostrar estos datos sin
@@ -74,6 +105,25 @@
               src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
       {
         "symbols": [
+          {"proName": "BMFBOVESPA:IBOV",   "title": "Bovespa"},
+          {"proName": "INDEX:MXX",         "title": "IPC México"},
+          {"proName": "BCBA:IMV",          "title": "Merval"},
+          {"proName": "BVC:COLCAP",        "title": "Colcap"},
+          {"proName": "FOREXCOM:SPXUSD",   "title": "S&P 500"},
+          {"proName": "FOREXCOM:DJI",      "title": "Dow Jones"},
+          {"proName": "FOREXCOM:NSXUSD",   "title": "Nasdaq 100"},
+          {"proName": "CAPITALCOM:EU50",   "title": "Euro Stoxx 50"},
+          {"proName": "XETR:DAX",          "title": "DAX"},
+          {"proName": "BME:IBC",           "title": "IBEX 35"},
+          {"proName": "CAPITALCOM:FR40",   "title": "CAC 40"},
+          {"proName": "FOREXCOM:UK100",    "title": "FTSE 100"},
+          {"proName": "FOREXCOM:JPXJPY",   "title": "Nikkei 225"},
+          {"proName": "FOREXCOM:HKXHKD",   "title": "Hang Seng"},
+          {"proName": "SSE:000001",        "title": "Shanghai"},
+          {"proName": "FX:EURUSD",         "title": "EUR/USD"},
+          {"proName": "OANDA:XAUUSD",      "title": "Oro"},
+          {"proName": "TVC:UKOIL",         "title": "Brent"},
+          {"proName": "BITSTAMP:BTCUSD",   "title": "BTC/USD"},
           {"proName": "BMFBOVESPA:IBOV",   "title": "Bovespa"},
           {"proName": "INDEX:MXX",         "title": "IPC México"},
           {"proName": "BCBA:IMV",          "title": "Merval"},

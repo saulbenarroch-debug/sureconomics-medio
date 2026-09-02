@@ -65,6 +65,29 @@ GitHub raw funciona y es lo que usa el componente hoy, pero no está pensado com
 CDN de producción y puede limitar por volumen. Cuando exista el endpoint, se
 cambia una constante en `cinta.html` y ya.
 
+## Cómo gira
+
+**El widget de TradingView no desfila solo.** De fábrica es una tira que se
+arrastra con el ratón, no una marquesina. Comprobado el 02/09/2026.
+
+Para que gire se anima **el contenedor entero**, no los datos: los valores
+siguen dentro del iframe de TradingView y bajo su licencia, que es la condición
+de todo esto. Lo único que se mueve es la caja.
+
+Tres cosas que hay que saber si tocáis esto:
+
+1. **La lista de símbolos va duplicada** dentro del mismo widget (19 x 2 = 38).
+   Así la segunda mitad del iframe es idéntica a la primera y desplazar un 50 %
+   vuelve al inicio sin costura. Con un solo widget a propósito: dos instancias
+   serían dos conexiones.
+2. **Se anima `.tradingview-widget-container`, no un div propio.** El script del
+   widget elimina cualquier envoltorio que se le ponga por fuera.
+3. **El ancho lleva `!important`.** El widget se escribe `width: 100%` en línea
+   sobre su contenedor al cargar, y un estilo en línea gana a la hoja.
+
+Con `prefers-reduced-motion: reduce` la animación se apaga y la tira queda
+quieta y arrastrable, como viene de fábrica.
+
 ## Comportamiento ante fallos
 
 - **Si el JSON no responde**, reintenta 3 veces (a los 4 y 8 segundos). Si aun
