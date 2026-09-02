@@ -147,7 +147,10 @@ jobs:
           # Cuenta de servicio del robot, NO la de una persona: el servidor
           # atribuye cada pieza a la cuenta que la crea.
           SURECONOMICS_API: ${{ secrets.SURECONOMICS_API }}
-          SURECONOMICS_TOKEN: ${{ secrets.SURECONOMICS_TOKEN }}
+          # Cuenta de servicio del panel. NO es un token fijo: este backend solo
+          # tiene login con correo y contraseña, y sesiones de una hora.
+          SURECONOMICS_USUARIO: ${{ secrets.SURECONOMICS_USUARIO }}
+          SURECONOMICS_CLAVE: ${{ secrets.SURECONOMICS_CLAVE }}
           # Envio del correo, reutiliza la cuenta de La Campana.
           SMTP_USUARIO: ${{ secrets.SMTP_USUARIO }}
           SMTP_CLAVE: ${{ secrets.SMTP_CLAVE }}

@@ -41,7 +41,10 @@ REPO = "saulbenarroch-debug/sureconomics-medio"
 ORIGENES = {
     r"C:\Users\saulb\telegram-finance-bot\.env":
         ["GEMINI_API_KEY", "GROQ_API_KEY", "TAVILY_API_KEY",
-         "TELEGRAM_TOKEN", "CHAT_ID"],
+         "TELEGRAM_TOKEN", "CHAT_ID",
+         # Cuenta de servicio del panel. Sin esto, las tandas escriben y mandan
+         # el correo pero no suben nada: subir.py corta con un mensaje claro.
+         "SURECONOMICS_USUARIO", "SURECONOMICS_CLAVE"],
     r"C:\Users\saulb\wallstreet-bot\.env":
         ["SMTP_USUARIO", "SMTP_CLAVE"],
 }

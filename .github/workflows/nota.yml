@@ -57,6 +57,11 @@ jobs:
           # Para devolver el borrador al chat que lo pidio. El correo va igual:
           # esto es un extra, no el canal principal.
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          # Para dejar el borrador en el panel. Sin esto escribe y entrega, pero
+          # no sube: nota.py se salta el paso y lo dice.
+          SURECONOMICS_API: ${{ secrets.SURECONOMICS_API }}
+          SURECONOMICS_USUARIO: ${{ secrets.SURECONOMICS_USUARIO }}
+          SURECONOMICS_CLAVE: ${{ secrets.SURECONOMICS_CLAVE }}
         run: |
           python nota.py "${{ github.event.inputs.enlace }}" --foto "${{ github.event.inputs.foto }}" --tipo "${{ github.event.inputs.tipo }}" --quien "${{ github.event.inputs.quien }}" --chat "${{ github.event.inputs.chat }}" --encargo "${{ github.event.inputs.encargo }}"
 
