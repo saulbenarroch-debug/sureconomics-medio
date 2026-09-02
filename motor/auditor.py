@@ -15,6 +15,7 @@ positivos se desactiva a la semana, y entonces no audita nada.
 """
 
 import re
+import unicodedata
 from dataclasses import dataclass
 
 # Numero en norma española (1.234.567,89) o entero suelto.
@@ -519,10 +520,22 @@ def auditar(pieza, paquete, encargo=""):
             # Reserva del Perú" y eso jamas aparece literal en un texto bien
             # escrito: la prosa nombra a los dos por separado, que es lo
             # correcto. Exigir la cadena completa bloqueaba piezas impecables.
+            # SE COMPARA SIN ESPACIOS NI TILDES. El nombre guardado en el
+            # expediente sale a veces del dominio, y un dominio no tiene
+            # espacios: bloomberglinea.com se guardaba como "Bloomberglinea"
+            # mientras el redactor escribia "Bloomberg Línea", que es el nombre
+            # de verdad. El auditor no lo encontraba y bloqueaba una pieza que
+            # citaba su fuente correctamente. Paso el 02/09/2026.
+            def _pelado(s):
+                s = unicodedata.normalize("NFKD", s.lower())
+                s = "".join(c for c in s if not unicodedata.combining(c))
+                return re.sub(r"[^a-z0-9]", "", s)
+
+            texto_pelado = _pelado(texto)
             faltan = []
             for f in (f for f in paquete.fuentes if f.id in usadas):
                 for parte in _partes_del_nombre(f.institucion):
-                    if parte.lower() not in texto.lower():
+                    if _pelado(parte) not in texto_pelado:
                         faltan.append(parte)
             if faltan:
                 h.append(Hallazgo("bloqueo", "sin-atribucion",

@@ -276,11 +276,31 @@ def main():
     carga = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
     panel = Panel()
 
+    # SUBIR LAS BLOQUEADAS ES UNA DECISION, NO EL COMPORTAMIENTO POR DEFECTO.
+    # El dueño lo pidio el 02/09/2026: prefiere tenerlas en el panel y
+    # arreglarlas ahi antes que no tener nada. Va bien, pero una pieza bloqueada
+    # es una en la que alguna cifra del texto NO se pudo rastrear al expediente,
+    # asi que no puede llegar al panel con el mismo aspecto que las demas: se le
+    # mete un aviso al principio del cuerpo, donde lo ve quien la abra.
+    forzar = "--subir-bloqueadas" in sys.argv
+
     subidas, fallos = 0, []
     for pieza in carga:
         if pieza.get("bloqueada"):
-            fallos.append((pieza["titulo"][:50], "bloqueada por el auditor, no se sube"))
-            continue
+            if not forzar:
+                fallos.append((pieza["titulo"][:50],
+                               "bloqueada por el auditor, no se sube"))
+                continue
+            motivos = " ".join(str(m) for m in (pieza.get("hallazgos") or []))
+            pieza = dict(pieza)
+            pieza["cuerpo_html"] = (
+                '<p><strong>⚠️ EL AUDITOR BLOQUEÓ ESTA PIEZA. No publicar sin '
+                "revisarla.</strong> Alguna cifra o cita del texto no se pudo "
+                "comprobar contra la fuente. Sube al panel a petición de la "
+                "redacción, para editarla aquí." +
+                ("<br><em>" + motivos[:400] + "</em>" if motivos else "") +
+                "</p>" + pieza.get("cuerpo_html", ""))
+            print("  [aviso] %s va BLOQUEADA y marcada" % pieza["titulo"][:44])
         r = panel.crear_borrador(pieza)
         if r.get("ok"):
             subidas += 1

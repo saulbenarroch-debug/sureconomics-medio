@@ -122,7 +122,14 @@ def _apodo(texto):
 
 
 def leer_enlace(url):
-    """Trae titular y texto de una nota. Sin IA: solo limpieza de etiquetas."""
+    """Trae titular, texto y nombre del medio. Sin IA: solo limpieza de etiquetas.
+
+    EL NOMBRE SALE DE og:site_name, NO DEL DOMINIO. Deducirlo del dominio da una
+    sola palabra pegada: bloomberglinea.com daba "Bloomberglinea" mientras el
+    redactor escribia "Bloomberg Línea", que es el nombre de verdad. El auditor
+    no reconocia la atribucion y bloqueaba una pieza que citaba bien su fuente.
+    Ademas ese nombre se publica en la linea de fuentes, y ahi se ve.
+    """
     peticion = urllib.request.Request(url, headers={"User-Agent": NAVEGADOR})
     with urllib.request.urlopen(peticion, timeout=45) as r:
         crudo = r.read().decode("utf-8", "replace")
@@ -148,10 +155,16 @@ def leer_enlace(url):
         # Los parrafos cortos de una web son pies, menus y avisos de cookies.
         if len(t) > 90:
             parrafos.append(t)
-    return titulo, parrafos[:14]
+    sitio = ""
+    m = re.search(r'<meta[^>]+property=["\']og:site_name["\'][^>]+content=["\']([^"\']+)',
+                  crudo, re.I)
+    if m:
+        sitio = re.sub(r"\s+", " ", m.group(1)).strip()
+    return titulo, parrafos[:14], sitio
 
 
 def medio_de(url):
+    """Ultimo recurso: el dominio. Se prefiere og:site_name, ver leer_enlace()."""
     d = re.sub(r"^https?://(www\.)?", "", url).split("/")[0]
     return d.split(".")[0].replace("-", " ").title()
 
@@ -441,7 +454,7 @@ def main():
     print("\n--- 1. ¿YA ESTA PUBLICADO? ---")
     try:
         from motor import memoria
-        titulo_previo, _ = leer_enlace(peticion)
+        titulo_previo, _, _ = leer_enlace(peticion)
         ya = memoria.ya_cubierto(titulo_previo) if titulo_previo else None
         if ya:
             print("  SI. Coincide con: %s" % ya["titulo"])
@@ -489,7 +502,7 @@ def main():
 
     print("\n--- 2. LEER LA FUENTE ---")
     try:
-        titulo, parrafos = leer_enlace(peticion)
+        titulo, parrafos, sitio = leer_enlace(peticion)
     except Exception as exc:  # noqa: BLE001
         print("  No pude leer ese enlace: %s" % str(exc)[:90])
         # SE LE CONTESTA SIEMPRE A QUIEN LO PIDIO. El 02/09/2026 una peticion
@@ -514,7 +527,7 @@ def main():
     archivo.parent.mkdir(exist_ok=True)
     archivo.write_text(
         "url: %s\nmedio: %s\nfecha: %s\n\n%s\n" % (
-            peticion, medio_de(peticion), date.today().isoformat(),
+            peticion, sitio or medio_de(peticion), date.today().isoformat(),
             "\n\n".join(parrafos)),
         encoding="utf-8")
 
@@ -615,7 +628,10 @@ def main():
                       % (" y declarada como IA" if declarar_ia else ""))
 
             if carga.exists():
-                r = subprocess.run([sys.executable, str(AQUI / "subir.py"), str(carga)],
+                # Se suben tambien las bloqueadas, marcadas con el aviso. Es lo
+                # que pidio el dueño: mejor tenerla en el panel y arreglarla ahi.
+                r = subprocess.run([sys.executable, str(AQUI / "subir.py"), str(carga),
+                                    "--subir-bloqueadas"],
                                    capture_output=True, text=True, encoding="utf-8",
                                    errors="replace", timeout=20 * 60)
                 print((r.stdout or "")[-700:] + (r.stderr or "")[-300:])
