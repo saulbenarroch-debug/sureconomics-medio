@@ -86,8 +86,8 @@ def main():
     # Google da la contrasena de aplicacion en cuatro bloques con espacios y
     # smtplib la rechaza tal cual. Mismo criterio que correo.py.
     clave = os.environ.get("SMTP_CLAVE", "").replace(" ", "").strip()
-    servidor = os.environ.get("SMTP_SERVIDOR", "smtp.gmail.com").strip()
-    puerto = int(os.environ.get("SMTP_PUERTO", "587"))
+    servidor = os.environ.get("SMTP_SERVIDOR", "").strip() or "smtp.gmail.com"
+    puerto = int(os.environ.get("SMTP_PUERTO", "").strip() or "587")
     if not usuario or not clave:
         print("Faltan SMTP_USUARIO / SMTP_CLAVE.")
         return 1

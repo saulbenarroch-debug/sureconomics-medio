@@ -20,8 +20,11 @@ No publica. `status` va fijo en "draft" y no hay bandera para cambiarlo. Un
 robot que puede publicar solo es un robot que un dia publica algo que nadie
 leyo. Publicar es un acto editorial y lo hace una persona, desde el panel.
 
-Tampoco sube piezas que el auditor bloqueo. Esas van al correo para que las
-mire alguien.
+Las piezas que el auditor bloqueo NO suben por defecto. Con --subir-bloqueadas
+si, y entonces llegan con un aviso en negrita al principio del cuerpo diciendo
+que estan bloqueadas y por que. Lo pidio el dueño el 02/09/2026: prefiere
+arreglarlas en el panel antes que no tenerlas. La marca no es decorativa: una
+bloqueada es una en la que alguna cifra del texto no se pudo rastrear.
 
 CREDENCIALES
 
@@ -62,8 +65,14 @@ try:
 except Exception:  # noqa: BLE001
     pass
 
-BASE = os.environ.get("SURECONOMICS_API",
-                      "https://sureconomics-backend.onrender.com").rstrip("/")
+# OJO CON EL "or" EN VEZ DEL DEFECTO DE .get(). En GitHub Actions, un secreto
+# que NO EXISTE se sustituye por cadena vacia, no se omite: la variable llega
+# definida y vacia, .get() la da por buena y el defecto no se usa nunca. El
+# 02/09/2026 eso dejo BASE en "" y la subida murio con "unknown url type:
+# '/auth/login'", despues de escribir y auditar la pieza. En local no pasaba
+# porque alli la variable no existe.
+BASE = (os.environ.get("SURECONOMICS_API", "").strip()
+        or "https://sureconomics-backend.onrender.com").rstrip("/")
 
 # Con la E alta, que es la grafia de la marca. Ver crear_borrador().
 FIRMA_REDACCION = "Redacción SurEconomics"

@@ -52,9 +52,9 @@ except ImportError:
                 raise RuntimeError(
                     "Faltan SMTP_USUARIO / SMTP_CLAVE. Con Gmail hace falta una "
                     "'contrasena de aplicacion', no la contrasena de la cuenta.")
-            servidor = os.environ.get("SMTP_SERVIDOR", "smtp.gmail.com").strip()
-            puerto = int(os.environ.get("SMTP_PUERTO", "587"))
-            nombre = os.environ.get("REMITENTE_NOMBRE", "SurEconomics").strip()
+            servidor = os.environ.get("SMTP_SERVIDOR", "").strip() or "smtp.gmail.com"
+            puerto = int(os.environ.get("SMTP_PUERTO", "").strip() or "587")
+            nombre = os.environ.get("REMITENTE_NOMBRE", "").strip() or "SurEconomics"
             lista = [d.strip() for d in
                      os.environ.get("DESTINATARIOS", "").split(",") if d.strip()]
             if not lista:
