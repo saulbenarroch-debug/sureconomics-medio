@@ -54,6 +54,17 @@ REFERENCIA = [
     "eleconomista.com.mx", "lanacion.com.ar", "americaeconomia.com",
     "bnamericas.com", "gob.mx", "dane.gov.co", "banrep.gov.co",
     "banxico.org.mx", "imf.org", "worldbank.org", "cepal.org",
+    # Banca y Negocios cubre la economia venezolana con detalle y llega a cosas
+    # que los grandes no tocan: entro el 02/09/2026 porque fue el unico medio con
+    # las tres licencias de la OFAC sobre mineria, y el motor se nego a escribir
+    # esa noticia por no tener fuente en la lista.
+    #
+    # VA AQUI Y NO EN MEDIOS PORQUE SU RSS ESTA MUERTO: /feed/ y /rss cierran la
+    # conexion sin responder. Los ARTICULOS si se leen (13 parrafos, 3.500
+    # caracteres, comprobado). Son dos dominios distintos y hay que probar los
+    # dos: darlo por bueno por la portada habria metido una fuente que el
+    # recolector no puede usar.
+    "bancaynegocios.com",
 ]
 
 
@@ -88,7 +99,8 @@ def _limpio(s):
     return re.sub(r"[^\x20-\x7e\xc0-\xff]", "", s or "").strip()
 
 
-def buscar(consulta, dias=30, maximo=10, solo_lista_blanca=False):
+def buscar(consulta, dias=30, maximo=10, solo_lista_blanca=False,
+           como_noticias=True, ordenar=True):
     """Devuelve candidatos: [{titular, medio, url, fecha, extracto}].
 
     Lista vacia si no hay clave, si Tavily falla o si no encuentra nada dentro
@@ -109,8 +121,19 @@ def buscar(consulta, dias=30, maximo=10, solo_lista_blanca=False):
         # se usa en ningun caso. Ver la regla 1 de este modulo.
         "include_answer": False,
     }
-    # topic="news" es lo que usa el bot: acota a notas, no a paginas sueltas.
-    cuerpo["topic"] = "news"
+    # topic="news" acota a notas y no a paginas sueltas, que es lo que se quiere
+    # para DESCUBRIR temas. Pero para BUSCAR UNA NOTICIA CONCRETA hay que
+    # apagarlo: el indice de noticias de Tavily no tiene a los medios pequeños.
+    # Medido el 02/09/2026 con las licencias de la OFAC sobre mineria: con
+    # topic="news" no aparecia en ningun sitio, y sin el salia la primera en
+    # bancaynegocios, que fue el unico medio que la dio.
+    if como_noticias:
+        cuerpo["topic"] = "news"
+        cuerpo["search_depth"] = "advanced"
+    else:
+        # El indice general con "advanced" reordena y criterio.ordenar acababa
+        # descartandola igual. En "basic" sobrevive.
+        cuerpo["search_depth"] = "basic"
     if solo_lista_blanca:
         cuerpo["include_domains"] = dominios_permitidos()
 
@@ -137,7 +160,10 @@ def buscar(consulta, dias=30, maximo=10, solo_lista_blanca=False):
             "extracto": _limpio(x.get("content"))[:280],
         })
     # Se filtra el ruido y se ordena por puntuacion, no por el orden de Tavily.
-    return criterio.ordenar(salida)
+    # Con ordenar=False se devuelve tal cual: cuando se busca UNA noticia
+    # concreta, quien llama filtra por parecido con el titular, y criterio
+    # puntua interes periodistico, que es otra pregunta y descarta aciertos.
+    return criterio.ordenar(salida) if ordenar else salida
 
 
 def informe(consulta, candidatos):

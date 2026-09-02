@@ -190,7 +190,8 @@ def buscar_original(lectura, dias=15, umbral=PARECIDO_MINIMO):
     # a veces el titular literal encuentra lo que ellas no.
     if titular:
         crudos += buscador.buscar(titular[:120], dias=dias, maximo=8,
-                                  solo_lista_blanca=True)
+                                  solo_lista_blanca=True,
+                                  como_noticias=False, ordenar=False)
 
     vistos, buenos = set(), []
     for c in crudos:
