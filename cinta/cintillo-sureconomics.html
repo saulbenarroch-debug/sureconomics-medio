@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cintillo de mercados · SurEconomics</title>
+<style>
+  :root { --tinta:#1a1d23; --suave:#5b6472; --linea:#e2e6ec; --fondo:#f7f8fa;
+          --acento:#1f6feb; --aviso:#b45309; --papel:#fff; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--fondo); color:var(--tinta);
+         font:16px/1.65 -apple-system,"Segoe UI",Roboto,sans-serif }
+  .demo { position:sticky; top:0; z-index:9; box-shadow:0 2px 14px rgba(0,0,0,.28) }
+  main { max-width:860px; margin:0 auto; padding:38px 22px 90px }
+  h1 { font-size:31px; margin:.2em 0 .1em; letter-spacing:-.4px }
+  .sub { color:var(--suave); margin:0 0 34px; font-size:15px }
+  h2 { font-size:21px; margin:44px 0 12px; padding-bottom:7px;
+       border-bottom:2px solid var(--linea) }
+  h3 { font-size:16px; margin:26px 0 8px }
+  p, li { margin:.6em 0 }
+  code { background:#eef1f5; padding:1px 5px; border-radius:4px;
+         font:13px ui-monospace,Consolas,monospace }
+  pre { background:#0d1117; color:#e6edf3; padding:16px 18px; border-radius:9px;
+        overflow:auto; font:12.5px/1.55 ui-monospace,Consolas,monospace;
+        max-height:520px }
+  .caja { background:var(--papel); border:1px solid var(--linea);
+          border-left:4px solid var(--acento); padding:14px 18px;
+          border-radius:0 8px 8px 0; margin:18px 0 }
+  .caja.ojo { border-left-color:var(--aviso); background:#fffbf4 }
+  .caja p:first-child { margin-top:0 } .caja p:last-child { margin-bottom:0 }
+  table { border-collapse:collapse; width:100%; margin:16px 0; font-size:14.5px }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--linea) }
+  th { background:var(--papel) }
+  .pie { margin-top:56px; padding-top:18px; border-top:1px solid var(--linea);
+         color:var(--suave); font-size:14px }
+  button { font:inherit; font-size:14px; padding:7px 14px; border-radius:7px;
+           border:1px solid var(--linea); background:var(--papel); cursor:pointer }
+  button:hover { border-color:var(--acento); color:var(--acento) }
+</style>
+</head>
+<body>
+
+<!-- ===== EL COMPONENTE, FUNCIONANDO ===== -->
+<div class="demo">
+<style>
+  /* Componente suelto: todo va bajo .se-cinta para no pisar estilos del sitio. */
+  .se-cinta {
+    --se-fondo: #0d1117;
+    --se-texto: #e6edf3;
+    --se-apagado: #8b949e;
+    --se-sube: #2ea043;
+    --se-baja: #f85149;
+    --se-borde: #21262d;
+    background: var(--se-fondo);
+    color: var(--se-texto);
+    font: 13px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    border-bottom: 1px solid var(--se-borde);
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* Lo nuestro va PRIMERO y fijo. Es el dato que ningun proveedor
+     internacional tiene y el que busca el lector venezolano; si se fuera
+     dentro de la cinta que rota, se perderia la mitad del tiempo. */
+  .se-cinta__ve {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 18px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--se-borde);
+    min-height: 46px;
+  }
+  .se-cinta__dato { display: flex; align-items: baseline; gap: 7px; white-space: nowrap; }
+  .se-cinta__etq { color: var(--se-apagado); font-weight: 600; letter-spacing: .3px; }
+  .se-cinta__val { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .se-cinta__var { font-variant-numeric: tabular-nums; font-size: 12px; }
+  .se-cinta__var--sube { color: var(--se-sube); }
+  .se-cinta__var--baja { color: var(--se-baja); }
+  .se-cinta__var--igual { color: var(--se-apagado); }
+
+  /* El widget de TradingView ocupa el resto.
+     EL WIDGET NO DESFILA SOLO. Es una tira que se arrastra con el raton, no una
+     marquesina; probado el 02/09/2026. Para que gire se mueve el IFRAME ENTERO
+     con una animacion nuestra: los datos siguen dentro de TradingView y bajo su
+     licencia, que es la condicion de todo esto. Solo se desplaza la caja.
+     Para que el bucle no pegue un salto, la lista de simbolos va DUPLICADA
+     dentro del propio widget: asi la segunda mitad del iframe es identica a la
+     primera y desplazar un 50 % vuelve al punto de partida sin costura. Se hace
+     con un solo widget a proposito; dos instancias serian dos conexiones. */
+  .se-cinta__global { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  .se-cinta__global .tradingview-widget-copyright { display: none; }
+  /* COMO GIRA, Y POR QUE ASI.
+     El widget no desfila solo: de fabrica es una tira que se arrastra. Y no
+     vale duplicar la lista de simbolos dentro de un solo widget, porque el
+     widget DESCARTA los que no caben: a 6400 px cada simbolo ocupa 388 px, asi
+     que solo pinta unos 16 de los 38 y el punto de repetision no cae nunca en
+     el 50 %. El bucle daba un salto.
+     Lo que si cierra por construccion son DOS instancias identicas, cada una
+     llenando su mitad de la pista: al desplazar exactamente una mitad, la
+     segunda queda donde estaba la primera. Cuesta una segunda conexion y es el
+     precio de que no se vea la costura.
+     Los datos siguen dentro de los iframes de TradingView y bajo su licencia.
+     Lo unico que se mueve es la caja. */
+  .se-cinta__global { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  .se-cinta__global .tradingview-widget-copyright { display: none; }
+
+  /* La pista la crea el script de abajo. No se puede poner en el HTML: el
+     script del widget elimina cualquier envoltorio que encuentre por fuera. */
+  .se-cinta__pista { display: flex; width: 6400px; animation: se-desfile 40s linear infinite; }
+  .se-cinta__global:hover .se-cinta__pista { animation-play-state: paused; }
+  /* !important porque el widget se escribe "width: 100%" EN LINEA en cuanto
+     carga, y un estilo en linea gana a la hoja. */
+  .se-cinta__pista > .tradingview-widget-container { width: 3200px !important; flex: 0 0 3200px; }
+
+  /* VELOCIDAD: se recorre una mitad, 3200 px, en este tiempo. 40s son 80 px/s,
+     el paso de un cintillo de noticias. La primera version puso 150s, o sea 21
+     px/s: giraba de verdad y parecia quieta. Es el unico numero que tocar. */
+  @keyframes se-desfile {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-3200px); }
+  }
+  /* Quien pidio no ver movimiento no lo ve: una sola tira, quieta y
+     arrastrable, como viene el widget de fabrica. */
+  @media (prefers-reduced-motion: reduce) {
+    .se-cinta__pista { animation: none; width: 100%; }
+    .se-cinta__pista > .tradingview-widget-container:nth-child(2) { display: none; }
+    .se-cinta__pista > .tradingview-widget-container { width: 100% !important; flex: 1 1 auto; }
+  }
+
+  /* La atribucion de TradingView es obligatoria por su licencia. Va aqui,
+     visible, y NO se quita: es el precio de poder mostrar estos datos sin
+     contratar derechos de display. */
+  .se-cinta__credito {
+    display: flex; align-items: center; padding: 0 14px;
+    font-size: 11px; color: var(--se-apagado); white-space: nowrap;
+    border-left: 1px solid var(--se-borde); flex-shrink: 0;
+  }
+  .se-cinta__credito a { color: var(--se-apagado); text-decoration: none; }
+  .se-cinta__credito a:hover { text-decoration: underline; }
+
+  /* En movil la parte venezolana se desliza sola y el widget se apila debajo. */
+  @media (max-width: 860px) {
+    .se-cinta { flex-direction: column; }
+    .se-cinta__ve { overflow-x: auto; border-right: none; border-bottom: 1px solid var(--se-borde); }
+    .se-cinta__credito { border-left: none; padding: 6px 14px; }
+  }
+</style>
+
+<div class="se-cinta" id="se-cinta">
+  <!-- BCV e IBC: datos propios, de emisor oficial -->
+  <div class="se-cinta__ve" id="se-cinta-ve">
+    <span class="se-cinta__etq">Cargando…</span>
+  </div>
+
+  <!-- Indices globales: los sirve TradingView al navegador del lector -->
+  <div class="se-cinta__global">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript"
+              src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {
+        "symbols": [
+          {"proName": "BMFBOVESPA:IBOV",   "title": "Bovespa"},
+          {"proName": "INDEX:MXX",         "title": "IPC México"},
+          {"proName": "BCBA:IMV",          "title": "Merval"},
+          {"proName": "BVC:COLCAP",        "title": "Colcap"},
+          {"proName": "FOREXCOM:SPXUSD",   "title": "S&P 500"},
+          {"proName": "FOREXCOM:DJI",      "title": "Dow Jones"},
+          {"proName": "FOREXCOM:NSXUSD",   "title": "Nasdaq 100"},
+          {"proName": "CAPITALCOM:EU50",   "title": "Euro Stoxx 50"},
+          {"proName": "XETR:DAX",          "title": "DAX"},
+          {"proName": "BME:IBC",           "title": "IBEX 35"},
+          {"proName": "CAPITALCOM:FR40",   "title": "CAC 40"},
+          {"proName": "FOREXCOM:UK100",    "title": "FTSE 100"},
+          {"proName": "FOREXCOM:JPXJPY",   "title": "Nikkei 225"},
+          {"proName": "FOREXCOM:HKXHKD",   "title": "Hang Seng"},
+          {"proName": "SSE:000001",        "title": "Shanghai"},
+          {"proName": "FX:EURUSD",         "title": "EUR/USD"},
+          {"proName": "OANDA:XAUUSD",      "title": "Oro"},
+          {"proName": "TVC:UKOIL",         "title": "Brent"},
+          {"proName": "BITSTAMP:BTCUSD",   "title": "BTC/USD"}
+        ],
+        "showSymbolLogo": true,
+        "isTransparent": true,
+        "displayMode": "adaptive",
+        "colorTheme": "dark",
+        "locale": "es"
+      }
+      </script>
+    </div>
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript"
+              src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {
+        "symbols": [
+          {"proName": "BMFBOVESPA:IBOV",   "title": "Bovespa"},
+          {"proName": "INDEX:MXX",         "title": "IPC México"},
+          {"proName": "BCBA:IMV",          "title": "Merval"},
+          {"proName": "BVC:COLCAP",        "title": "Colcap"},
+          {"proName": "FOREXCOM:SPXUSD",   "title": "S&P 500"},
+          {"proName": "FOREXCOM:DJI",      "title": "Dow Jones"},
+          {"proName": "FOREXCOM:NSXUSD",   "title": "Nasdaq 100"},
+          {"proName": "CAPITALCOM:EU50",   "title": "Euro Stoxx 50"},
+          {"proName": "XETR:DAX",          "title": "DAX"},
+          {"proName": "BME:IBC",           "title": "IBEX 35"},
+          {"proName": "CAPITALCOM:FR40",   "title": "CAC 40"},
+          {"proName": "FOREXCOM:UK100",    "title": "FTSE 100"},
+          {"proName": "FOREXCOM:JPXJPY",   "title": "Nikkei 225"},
+          {"proName": "FOREXCOM:HKXHKD",   "title": "Hang Seng"},
+          {"proName": "SSE:000001",        "title": "Shanghai"},
+          {"proName": "FX:EURUSD",         "title": "EUR/USD"},
+          {"proName": "OANDA:XAUUSD",      "title": "Oro"},
+          {"proName": "TVC:UKOIL",         "title": "Brent"},
+          {"proName": "BITSTAMP:BTCUSD",   "title": "BTC/USD"}
+        ],
+        "showSymbolLogo": true,
+        "isTransparent": true,
+        "displayMode": "adaptive",
+        "colorTheme": "dark",
+        "locale": "es"
+      }
+      </script>
+    </div>
+  </div>
+
+  <div class="se-cinta__credito">
+    <a href="https://www.tradingview.com/" target="_blank" rel="noopener">Mercados por TradingView</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  // LA PISTA SE MONTA AQUI, no en el HTML: el script del widget borra
+  // cualquier envoltorio que le pongan por fuera, asi que hay que crearlo
+  // DESPUES y meter las dos instancias dentro.
+  (function pista() {
+    var hueco = document.querySelector(".se-cinta__global");
+    if (!hueco) return;
+    var cajas = hueco.querySelectorAll(":scope > .tradingview-widget-container");
+    if (cajas.length < 2) { setTimeout(pista, 400); return; }   // aun cargando
+    var p = document.createElement("div");
+    p.className = "se-cinta__pista";
+    hueco.insertBefore(p, cajas[0]);
+    for (var i = 0; i < cajas.length; i++) p.appendChild(cajas[i]);
+  })();
+
+  // De donde salen los datos venezolanos. Lo escribe al-cierre a las 5:30 pm
+  // hora de Venezuela y se sirve desde el repo publico, que manda CORS abierto.
+  // PENDIENTE PARA ALALZA: mover esto a un endpoint del backend. GitHub raw
+  // sirve con cache de 5 minutos y va bien, pero no esta pensado como CDN de
+  // produccion y puede limitar por volumen. Ver LEEME.md.
+  var FUENTE = "https://raw.githubusercontent.com/saulbenarroch-debug/telegram-finance-bot/main/al-cierre/cinta.json";
+  var CACHE = "sureconomics_cinta_datos";
+  var caja = document.getElementById("se-cinta-ve");
+
+  function numero(v) {
+    return v.toLocaleString("es-VE", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function pintar(datos) {
+    if (!datos || !datos.valores || !datos.valores.length) { caja.remove(); return; }
+    caja.innerHTML = datos.valores.map(function (v) {
+      var clase = v.variacion > 0 ? "sube" : (v.variacion < 0 ? "baja" : "igual");
+      var signo = v.variacion > 0 ? "+" : "";
+      // El titulo del navegador lleva la fuente y la fecha: la atribucion no
+      // cabe en la cinta, pero tiene que estar en alguna parte.
+      var titulo = v.fuente + " · cierre del " + (datos.fecha_cierre || "");
+      return '<span class="se-cinta__dato" title="' + titulo + '">' +
+             '<span class="se-cinta__etq">' + v.etiqueta + '</span>' +
+             '<span class="se-cinta__val">' + numero(v.valor) + '</span>' +
+             '<span class="se-cinta__var se-cinta__var--' + clase + '">' +
+             signo + v.variacion.toFixed(2) + '%</span></span>';
+    }).join("");
+  }
+
+  // Se pinta primero lo que haya en cache para que la cinta no parpadee, y
+  // luego se refresca. Si la red falla, se queda lo de antes en vez de vacio.
+  try {
+    var previo = sessionStorage.getItem(CACHE);
+    if (previo) pintar(JSON.parse(previo));
+  } catch (e) {}
+
+  // SE REINTENTA ANTES DE RENDIRSE. La primera version se rendia al primer
+  // fallo, y al probarla cayo justo en la ventana de cinco minutos de cache de
+  // GitHub tras publicar el archivo: un 404 pasajero, y la mitad venezolana
+  // desaparecia para ese lector hasta que recargara la pagina. Un fallo de red
+  // de dos segundos no puede costar la parte de la cinta que solo tenemos
+  // nosotros.
+  function traer(intento) {
+    fetch(FUENTE, {cache: "no-cache"})
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (d) {
+        pintar(d);
+        try { sessionStorage.setItem(CACHE, JSON.stringify(d)); } catch (e) {}
+      })
+      .catch(function () {
+        if (intento < 3) { setTimeout(function () { traer(intento + 1); }, intento * 4000); return; }
+        // Agotados los intentos: la cinta se queda solo con TradingView. A
+        // medias es mejor que con huecos o con un error a la vista.
+        if (!caja.querySelector(".se-cinta__dato")) caja.remove();
+      });
+  }
+  traer(1);
+})();
+</script>
+
+</div>
+
+<main>
+<h1>Cintillo de mercados</h1>
+<p class="sub">Componente para la cabecera de sureconomics.com · generado el 02/09/2026
+ · contacto: Saúl Benarroch, saul@rendigroup.com</p>
+
+<p>Lo de arriba <strong>es el componente real</strong>, no una imagen. Si esta
+página está abierta, está funcionando: los valores son de verdad y la tira
+desfila. Todo lo que hay que integrar está en el bloque de código del final.</p>
+
+<h2>Qué lleva</h2>
+<table>
+  <tr><th>Mitad</th><th>Qué muestra</th><th>De dónde sale</th></tr>
+  <tr><td><strong>Izquierda, fija</strong></td>
+      <td>BCV USD, BCV EUR, IBC</td>
+      <td>Nuestro JSON, escrito por Al Cierre a las 5:30 pm hora de Venezuela</td></tr>
+  <tr><td><strong>Derecha, girando</strong></td>
+      <td>19 índices, EUR/USD, oro, Brent y bitcoin</td>
+      <td>Widget de TradingView, directo al navegador del lector</td></tr>
+</table>
+
+<h2>Por qué está partido en dos</h2>
+<p><strong>No es una decisión de diseño, es de licencia.</strong> Los datos
+globales no pueden salir de nuestro servidor.</p>
+<p>Nuestro proceso interno obtiene 23 datos, y 20 los toma de una fuente cuyos
+términos no permiten republicarlos. Mandarlos a un chat interno del equipo es
+uso interno; publicarlos en un medio comercial es redistribución, y eso no lo
+permite ninguna licencia de datos de mercado en plan individual, ni siquiera de
+pago. <strong>Que sean datos de cierre y no en tiempo real no cambia nada:</strong>
+lo que se paga es el derecho de mostrarlos, no la latencia.</p>
+<p>El widget de TradingView <strong>no es redistribución</strong>: los datos van
+del proveedor al navegador del lector bajo la licencia de TradingView. Es la vía
+legal y gratuita.</p>
+<p>Los tres venezolanos sí son publicables porque vienen del emisor: el BCV
+publica su propia tasa, que es un acto administrativo público, y el IBC lo
+publica la Bolsa de Caracas. Son además los que ningún proveedor internacional
+cubre.</p>
+<div class="caja ojo">
+<p><strong>La atribución «Mercados por TradingView» es obligatoria y no se
+quita.</strong> Es la condición de poder mostrar estos datos sin contratar
+derechos de display. Si se elimina, se cae la base legal de la mitad derecha.</p>
+</div>
+
+<h2>Nuestros tres datos</h2>
+<p>Se leen de:</p>
+<pre>https://raw.githubusercontent.com/saulbenarroch-debug/telegram-finance-bot/main/al-cierre/cinta.json</pre>
+<p>Responde con <code>access-control-allow-origin: *</code> y caché de 5
+minutos. Lo reescribe nuestro proceso cada tarde. Formato:</p>
+<pre>{
+  &quot;actualizado&quot;: &quot;2026-09-02T14:44:08+00:00&quot;,
+  &quot;fecha_cierre&quot;: &quot;2026-09-02&quot;,
+  &quot;valores&quot;: [
+    {&quot;clave&quot;: &quot;ves_usd&quot;, &quot;etiqueta&quot;: &quot;BCV USD&quot;, &quot;valor&quot;: 737.23,
+     &quot;variacion&quot;: 0.04, &quot;unidad&quot;: &quot;Bs&quot;,
+     &quot;fuente&quot;: &quot;Banco Central de Venezuela&quot;,
+     &quot;url_fuente&quot;: &quot;https://www.bcv.org.ve/&quot;}
+  ],
+  &quot;faltan&quot;: []
+}</pre>
+<div class="caja">
+<p><strong>Lo que os pedimos:</strong> servirlo desde vuestro backend en vez de
+desde GitHub. Un endpoint tipo <code>GET /cinta</code> que haga de proxy con
+caché de unos minutos. GitHub raw funciona y es lo que usa el componente hoy,
+pero no está pensado como CDN de producción y puede limitar por volumen. Cuando
+exista, se cambia la constante <code>FUENTE</code> y ya.</p>
+</div>
+
+<h2>Cómo gira, y las trampas</h2>
+<p>El widget de TradingView <strong>no desfila solo</strong>: de fábrica es una
+tira que se arrastra con el ratón. Para que gire se anima el contenedor, no los
+datos, que siguen dentro de los iframes de TradingView.</p>
+<p>Son <strong>dos instancias idénticas</strong> de 3200 px en una pista de 6400
+que se desplaza exactamente 3200. Al llegar al final, la segunda mitad está
+donde estaba la primera y el bucle cierra sin costura.</p>
+<h3>Tres cosas que costaron encontrar</h3>
+<ul>
+<li><strong>No vale duplicar la lista de símbolos</strong> dentro de un solo
+widget: descarta los que no caben. A 6400 px cada símbolo ocupa unos 388, así
+que de 38 solo pintaba 16 y el punto de repetición no caía en la mitad.</li>
+<li><strong>La pista se crea por JavaScript, no en el HTML.</strong> El script
+del widget elimina cualquier envoltorio que encuentre por fuera.</li>
+<li><strong>Los anchos llevan <code>!important</code>.</strong> El widget se
+escribe <code>width: 100%</code> en línea al cargar, y eso gana a la hoja.</li>
+</ul>
+<p><strong>Velocidad:</strong> los <code>40s</code> del <code>animation</code>.
+Son 3200 px en 40 segundos, o sea 80 px/s. Es el único número que hay que tocar.
+Se para al pasar el ratón por encima, para poder leer un valor.</p>
+
+<h2>Los símbolos</h2>
+<p>Los 19 están <strong>verificados uno por uno pintándolos</strong>. Si añadís
+alguno, probadlo antes.</p>
+<div class="caja ojo">
+<p>La mayoría de los símbolos <code>TVC:</code> de índices existen en TradingView
+pero <strong>están bloqueados en widgets embebidos</strong> y muestran «Este
+símbolo solo está disponible en TradingView». Lo mismo <code>NASDAQ:IXIC</code>,
+<code>SP:SPX</code>, <code>DJ:DJI</code> y <code>BMV:ME</code>.</p>
+<p>Y el buscador de TradingView y su API de cotización <strong>se contradicen con
+el widget</strong>: dicen que <code>NASDAQ:IXIC</code> funciona y que
+<code>FOREXCOM:SPXUSD</code> no, y en pantalla es al revés. La única prueba
+válida es pintarlo.</p>
+</div>
+<p><strong>Falta el IPSA de Chile:</strong> no encontramos ningún símbolo que el
+widget acepte.</p>
+
+<h2>Si algo falla</h2>
+<ul>
+<li><strong>Si el JSON no responde</strong>, reintenta 3 veces. Si aun así falla,
+la mitad venezolana se retira y queda solo TradingView. Nunca se muestra un
+hueco ni un mensaje de error.</li>
+<li><strong>Se pinta primero lo que haya en <code>sessionStorage</code></strong>
+y luego se refresca, para que no parpadee al navegar.</li>
+<li>Si TradingView no carga, queda la mitad venezolana.</li>
+<li>Con <code>prefers-reduced-motion: reduce</code> se muestra una sola
+instancia, quieta y arrastrable.</li>
+</ul>
+
+<h2>Responsive</h2>
+<p>Por encima de 860 px las dos mitades van en línea. Por debajo se apilan y la
+parte venezolana se desliza en horizontal.</p>
+
+<h2>El código</h2>
+<p>Esto es exactamente lo que está corriendo arriba. Todo cuelga de
+<code>.se-cinta</code>, así que no pisa estilos del sitio.</p>
+<p><button onclick="copiar(this)">Copiar el código</button></p>
+<pre id="codigo">&lt;style&gt;
+  /* Componente suelto: todo va bajo .se-cinta para no pisar estilos del sitio. */
+  .se-cinta {
+    --se-fondo: #0d1117;
+    --se-texto: #e6edf3;
+    --se-apagado: #8b949e;
+    --se-sube: #2ea043;
+    --se-baja: #f85149;
+    --se-borde: #21262d;
+    background: var(--se-fondo);
+    color: var(--se-texto);
+    font: 13px/1 system-ui, -apple-system, &quot;Segoe UI&quot;, Roboto, sans-serif;
+    border-bottom: 1px solid var(--se-borde);
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* Lo nuestro va PRIMERO y fijo. Es el dato que ningun proveedor
+     internacional tiene y el que busca el lector venezolano; si se fuera
+     dentro de la cinta que rota, se perderia la mitad del tiempo. */
+  .se-cinta__ve {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 18px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--se-borde);
+    min-height: 46px;
+  }
+  .se-cinta__dato { display: flex; align-items: baseline; gap: 7px; white-space: nowrap; }
+  .se-cinta__etq { color: var(--se-apagado); font-weight: 600; letter-spacing: .3px; }
+  .se-cinta__val { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .se-cinta__var { font-variant-numeric: tabular-nums; font-size: 12px; }
+  .se-cinta__var--sube { color: var(--se-sube); }
+  .se-cinta__var--baja { color: var(--se-baja); }
+  .se-cinta__var--igual { color: var(--se-apagado); }
+
+  /* El widget de TradingView ocupa el resto.
+     EL WIDGET NO DESFILA SOLO. Es una tira que se arrastra con el raton, no una
+     marquesina; probado el 02/09/2026. Para que gire se mueve el IFRAME ENTERO
+     con una animacion nuestra: los datos siguen dentro de TradingView y bajo su
+     licencia, que es la condicion de todo esto. Solo se desplaza la caja.
+     Para que el bucle no pegue un salto, la lista de simbolos va DUPLICADA
+     dentro del propio widget: asi la segunda mitad del iframe es identica a la
+     primera y desplazar un 50 % vuelve al punto de partida sin costura. Se hace
+     con un solo widget a proposito; dos instancias serian dos conexiones. */
+  .se-cinta__global { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  .se-cinta__global .tradingview-widget-copyright { display: none; }
+  /* COMO GIRA, Y POR QUE ASI.
+     El widget no desfila solo: de fabrica es una tira que se arrastra. Y no
+     vale duplicar la lista de simbolos dentro de un solo widget, porque el
+     widget DESCARTA los que no caben: a 6400 px cada simbolo ocupa 388 px, asi
+     que solo pinta unos 16 de los 38 y el punto de repetision no cae nunca en
+     el 50 %. El bucle daba un salto.
+     Lo que si cierra por construccion son DOS instancias identicas, cada una
+     llenando su mitad de la pista: al desplazar exactamente una mitad, la
+     segunda queda donde estaba la primera. Cuesta una segunda conexion y es el
+     precio de que no se vea la costura.
+     Los datos siguen dentro de los iframes de TradingView y bajo su licencia.
+     Lo unico que se mueve es la caja. */
+  .se-cinta__global { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  .se-cinta__global .tradingview-widget-copyright { display: none; }
+
+  /* La pista la crea el script de abajo. No se puede poner en el HTML: el
+     script del widget elimina cualquier envoltorio que encuentre por fuera. */
+  .se-cinta__pista { display: flex; width: 6400px; animation: se-desfile 40s linear infinite; }
+  .se-cinta__global:hover .se-cinta__pista { animation-play-state: paused; }
+  /* !important porque el widget se escribe &quot;width: 100%&quot; EN LINEA en cuanto
+     carga, y un estilo en linea gana a la hoja. */
+  .se-cinta__pista &gt; .tradingview-widget-container { width: 3200px !important; flex: 0 0 3200px; }
+
+  /* VELOCIDAD: se recorre una mitad, 3200 px, en este tiempo. 40s son 80 px/s,
+     el paso de un cintillo de noticias. La primera version puso 150s, o sea 21
+     px/s: giraba de verdad y parecia quieta. Es el unico numero que tocar. */
+  @keyframes se-desfile {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-3200px); }
+  }
+  /* Quien pidio no ver movimiento no lo ve: una sola tira, quieta y
+     arrastrable, como viene el widget de fabrica. */
+  @media (prefers-reduced-motion: reduce) {
+    .se-cinta__pista { animation: none; width: 100%; }
+    .se-cinta__pista &gt; .tradingview-widget-container:nth-child(2) { display: none; }
+    .se-cinta__pista &gt; .tradingview-widget-container { width: 100% !important; flex: 1 1 auto; }
+  }
+
+  /* La atribucion de TradingView es obligatoria por su licencia. Va aqui,
+     visible, y NO se quita: es el precio de poder mostrar estos datos sin
+     contratar derechos de display. */
+  .se-cinta__credito {
+    display: flex; align-items: center; padding: 0 14px;
+    font-size: 11px; color: var(--se-apagado); white-space: nowrap;
+    border-left: 1px solid var(--se-borde); flex-shrink: 0;
+  }
+  .se-cinta__credito a { color: var(--se-apagado); text-decoration: none; }
+  .se-cinta__credito a:hover { text-decoration: underline; }
+
+  /* En movil la parte venezolana se desliza sola y el widget se apila debajo. */
+  @media (max-width: 860px) {
+    .se-cinta { flex-direction: column; }
+    .se-cinta__ve { overflow-x: auto; border-right: none; border-bottom: 1px solid var(--se-borde); }
+    .se-cinta__credito { border-left: none; padding: 6px 14px; }
+  }
+&lt;/style&gt;
+
+&lt;div class=&quot;se-cinta&quot; id=&quot;se-cinta&quot;&gt;
+  &lt;!-- BCV e IBC: datos propios, de emisor oficial --&gt;
+  &lt;div class=&quot;se-cinta__ve&quot; id=&quot;se-cinta-ve&quot;&gt;
+    &lt;span class=&quot;se-cinta__etq&quot;&gt;Cargando…&lt;/span&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Indices globales: los sirve TradingView al navegador del lector --&gt;
+  &lt;div class=&quot;se-cinta__global&quot;&gt;
+    &lt;div class=&quot;tradingview-widget-container&quot;&gt;
+      &lt;div class=&quot;tradingview-widget-container__widget&quot;&gt;&lt;/div&gt;
+      &lt;script type=&quot;text/javascript&quot;
+              src=&quot;https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js&quot; async&gt;
+      {
+        &quot;symbols&quot;: [
+          {&quot;proName&quot;: &quot;BMFBOVESPA:IBOV&quot;,   &quot;title&quot;: &quot;Bovespa&quot;},
+          {&quot;proName&quot;: &quot;INDEX:MXX&quot;,         &quot;title&quot;: &quot;IPC México&quot;},
+          {&quot;proName&quot;: &quot;BCBA:IMV&quot;,          &quot;title&quot;: &quot;Merval&quot;},
+          {&quot;proName&quot;: &quot;BVC:COLCAP&quot;,        &quot;title&quot;: &quot;Colcap&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:SPXUSD&quot;,   &quot;title&quot;: &quot;S&amp;P 500&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:DJI&quot;,      &quot;title&quot;: &quot;Dow Jones&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:NSXUSD&quot;,   &quot;title&quot;: &quot;Nasdaq 100&quot;},
+          {&quot;proName&quot;: &quot;CAPITALCOM:EU50&quot;,   &quot;title&quot;: &quot;Euro Stoxx 50&quot;},
+          {&quot;proName&quot;: &quot;XETR:DAX&quot;,          &quot;title&quot;: &quot;DAX&quot;},
+          {&quot;proName&quot;: &quot;BME:IBC&quot;,           &quot;title&quot;: &quot;IBEX 35&quot;},
+          {&quot;proName&quot;: &quot;CAPITALCOM:FR40&quot;,   &quot;title&quot;: &quot;CAC 40&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:UK100&quot;,    &quot;title&quot;: &quot;FTSE 100&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:JPXJPY&quot;,   &quot;title&quot;: &quot;Nikkei 225&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:HKXHKD&quot;,   &quot;title&quot;: &quot;Hang Seng&quot;},
+          {&quot;proName&quot;: &quot;SSE:000001&quot;,        &quot;title&quot;: &quot;Shanghai&quot;},
+          {&quot;proName&quot;: &quot;FX:EURUSD&quot;,         &quot;title&quot;: &quot;EUR/USD&quot;},
+          {&quot;proName&quot;: &quot;OANDA:XAUUSD&quot;,      &quot;title&quot;: &quot;Oro&quot;},
+          {&quot;proName&quot;: &quot;TVC:UKOIL&quot;,         &quot;title&quot;: &quot;Brent&quot;},
+          {&quot;proName&quot;: &quot;BITSTAMP:BTCUSD&quot;,   &quot;title&quot;: &quot;BTC/USD&quot;}
+        ],
+        &quot;showSymbolLogo&quot;: true,
+        &quot;isTransparent&quot;: true,
+        &quot;displayMode&quot;: &quot;adaptive&quot;,
+        &quot;colorTheme&quot;: &quot;dark&quot;,
+        &quot;locale&quot;: &quot;es&quot;
+      }
+      &lt;/script&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;tradingview-widget-container&quot;&gt;
+      &lt;div class=&quot;tradingview-widget-container__widget&quot;&gt;&lt;/div&gt;
+      &lt;script type=&quot;text/javascript&quot;
+              src=&quot;https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js&quot; async&gt;
+      {
+        &quot;symbols&quot;: [
+          {&quot;proName&quot;: &quot;BMFBOVESPA:IBOV&quot;,   &quot;title&quot;: &quot;Bovespa&quot;},
+          {&quot;proName&quot;: &quot;INDEX:MXX&quot;,         &quot;title&quot;: &quot;IPC México&quot;},
+          {&quot;proName&quot;: &quot;BCBA:IMV&quot;,          &quot;title&quot;: &quot;Merval&quot;},
+          {&quot;proName&quot;: &quot;BVC:COLCAP&quot;,        &quot;title&quot;: &quot;Colcap&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:SPXUSD&quot;,   &quot;title&quot;: &quot;S&amp;P 500&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:DJI&quot;,      &quot;title&quot;: &quot;Dow Jones&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:NSXUSD&quot;,   &quot;title&quot;: &quot;Nasdaq 100&quot;},
+          {&quot;proName&quot;: &quot;CAPITALCOM:EU50&quot;,   &quot;title&quot;: &quot;Euro Stoxx 50&quot;},
+          {&quot;proName&quot;: &quot;XETR:DAX&quot;,          &quot;title&quot;: &quot;DAX&quot;},
+          {&quot;proName&quot;: &quot;BME:IBC&quot;,           &quot;title&quot;: &quot;IBEX 35&quot;},
+          {&quot;proName&quot;: &quot;CAPITALCOM:FR40&quot;,   &quot;title&quot;: &quot;CAC 40&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:UK100&quot;,    &quot;title&quot;: &quot;FTSE 100&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:JPXJPY&quot;,   &quot;title&quot;: &quot;Nikkei 225&quot;},
+          {&quot;proName&quot;: &quot;FOREXCOM:HKXHKD&quot;,   &quot;title&quot;: &quot;Hang Seng&quot;},
+          {&quot;proName&quot;: &quot;SSE:000001&quot;,        &quot;title&quot;: &quot;Shanghai&quot;},
+          {&quot;proName&quot;: &quot;FX:EURUSD&quot;,         &quot;title&quot;: &quot;EUR/USD&quot;},
+          {&quot;proName&quot;: &quot;OANDA:XAUUSD&quot;,      &quot;title&quot;: &quot;Oro&quot;},
+          {&quot;proName&quot;: &quot;TVC:UKOIL&quot;,         &quot;title&quot;: &quot;Brent&quot;},
+          {&quot;proName&quot;: &quot;BITSTAMP:BTCUSD&quot;,   &quot;title&quot;: &quot;BTC/USD&quot;}
+        ],
+        &quot;showSymbolLogo&quot;: true,
+        &quot;isTransparent&quot;: true,
+        &quot;displayMode&quot;: &quot;adaptive&quot;,
+        &quot;colorTheme&quot;: &quot;dark&quot;,
+        &quot;locale&quot;: &quot;es&quot;
+      }
+      &lt;/script&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;se-cinta__credito&quot;&gt;
+    &lt;a href=&quot;https://www.tradingview.com/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;Mercados por TradingView&lt;/a&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+(function () {
+  // LA PISTA SE MONTA AQUI, no en el HTML: el script del widget borra
+  // cualquier envoltorio que le pongan por fuera, asi que hay que crearlo
+  // DESPUES y meter las dos instancias dentro.
+  (function pista() {
+    var hueco = document.querySelector(&quot;.se-cinta__global&quot;);
+    if (!hueco) return;
+    var cajas = hueco.querySelectorAll(&quot;:scope &gt; .tradingview-widget-container&quot;);
+    if (cajas.length &lt; 2) { setTimeout(pista, 400); return; }   // aun cargando
+    var p = document.createElement(&quot;div&quot;);
+    p.className = &quot;se-cinta__pista&quot;;
+    hueco.insertBefore(p, cajas[0]);
+    for (var i = 0; i &lt; cajas.length; i++) p.appendChild(cajas[i]);
+  })();
+
+  // De donde salen los datos venezolanos. Lo escribe al-cierre a las 5:30 pm
+  // hora de Venezuela y se sirve desde el repo publico, que manda CORS abierto.
+  // PENDIENTE PARA ALALZA: mover esto a un endpoint del backend. GitHub raw
+  // sirve con cache de 5 minutos y va bien, pero no esta pensado como CDN de
+  // produccion y puede limitar por volumen. Ver LEEME.md.
+  var FUENTE = &quot;https://raw.githubusercontent.com/saulbenarroch-debug/telegram-finance-bot/main/al-cierre/cinta.json&quot;;
+  var CACHE = &quot;sureconomics_cinta_datos&quot;;
+  var caja = document.getElementById(&quot;se-cinta-ve&quot;);
+
+  function numero(v) {
+    return v.toLocaleString(&quot;es-VE&quot;, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function pintar(datos) {
+    if (!datos || !datos.valores || !datos.valores.length) { caja.remove(); return; }
+    caja.innerHTML = datos.valores.map(function (v) {
+      var clase = v.variacion &gt; 0 ? &quot;sube&quot; : (v.variacion &lt; 0 ? &quot;baja&quot; : &quot;igual&quot;);
+      var signo = v.variacion &gt; 0 ? &quot;+&quot; : &quot;&quot;;
+      // El titulo del navegador lleva la fuente y la fecha: la atribucion no
+      // cabe en la cinta, pero tiene que estar en alguna parte.
+      var titulo = v.fuente + &quot; · cierre del &quot; + (datos.fecha_cierre || &quot;&quot;);
+      return &#x27;&lt;span class=&quot;se-cinta__dato&quot; title=&quot;&#x27; + titulo + &#x27;&quot;&gt;&#x27; +
+             &#x27;&lt;span class=&quot;se-cinta__etq&quot;&gt;&#x27; + v.etiqueta + &#x27;&lt;/span&gt;&#x27; +
+             &#x27;&lt;span class=&quot;se-cinta__val&quot;&gt;&#x27; + numero(v.valor) + &#x27;&lt;/span&gt;&#x27; +
+             &#x27;&lt;span class=&quot;se-cinta__var se-cinta__var--&#x27; + clase + &#x27;&quot;&gt;&#x27; +
+             signo + v.variacion.toFixed(2) + &#x27;%&lt;/span&gt;&lt;/span&gt;&#x27;;
+    }).join(&quot;&quot;);
+  }
+
+  // Se pinta primero lo que haya en cache para que la cinta no parpadee, y
+  // luego se refresca. Si la red falla, se queda lo de antes en vez de vacio.
+  try {
+    var previo = sessionStorage.getItem(CACHE);
+    if (previo) pintar(JSON.parse(previo));
+  } catch (e) {}
+
+  // SE REINTENTA ANTES DE RENDIRSE. La primera version se rendia al primer
+  // fallo, y al probarla cayo justo en la ventana de cinco minutos de cache de
+  // GitHub tras publicar el archivo: un 404 pasajero, y la mitad venezolana
+  // desaparecia para ese lector hasta que recargara la pagina. Un fallo de red
+  // de dos segundos no puede costar la parte de la cinta que solo tenemos
+  // nosotros.
+  function traer(intento) {
+    fetch(FUENTE, {cache: &quot;no-cache&quot;})
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (d) {
+        pintar(d);
+        try { sessionStorage.setItem(CACHE, JSON.stringify(d)); } catch (e) {}
+      })
+      .catch(function () {
+        if (intento &lt; 3) { setTimeout(function () { traer(intento + 1); }, intento * 4000); return; }
+        // Agotados los intentos: la cinta se queda solo con TradingView. A
+        // medias es mejor que con huecos o con un error a la vista.
+        if (!caja.querySelector(&quot;.se-cinta__dato&quot;)) caja.remove();
+      });
+  }
+  traer(1);
+})();
+&lt;/script&gt;
+</pre>
+
+<p class="pie">Generado desde <code>cinta/cinta.html</code> del repositorio
+sureconomics-medio. Si hay que cambiar algo, se cambia allí y se regenera este
+archivo, para que el código de aquí no se quede viejo.</p>
+</main>
+
+<script>
+function copiar(b) {
+  navigator.clipboard.writeText(document.getElementById("codigo").textContent)
+    .then(function () { b.textContent = "Copiado"; setTimeout(function () { b.textContent = "Copiar el código"; }, 2000); })
+    .catch(function () { b.textContent = "No pude copiar; selecciónalo a mano"; });
+}
+</script>
+</body>
+</html>
