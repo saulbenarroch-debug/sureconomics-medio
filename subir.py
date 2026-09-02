@@ -28,7 +28,8 @@ CREDENCIALES
 Se leen del entorno, nunca de aqui:
 
     SURECONOMICS_API      base de la API
-    SURECONOMICS_TOKEN    token de la cuenta de servicio
+    SURECONOMICS_USUARIO  correo de la cuenta de servicio del panel
+    SURECONOMICS_CLAVE    su contraseña
 
 La cuenta debe ser PROPIA DEL ROBOT, no la de una persona. El servidor atribuye
 cada pieza a la cuenta que la crea: con la cuenta de un humano, el registro
@@ -58,31 +59,91 @@ FIRMA_REDACCION = "Redacción SurEconomics"
 
 
 class Panel:
-    def __init__(self, token):
-        if not token:
+    """Sesion contra el panel. Entra con usuario y contraseña, no con un token.
+
+    ESTE BACKEND NO DA TOKENS FIJOS. Se comprobo contra la API el 02/09/2026:
+    solo existe POST /auth/login con {email, password}, que devuelve un token de
+    acceso de vida corta, y POST /auth/refresh para renovarlo. Es lo mismo que
+    hace el panel en el navegador, donde el token caduca en una hora.
+
+    La version anterior esperaba un SURECONOMICS_TOKEN fijo que no existe en
+    ninguna parte, asi que nunca habria funcionado.
+
+    LO QUE HACE FALTA ES UNA CUENTA DE SERVICIO, no la de una persona: el
+    servidor atribuye cada pieza a la cuenta que la crea, y con la sesion de
+    alguien del equipo todo sale firmado por esa persona.
+
+    Y NO, NO SIRVE EL JWT_SECRET_KEY del servidor. Esa es la clave con la que el
+    backend FIRMA los tokens: con ella se puede fabricar un token de cualquier
+    usuario sin contraseña. Es la llave maestra y no sale del servidor.
+    """
+
+    def __init__(self, usuario=None, clave=None):
+        self.usuario = (usuario or os.environ.get("SURECONOMICS_USUARIO", "")).strip()
+        self.clave = clave or os.environ.get("SURECONOMICS_CLAVE", "")
+        if not self.usuario or not self.clave:
             raise SystemExit(
-                "Falta SURECONOMICS_TOKEN. No lo escribas en el codigo ni lo "
-                "pegues en un chat: va como secreto del entorno.")
-        self.token = token
+                "Faltan SURECONOMICS_USUARIO y SURECONOMICS_CLAVE, que son el "
+                "correo y la contraseña de la cuenta de servicio del panel. "
+                "No los escribas en el codigo ni los pegues en un chat: van "
+                "como secretos del entorno.")
+        self.token = None
+        self.refresco = None
         self._temas = None
         self._lugares = None
+        self.entrar()
 
-    def _llamar(self, ruta, metodo="GET", cuerpo=None):
+    def _crudo(self, ruta, metodo="GET", cuerpo=None, con_token=True):
         datos = json.dumps(cuerpo).encode() if cuerpo is not None else None
-        peticion = urllib.request.Request(
-            BASE + ruta, data=datos, method=metodo,
-            headers={"Authorization": "Bearer " + self.token,
-                     "Content-Type": "application/json"})
+        cabeceras = {"Content-Type": "application/json"}
+        if con_token and self.token:
+            cabeceras["Authorization"] = "Bearer " + self.token
+        peticion = urllib.request.Request(BASE + ruta, data=datos,
+                                          method=metodo, headers=cabeceras)
+        with urllib.request.urlopen(peticion, timeout=60) as r:
+            return json.loads(r.read().decode() or "{}")
+
+    def entrar(self):
+        """Abre sesion. Devuelve el nombre con el que quedaran firmadas."""
         try:
-            with urllib.request.urlopen(peticion, timeout=60) as r:
-                return json.loads(r.read().decode() or "{}")
+            r = self._crudo("/auth/login", "POST",
+                            {"email": self.usuario, "password": self.clave},
+                            con_token=False)
+        except urllib.error.HTTPError as e:
+            if e.code in (400, 401, 422):
+                raise SystemExit(
+                    "El panel rechazo las credenciales de la cuenta de "
+                    "servicio (%s). Revisa correo y contraseña." % e.code)
+            raise SystemExit("No pude entrar al panel: HTTP %s" % e.code)
+        d = r.get("data", r)
+        self.token = d.get("access_token") or d.get("token")
+        self.refresco = d.get("refresh_token")
+        if not self.token:
+            raise SystemExit("El login respondio sin token: %s" % str(r)[:200])
+        quien = (d.get("user") or {}).get("email", self.usuario)
+        print("  [panel] sesion abierta como %s" % quien)
+        return quien
+
+    def _llamar(self, ruta, metodo="GET", cuerpo=None, reintento=True):
+        try:
+            return self._crudo(ruta, metodo, cuerpo)
         except urllib.error.HTTPError as e:
             detalle = e.read().decode()[:300]
+            # UN 401 A MITAD DE CORRIDA NO ES UN FALLO, ES EL TOKEN CADUCANDO.
+            # Duran una hora y una tanda de seis piezas puede pasarse. Se
+            # renueva y se reintenta UNA vez; si vuelve a fallar, es de verdad.
+            if e.code == 401 and reintento:
+                print("  [panel] el token caduco, renuevo y reintento")
+                self.entrar()
+                return self._llamar(ruta, metodo, cuerpo, reintento=False)
             if e.code == 401:
                 raise SystemExit(
-                    "401: el token no vale o caduco. Los tokens de sesion del "
-                    "panel duran horas; para un robot hace falta una cuenta de "
-                    "servicio con credencial larga.")
+                    "401 despues de renovar la sesion. La cuenta de servicio "
+                    "puede no tener permiso de edicion.")
+            if e.code == 403:
+                raise SystemExit(
+                    "403: la cuenta de servicio entro pero no tiene permiso "
+                    "para esto. Necesita rol de editor o administrador.")
             raise SystemExit("HTTP %s en %s %s: %s" % (e.code, metodo, ruta, detalle))
 
     @staticmethod
@@ -202,7 +263,7 @@ def main():
         print(__doc__)
         return 1
     carga = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
-    panel = Panel(os.environ.get("SURECONOMICS_TOKEN", "").strip())
+    panel = Panel()
 
     subidas, fallos = 0, []
     for pieza in carga:

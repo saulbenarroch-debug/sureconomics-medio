@@ -273,6 +273,8 @@ def main():
     ap.add_argument("--correo", default="saul@rendigroup.com")
     ap.add_argument("--quien", default="", help="quien la pidio, para el correo")
     ap.add_argument("--chat", default="", help="chat de Telegram al que devolverla")
+    ap.add_argument("--sin-subir", action="store_true",
+                    help="escribe y entrega, pero no toca el panel")
     ap.add_argument("--encargo", default="",
                     help="instruccion de edicion; en Telegram, el pie de foto")
     args = ap.parse_args()
@@ -433,6 +435,33 @@ def main():
             mandar_al_chat(borrador, args.chat, args.quien)
         except Exception as exc:  # noqa: BLE001
             print("  [chat] no se pudo mandar (%s). El correo ya salio." % str(exc)[:90])
+
+    # 5. Al panel, COMO BORRADOR. Ni aqui ni en subir.py hay forma de publicar:
+    #    publicar es un acto editorial y lo hace una persona.
+    #
+    #    Va al final y envuelto, por lo mismo de siempre: si el panel esta caido
+    #    o la cuenta de servicio no responde, la pieza ya se escribio, se auditó
+    #    y se entrego por dos canales. No se pierde nada.
+    if not args.sin_subir and os.environ.get("SURECONOMICS_USUARIO", "").strip():
+        print("\n--- 5. AL PANEL ---")
+        try:
+            r = subprocess.run([sys.executable, str(AQUI / "armar_carga.py"), str(carpeta)],
+                               capture_output=True, text=True, encoding="utf-8",
+                               errors="replace", timeout=20 * 60)
+            print((r.stdout or "")[-400:])
+            carga = carpeta / "carga.json"
+            if carga.exists():
+                r = subprocess.run([sys.executable, str(AQUI / "subir.py"), str(carga)],
+                                   capture_output=True, text=True, encoding="utf-8",
+                                   errors="replace", timeout=20 * 60)
+                print((r.stdout or "")[-700:] + (r.stderr or "")[-300:])
+            else:
+                print("  No se armo la carga. No se sube nada.")
+        except Exception as exc:  # noqa: BLE001
+            print("  [panel] no se pudo subir (%s)." % str(exc)[:90])
+            print("  La pieza esta entregada por correo y por el chat.")
+    elif not args.sin_subir:
+        print("\n[panel] sin SURECONOMICS_USUARIO: no se sube. Solo correo y chat.")
 
     print("\nListo. Queda en borrador, como todo.")
     return 0
