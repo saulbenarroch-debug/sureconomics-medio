@@ -51,6 +51,17 @@ sys.path.insert(0, str(AQUI / ".libs"))
 
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+# Se carga el .env aunque llamado desde orquestar.py o nota.py las variables ya
+# vengan heredadas: la cabecera de este archivo documenta ejecutarlo suelto, y
+# suelto no las tenia. En Actions el archivo no existe y load_dotenv no hace
+# nada, que es justo lo que se quiere: alli llegan del entorno.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(r"C:\Users\saulb\telegram-finance-bot\.env")
+except Exception:  # noqa: BLE001
+    pass
+
 BASE = os.environ.get("SURECONOMICS_API",
                       "https://sureconomics-backend.onrender.com").rstrip("/")
 
