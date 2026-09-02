@@ -9,19 +9,20 @@ name: Corrida diaria
 # pide el triple de candidatos de los que necesita, para que le quede margen
 # despues de filtrar.
 #
-# Se deja el disparo manual ademas del programado a proposito. En este grupo de
-# proyectos ya se aprendio que el "schedule" de GitHub llega con retrasos de
-# hasta media hora, y por eso el bot de Telegram lo dispara desde un cron
-# externo (cron-job.org) que llama a workflow_dispatch. Aqui el schedule queda
-# como red de seguridad: si el cron externo falla, la corrida sale igual aunque
-# sea tarde.
+# EL DISPARO ES EL "schedule" DE GITHUB, SIN CRON EXTERNO. Decision del dueño el
+# 02/09/2026: llega tarde, a veces horas, y para estas tandas da igual. Se probo
+# el 01/09: el cron de las 12:00 UTC llego a las 16:22 y el de las 18:00 a las
+# 20:53. En el resto de proyectos del grupo esto se dispara desde cron-job.org
+# justamente por eso, y aqui se acepta el retraso a cambio de no mantener otra
+# pieza mas.
 #
-# Y POR ESO EXISTE EL JOB "guardia". Con el cron externo puesto, las dos vias
-# disparan la misma tanda y salen DOCE borradores en vez de seis. La memoria no
-# lo evita, porque la primera tanda deja borradores y la memoria solo ve lo
-# publicado. La guardia bloquea al segundo, pero SOLO cuando viene del schedule:
-# si lo pide una persona o el cron externo, corre siempre, porque un disparo
-# pedido a mano es una decision y no un accidente.
+# El disparo manual se deja para poder relanzar una tanda a mano.
+#
+# LA GUARDIA SIGUE HACIENDO FALTA aunque no haya cron externo: si alguien lanza
+# una tanda a mano y luego el schedule llega tarde, salen doce borradores en vez
+# de seis. La memoria no lo evita, porque la primera tanda deja BORRADORES y la
+# memoria solo ve lo publicado. Bloquea solo lo que venga del schedule: un
+# disparo pedido a mano es una decision, no un accidente.
 on:
   workflow_dispatch:
     inputs:

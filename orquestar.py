@@ -216,7 +216,13 @@ def main():
         print((r.stdout or "")[-1400:])
         carga = carpeta / "carga.json"
         if carga.exists():
-            r = correr([PYTHON, AQUI / "subir.py", carga], minutos=20)
+            # LAS BLOQUEADAS TAMBIEN SUBEN, MARCADAS. Decision del dueño el
+            # 02/09/2026: prefiere tenerlas en el panel y arreglarlas ahi antes
+            # que no tener nada. subir.py les mete un aviso en negrita al
+            # principio del cuerpo con el motivo del bloqueo, para que nadie las
+            # publique sin verlo.
+            r = correr([PYTHON, AQUI / "subir.py", carga, "--subir-bloqueadas"],
+                       minutos=20)
             print((r.stdout or "") + (r.stderr or "")[-400:])
         else:
             print("  No se armo la carga. No se sube nada.")
