@@ -84,6 +84,31 @@ def leer_encargo(texto, tipo_por_defecto="Noticia"):
     return tipo_por_defecto, texto, ""
 
 
+# Como se dice en el pie que la foto es la PORTADA y no una captura para leer.
+# La misma imagen puede ser las dos cosas y solo el pie lo distingue.
+DE_PORTADA = re.compile(
+    r"\b(con esta (imagen|foto|portada)|usa(la)? esta (imagen|foto)|"
+    r"esta (imagen|foto) de portada|de portada|ponle esta|con la imagen adjunta)",
+    re.I)
+
+# Norma del 31/08/2026: las imagenes generadas con IA se declaran AL PIE DEL
+# CUERPO, en cursiva. Va dentro del texto y nunca en el campo de credito del
+# panel, que no persiste y borro en silencio la declaracion de siete piezas.
+LINEA_IA = "<p><em>Imagen generada con inteligencia artificial.</em></p>"
+
+# Como se dice que NO es de IA. Por defecto se declara, porque el dueño confirmo
+# el 02/09/2026 que las portadas que manda por Telegram son generadas. Ponerle
+# la linea a una foto real seria mentir en la otra direccion, asi que hay como
+# desactivarla.
+NO_ES_IA = re.compile(r"\b(foto real|fotografia real|no es de ia|no es ia|"
+                      r"imagen real|foto de archivo)\b", re.I)
+
+
+def papel_de_la_foto(pie):
+    """Devuelve 'portada' o 'captura' segun lo que diga el pie."""
+    return "portada" if DE_PORTADA.search(pie or "") else "captura"
+
+
 def _apodo(texto):
     """Nombre de archivo corto y sin sorpresas.
 
@@ -297,7 +322,45 @@ def main():
     # escribe desde el articulo original. Si no aparece en la lista blanca, no
     # se escribe: decision del dueño el 01/09/2026, sabiendo que a veces dira
     # que no. Ver el encabezado de motor/captura.py.
-    if args.foto:
+    # LA MISMA FOTO PUEDE SER DOS COSAS OPUESTAS y solo el pie lo dice: material
+    # para leer, o la portada de la pieza. Si es portada, la noticia tiene que
+    # venir del texto del pie, porque una imagen no es una fuente.
+    portada_url, declarar_ia = None, False
+    if args.foto and papel_de_la_foto(encargo) == "portada":
+        print("\n--- 0. LA FOTO ES LA PORTADA ---")
+        enlace_pie = (re.search(r"https?://\S+", encargo or "") or [None])
+        enlace_pie = enlace_pie.group(0) if hasattr(enlace_pie, "group") else None
+        if enlace_pie:
+            peticion = enlace_pie
+        if not (peticion.startswith("http://") or peticion.startswith("https://")):
+            print("  Me mandas la portada pero no la noticia. Necesito el enlace")
+            print("  del articulo: una imagen no es una fuente que se pueda")
+            print("  verificar. Mandalo en el mismo pie de foto.")
+            if args.chat:
+                try:
+                    _mensaje_telegram(args.chat,
+                        "🖼️ <b>Tengo la portada, me falta la noticia.</b>\n\n"
+                        "Mándame el enlace del artículo en el mismo pie de foto. "
+                        "Una imagen no es una fuente que pueda verificar.")
+                except Exception:  # noqa: BLE001
+                    pass
+            return 1
+
+        from motor import captura, imagen_publica
+        try:
+            datos, _mime = captura.bajar_de_telegram(args.foto)
+            portada_url = imagen_publica.publicar(datos, "portada")
+        except Exception as exc:  # noqa: BLE001
+            print("  [imagen] no pude traerla (%s). Sigo sin portada." % str(exc)[:70])
+        # Por defecto se declara generada con IA: el dueño confirmo el
+        # 02/09/2026 que las portadas que manda por el chat son generadas. Con
+        # "foto real" en el pie no se declara, porque ponersela a una foto de
+        # verdad seria mentir en la otra direccion.
+        declarar_ia = portada_url is not None and not NO_ES_IA.search(encargo or "")
+        print("  portada: %s" % (portada_url or "no disponible"))
+        print("  se declara generada con IA: %s" % ("si" if declarar_ia else "no"))
+
+    elif args.foto:
         print("\n--- 0. LEER LA CAPTURA ---")
         from motor import captura
         hallado = captura.desde_telegram(args.foto)
@@ -450,6 +513,24 @@ def main():
                                errors="replace", timeout=20 * 60)
             print((r.stdout or "")[-400:])
             carga = carpeta / "carga.json"
+
+            # La portada que llego por el chat se mete AQUI, pisando lo que
+            # hubiera decidido armar_carga.py. Si una persona se molesto en
+            # mandar una imagen concreta, manda ella y no el buscador.
+            if carga.exists() and portada_url:
+                import json as _json
+                d = _json.loads(carga.read_text(encoding="utf-8"))
+                piezas = d if isinstance(d, list) else d.get("piezas", [])
+                for pieza in piezas:
+                    pieza["foto"] = portada_url
+                    pieza["credito"] = ""
+                    if declarar_ia and LINEA_IA not in (pieza.get("cuerpo_html") or ""):
+                        pieza["cuerpo_html"] = (pieza.get("cuerpo_html") or "") + LINEA_IA
+                carga.write_text(_json.dumps(d, ensure_ascii=False, indent=2),
+                                 encoding="utf-8")
+                print("  portada puesta en la carga%s"
+                      % (" y declarada como IA" if declarar_ia else ""))
+
             if carga.exists():
                 r = subprocess.run([sys.executable, str(AQUI / "subir.py"), str(carga)],
                                    capture_output=True, text=True, encoding="utf-8",
