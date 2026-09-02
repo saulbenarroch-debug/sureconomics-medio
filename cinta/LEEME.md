@@ -68,25 +68,34 @@ cambia una constante en `cinta.html` y ya.
 ## Cómo gira
 
 **El widget de TradingView no desfila solo.** De fábrica es una tira que se
-arrastra con el ratón, no una marquesina. Comprobado el 02/09/2026.
+arrastra con el ratón. Comprobado el 02/09/2026.
 
-Para que gire se anima **el contenedor entero**, no los datos: los valores
-siguen dentro del iframe de TradingView y bajo su licencia, que es la condición
-de todo esto. Lo único que se mueve es la caja.
+Para que gire se anima **el contenedor**, no los datos: los valores siguen
+dentro de los iframes de TradingView y bajo su licencia, que es la condición de
+todo esto. Lo único que se mueve es la caja.
 
-Tres cosas que hay que saber si tocáis esto:
+**Son dos instancias idénticas del widget**, de 3200 px cada una, dentro de una
+pista de 6400 px que se desplaza exactamente 3200 px. Al llegar al final, la
+segunda mitad está donde estaba la primera y el bucle cierra sin costura.
 
-1. **La lista de símbolos va duplicada** dentro del mismo widget (19 x 2 = 38).
-   Así la segunda mitad del iframe es idéntica a la primera y desplazar un 50 %
-   vuelve al inicio sin costura. Con un solo widget a propósito: dos instancias
-   serían dos conexiones.
-2. **Se anima `.tradingview-widget-container`, no un div propio.** El script del
-   widget elimina cualquier envoltorio que se le ponga por fuera.
-3. **El ancho lleva `!important`.** El widget se escribe `width: 100%` en línea
-   sobre su contenedor al cargar, y un estilo en línea gana a la hoja.
+Cuesta una segunda conexión, y es a propósito. La alternativa era duplicar la
+lista de símbolos dentro de un solo widget, y **no funciona**: el widget
+descarta los símbolos que no caben. A 6400 px cada símbolo ocupa unos 388, así
+que de 38 solo pintaba 16 y el punto de repetición no caía nunca en la mitad.
 
-Con `prefers-reduced-motion: reduce` la animación se apaga y la tira queda
-quieta y arrastrable, como viene de fábrica.
+Dos trampas más, si tocáis esto:
+
+- **La pista se crea por JavaScript, no en el HTML.** El script del widget
+  elimina cualquier envoltorio que encuentre por fuera.
+- **Los anchos llevan `!important`.** El widget se escribe `width: 100%` en
+  línea sobre su contenedor al cargar, y un estilo en línea gana a la hoja.
+
+**Velocidad:** los `40s` del `animation`. Son 3200 px en 40 segundos, o sea 80
+px/s, el paso de un cintillo de noticias. Es el único número que hay que tocar.
+Se para al pasar el ratón por encima, para poder leer un valor.
+
+Con `prefers-reduced-motion: reduce` se muestra una sola instancia, quieta y
+arrastrable, como viene el widget de fábrica.
 
 ## Comportamiento ante fallos
 

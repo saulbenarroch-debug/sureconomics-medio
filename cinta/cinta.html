@@ -48,28 +48,42 @@
      con un solo widget a proposito; dos instancias serian dos conexiones. */
   .se-cinta__global { flex: 1 1 auto; min-width: 0; overflow: hidden; }
   .se-cinta__global .tradingview-widget-copyright { display: none; }
-  /* SE ANIMA .tradingview-widget-container Y NO UN DIV NUESTRO. El script del
-     widget ELIMINA cualquier envoltorio que se le ponga por fuera: la primera
-     version metia un div .se-cinta__pista, aparecia en el HTML y no en el DOM
-     renderizado, y la animacion no existia. Este contenedor es del propio
-     widget y sobrevive. */
-  .se-cinta__global .tradingview-widget-container {
-    /* !important porque el widget se escribe "width: 100%" EN LINEA sobre su
-       propio contenedor en cuanto carga, y un estilo en linea gana a la hoja.
-       Sin esto el contenedor se queda al ancho del hueco, el iframe pinta solo
-       tres simbolos y no hay nada que desplazar. */
-    width: 6400px !important;  /* sitio de sobra para que pinte los 38 en fila */
-    animation: se-desfile 150s linear infinite !important;
-  }
-  .se-cinta__global:hover .tradingview-widget-container { animation-play-state: paused; }
+  /* COMO GIRA, Y POR QUE ASI.
+     El widget no desfila solo: de fabrica es una tira que se arrastra. Y no
+     vale duplicar la lista de simbolos dentro de un solo widget, porque el
+     widget DESCARTA los que no caben: a 6400 px cada simbolo ocupa 388 px, asi
+     que solo pinta unos 16 de los 38 y el punto de repetision no cae nunca en
+     el 50 %. El bucle daba un salto.
+     Lo que si cierra por construccion son DOS instancias identicas, cada una
+     llenando su mitad de la pista: al desplazar exactamente una mitad, la
+     segunda queda donde estaba la primera. Cuesta una segunda conexion y es el
+     precio de que no se vea la costura.
+     Los datos siguen dentro de los iframes de TradingView y bajo su licencia.
+     Lo unico que se mueve es la caja. */
+  .se-cinta__global { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+  .se-cinta__global .tradingview-widget-copyright { display: none; }
+
+  /* La pista la crea el script de abajo. No se puede poner en el HTML: el
+     script del widget elimina cualquier envoltorio que encuentre por fuera. */
+  .se-cinta__pista { display: flex; width: 6400px; animation: se-desfile 40s linear infinite; }
+  .se-cinta__global:hover .se-cinta__pista { animation-play-state: paused; }
+  /* !important porque el widget se escribe "width: 100%" EN LINEA en cuanto
+     carga, y un estilo en linea gana a la hoja. */
+  .se-cinta__pista > .tradingview-widget-container { width: 3200px !important; flex: 0 0 3200px; }
+
+  /* VELOCIDAD: se recorre una mitad, 3200 px, en este tiempo. 40s son 80 px/s,
+     el paso de un cintillo de noticias. La primera version puso 150s, o sea 21
+     px/s: giraba de verdad y parecia quieta. Es el unico numero que tocar. */
   @keyframes se-desfile {
     from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
+    to   { transform: translateX(-3200px); }
   }
-  /* Quien pidio no ver movimiento no lo ve. Se queda la tira quieta y
-     arrastrable, que es como viene el widget de fabrica. */
+  /* Quien pidio no ver movimiento no lo ve: una sola tira, quieta y
+     arrastrable, como viene el widget de fabrica. */
   @media (prefers-reduced-motion: reduce) {
-    .se-cinta__global .tradingview-widget-container { animation: none !important; width: 100% !important; }
+    .se-cinta__pista { animation: none; width: 100%; }
+    .se-cinta__pista > .tradingview-widget-container:nth-child(2) { display: none; }
+    .se-cinta__pista > .tradingview-widget-container { width: 100% !important; flex: 1 1 auto; }
   }
 
   /* La atribucion de TradingView es obligatoria por su licencia. Va aqui,
@@ -123,7 +137,22 @@
           {"proName": "FX:EURUSD",         "title": "EUR/USD"},
           {"proName": "OANDA:XAUUSD",      "title": "Oro"},
           {"proName": "TVC:UKOIL",         "title": "Brent"},
-          {"proName": "BITSTAMP:BTCUSD",   "title": "BTC/USD"},
+          {"proName": "BITSTAMP:BTCUSD",   "title": "BTC/USD"}
+        ],
+        "showSymbolLogo": true,
+        "isTransparent": true,
+        "displayMode": "adaptive",
+        "colorTheme": "dark",
+        "locale": "es"
+      }
+      </script>
+    </div>
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript"
+              src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {
+        "symbols": [
           {"proName": "BMFBOVESPA:IBOV",   "title": "Bovespa"},
           {"proName": "INDEX:MXX",         "title": "IPC México"},
           {"proName": "BCBA:IMV",          "title": "Merval"},
@@ -161,6 +190,20 @@
 
 <script>
 (function () {
+  // LA PISTA SE MONTA AQUI, no en el HTML: el script del widget borra
+  // cualquier envoltorio que le pongan por fuera, asi que hay que crearlo
+  // DESPUES y meter las dos instancias dentro.
+  (function pista() {
+    var hueco = document.querySelector(".se-cinta__global");
+    if (!hueco) return;
+    var cajas = hueco.querySelectorAll(":scope > .tradingview-widget-container");
+    if (cajas.length < 2) { setTimeout(pista, 400); return; }   // aun cargando
+    var p = document.createElement("div");
+    p.className = "se-cinta__pista";
+    hueco.insertBefore(p, cajas[0]);
+    for (var i = 0; i < cajas.length; i++) p.appendChild(cajas[i]);
+  })();
+
   // De donde salen los datos venezolanos. Lo escribe al-cierre a las 5:30 pm
   // hora de Venezuela y se sirve desde el repo publico, que manda CORS abierto.
   // PENDIENTE PARA ALALZA: mover esto a un endpoint del backend. GitHub raw
