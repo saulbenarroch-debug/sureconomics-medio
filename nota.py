@@ -28,6 +28,7 @@ import re
 import subprocess
 import sys
 import unicodedata
+import urllib.parse
 import urllib.request
 from datetime import date
 
@@ -153,6 +154,46 @@ def leer_enlace(url):
 def medio_de(url):
     d = re.sub(r"^https?://(www\.)?", "", url).split("/")[0]
     return d.split(".")[0].replace("-", " ").title()
+
+
+ES_TUIT = re.compile(r"^https?://(www\.)?(x|twitter)\.com/[^/]+/status/(\d+)", re.I)
+
+
+def leer_tuit(url):
+    """Devuelve (autor, texto) de un tuit, o (None, None).
+
+    X es una aplicacion de JavaScript: el HTML que llega no trae la publicacion,
+    asi que leer_enlace() encuentra cero parrafos y corta. Paso el 02/09/2026 con
+    un enlace que mando el dueño y la corrida salio marcada en rojo.
+
+    El oEmbed de la propia X es publico y no pide credenciales. fxtwitter queda
+    de respaldo porque devuelve el texto sin recortar.
+    """
+    m = ES_TUIT.match(url or "")
+    if not m:
+        return None, None
+    import json as _json
+
+    ident = m.group(3)
+    intentos = [
+        ("https://publish.twitter.com/oembed?url=" +
+         urllib.parse.quote("https://twitter.com/i/status/" + ident)),
+        "https://api.fxtwitter.com/i/status/" + ident,
+    ]
+    for u in intentos:
+        try:
+            pet = urllib.request.Request(u, headers={"User-Agent": NAVEGADOR})
+            with urllib.request.urlopen(pet, timeout=30) as r:
+                d = _json.loads(r.read().decode())
+        except Exception:  # noqa: BLE001
+            continue
+        if d.get("html"):
+            t = re.sub(r"<[^>]+>", " ", d["html"])
+            return d.get("author_name", ""), re.sub(r"\s+", " ", t).strip()
+        tuit = d.get("tweet") or {}
+        if tuit.get("text"):
+            return (tuit.get("author") or {}).get("name", ""), tuit["text"]
+    return None, None
 
 
 def _escapar(t):
@@ -411,18 +452,60 @@ def main():
     except Exception as exc:  # noqa: BLE001
         print("  [aviso] no pude comprobarlo (%s). Se sigue." % str(exc)[:60])
 
+    # UN TUIT ES UNA PISTA, NO UNA FUENTE. Mismo criterio que las capturas: se
+    # lee para saber QUE buscar, y se escribe desde el articulo original. Un
+    # tuit no se puede auditar, y en esta misma casa uno afirmaba algo falso
+    # sobre las Malvinas que solo se detecto comprobandolo aparte.
+    if ES_TUIT.match(peticion):
+        print("\n--- 2. ES UN TUIT: LO LEO Y BUSCO EL ORIGINAL ---")
+        autor, texto = leer_tuit(peticion)
+        if not texto:
+            print("  No pude leer ese tuit.")
+            _mensaje_telegram(args.chat, "🔍 <b>No pude leer ese tuit.</b>\n\n"
+                              "Puede estar borrado o ser una cuenta protegida. "
+                              "Si tienes el enlace de la noticia, mándamelo con "
+                              "<code>/nota</code>.")
+            return 0
+        print("  @%s: %s" % (autor, texto[:110]))
+        from motor import captura
+        # El texto crudo del tuit NO sirve como consulta: hashtags, arrobas y
+        # guiones dan cero resultados. Se destila a titular y palabras clave.
+        lectura = captura.leer_texto(texto) or {
+            "titular": texto[:180], "busqueda": texto[:180],
+            "medio": autor, "fecha": "", "texto": texto, "legible": True}
+        lectura["medio"] = autor
+        print("  busco: %s" % lectura.get("busqueda", ""))
+        candidatos = captura.buscar_original(lectura)
+        if not candidatos:
+            print("  No encuentro esta noticia en ninguna fuente verificable.")
+            _avisar_captura(args.chat, {
+                "lectura": lectura,
+                "motivo": "leí el tuit, pero no encuentro la noticia en ninguna "
+                          "fuente verificable. Un tuit solo no se puede auditar."})
+            return 0
+        print("  original: %s · %s" % (candidatos[0].get("medio", ""),
+                                       candidatos[0].get("titular", "")[:70]))
+        peticion = candidatos[0]["url"]
+
     print("\n--- 2. LEER LA FUENTE ---")
     try:
         titulo, parrafos = leer_enlace(peticion)
     except Exception as exc:  # noqa: BLE001
         print("  No pude leer ese enlace: %s" % str(exc)[:90])
-        print("  Algunos medios bloquean la lectura automatica. Pega el texto")
-        print("  a mano con agregar_fuente.py y vuelve a intentarlo.")
-        return 1
+        # SE LE CONTESTA SIEMPRE A QUIEN LO PIDIO. El 02/09/2026 una peticion
+        # murio aqui y el dueño no recibio nada: desde su lado el bot se quedo
+        # mudo y tuvo que ir a mirar el registro de Actions.
+        _mensaje_telegram(args.chat, "⚠️ <b>No pude leer ese enlace.</b>\n\n"
+                          + _escapar(str(exc)[:120]) +
+                          "\n\nAlgunos medios bloquean la lectura automática. "
+                          "Prueba con otro medio que cuente lo mismo.")
+        return 0
     if not parrafos:
         print("  El enlace responde pero no encuentro texto de nota.")
-        print("  Puede ser un video, una galeria o un muro de pago.")
-        return 1
+        _mensaje_telegram(args.chat, "⚠️ <b>Ese enlace no tiene texto de nota.</b>"
+                          "\n\nPuede ser un vídeo, una galería o un muro de pago. "
+                          "Mándame el enlace del artículo y lo escribo.")
+        return 0
     print("  %s" % titulo[:90])
     print("  %d parrafos, %d caracteres" % (len(parrafos), sum(len(p) for p in parrafos)))
 

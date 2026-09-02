@@ -117,6 +117,35 @@ def _es_portada(url):
     return p.scheme in ("http", "https") and p.path.strip("/") == "" and not p.query
 
 
+PROMPT_TEXTO = (
+    "Este es el texto de una publicacion de red social que alguien mando para "
+    "avisar de una noticia.\n\n"
+    "Devuelve solo JSON con:\n"
+    '  "titular": el hecho en una linea, como lo titularia un medio.\n'
+    '  "busqueda": entre tres y seis palabras para encontrar esa noticia en un '
+    'buscador. Nombres propios y cifras, sin palabras vacias y sin hashtags.\n\n'
+    "No inventes nada que no este en el texto.\n\nTexto: %s")
+
+
+def leer_texto(texto):
+    """Saca titular y palabras de busqueda de un texto suelto (un tuit).
+
+    POR QUE NO VALE PASAR EL TEXTO TAL CUAL AL BUSCADOR. Se probo el 02/09/2026
+    con un tuit sobre las licencias de la OFAC: mandando 180 caracteres crudos
+    como consulta, con sus guiones, sus hashtags y sus arrobas, el buscador
+    devolvio cero. Una consulta es un puñado de palabras distintivas, no un
+    parrafo.
+    """
+    from motor.ia import pedir_json
+
+    r = pedir_json(PROMPT_TEXTO % (texto or "")[:1200], etiqueta="tuit",
+                   temperatura=0.0)
+    if not isinstance(r, dict):
+        return None
+    return {"titular": r.get("titular", ""), "busqueda": r.get("busqueda", ""),
+            "medio": "", "fecha": "", "texto": texto, "legible": True}
+
+
 def buscar_original(lectura, dias=15, umbral=PARECIDO_MINIMO):
     """Busca en la lista blanca la noticia que la captura anuncia.
 
