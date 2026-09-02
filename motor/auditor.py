@@ -290,6 +290,20 @@ def auditar(pieza, paquete, encargo=""):
     # 4.0» aportaba un 4 y un 0. Habria bloqueado toda pieza con foto licenciada.
     texto_sin_enlaces = re.sub(
         r"(?im)^\s*(archivo,\s*\d{4}\s*·\s*)?foto:.*$", " ", texto_sin_enlaces)
+
+    # EL DIA DE UNA FECHA NO ES UNA CIFRA. _es_anio() exime el año, pero el dia
+    # quedaba suelto: "el 2 de septiembre de 2026" metia un 2 que no estaba en
+    # ningun expediente, y la pieza se bloqueaba. Paso el 02/09/2026 con la nota
+    # de la deuda de EE. UU., y habria pasado con CUALQUIER pieza que feche su
+    # fuente, que es justo lo que se les pide.
+    #
+    # Se quita la fecha entera, no solo el dia: si el mes va escrito con letra,
+    # el año que le sigue tampoco tiene por que verificarse contra el paquete.
+    texto_sin_enlaces = re.sub(
+        r"\b\d{1,2}\s+de\s+(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|"
+        r"septiembre|setiembre|octubre|noviembre|diciembre)"
+        r"(?:\s+de\s+\d{4})?", " ", texto_sin_enlaces, flags=re.I)
+
     for token in NUMERO.findall(texto_sin_enlaces):
         if (token in permitidas or token in hipoteticas
                 or token in definiciones or _es_anio(token)):
