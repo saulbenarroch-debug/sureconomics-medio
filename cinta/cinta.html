@@ -1,0 +1,172 @@
+<style>
+  /* Componente suelto: todo va bajo .se-cinta para no pisar estilos del sitio. */
+  .se-cinta {
+    --se-fondo: #0d1117;
+    --se-texto: #e6edf3;
+    --se-apagado: #8b949e;
+    --se-sube: #2ea043;
+    --se-baja: #f85149;
+    --se-borde: #21262d;
+    background: var(--se-fondo);
+    color: var(--se-texto);
+    font: 13px/1 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    border-bottom: 1px solid var(--se-borde);
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* Lo nuestro va PRIMERO y fijo. Es el dato que ningun proveedor
+     internacional tiene y el que busca el lector venezolano; si se fuera
+     dentro de la cinta que rota, se perderia la mitad del tiempo. */
+  .se-cinta__ve {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 18px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--se-borde);
+    min-height: 46px;
+  }
+  .se-cinta__dato { display: flex; align-items: baseline; gap: 7px; white-space: nowrap; }
+  .se-cinta__etq { color: var(--se-apagado); font-weight: 600; letter-spacing: .3px; }
+  .se-cinta__val { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .se-cinta__var { font-variant-numeric: tabular-nums; font-size: 12px; }
+  .se-cinta__var--sube { color: var(--se-sube); }
+  .se-cinta__var--baja { color: var(--se-baja); }
+  .se-cinta__var--igual { color: var(--se-apagado); }
+
+  /* El widget de TradingView ocupa el resto. */
+  .se-cinta__global { flex: 1 1 auto; min-width: 0; }
+  .se-cinta__global .tradingview-widget-copyright { display: none; }
+
+  /* La atribucion de TradingView es obligatoria por su licencia. Va aqui,
+     visible, y NO se quita: es el precio de poder mostrar estos datos sin
+     contratar derechos de display. */
+  .se-cinta__credito {
+    display: flex; align-items: center; padding: 0 14px;
+    font-size: 11px; color: var(--se-apagado); white-space: nowrap;
+    border-left: 1px solid var(--se-borde); flex-shrink: 0;
+  }
+  .se-cinta__credito a { color: var(--se-apagado); text-decoration: none; }
+  .se-cinta__credito a:hover { text-decoration: underline; }
+
+  /* En movil la parte venezolana se desliza sola y el widget se apila debajo. */
+  @media (max-width: 860px) {
+    .se-cinta { flex-direction: column; }
+    .se-cinta__ve { overflow-x: auto; border-right: none; border-bottom: 1px solid var(--se-borde); }
+    .se-cinta__credito { border-left: none; padding: 6px 14px; }
+  }
+</style>
+
+<div class="se-cinta" id="se-cinta">
+  <!-- BCV e IBC: datos propios, de emisor oficial -->
+  <div class="se-cinta__ve" id="se-cinta-ve">
+    <span class="se-cinta__etq">Cargando…</span>
+  </div>
+
+  <!-- Indices globales: los sirve TradingView al navegador del lector -->
+  <div class="se-cinta__global">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript"
+              src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {
+        "symbols": [
+          {"proName": "BMFBOVESPA:IBOV",   "title": "Bovespa"},
+          {"proName": "INDEX:MXX",         "title": "IPC México"},
+          {"proName": "BCBA:IMV",          "title": "Merval"},
+          {"proName": "BVC:COLCAP",        "title": "Colcap"},
+          {"proName": "FOREXCOM:SPXUSD",   "title": "S&P 500"},
+          {"proName": "FOREXCOM:DJI",      "title": "Dow Jones"},
+          {"proName": "FOREXCOM:NSXUSD",   "title": "Nasdaq 100"},
+          {"proName": "CAPITALCOM:EU50",   "title": "Euro Stoxx 50"},
+          {"proName": "XETR:DAX",          "title": "DAX"},
+          {"proName": "BME:IBC",           "title": "IBEX 35"},
+          {"proName": "CAPITALCOM:FR40",   "title": "CAC 40"},
+          {"proName": "FOREXCOM:UK100",    "title": "FTSE 100"},
+          {"proName": "FOREXCOM:JPXJPY",   "title": "Nikkei 225"},
+          {"proName": "FOREXCOM:HKXHKD",   "title": "Hang Seng"},
+          {"proName": "SSE:000001",        "title": "Shanghai"},
+          {"proName": "FX:EURUSD",         "title": "EUR/USD"},
+          {"proName": "OANDA:XAUUSD",      "title": "Oro"},
+          {"proName": "TVC:UKOIL",         "title": "Brent"},
+          {"proName": "BITSTAMP:BTCUSD",   "title": "BTC/USD"}
+        ],
+        "showSymbolLogo": true,
+        "isTransparent": true,
+        "displayMode": "adaptive",
+        "colorTheme": "dark",
+        "locale": "es"
+      }
+      </script>
+    </div>
+  </div>
+
+  <div class="se-cinta__credito">
+    <a href="https://www.tradingview.com/" target="_blank" rel="noopener">Mercados por TradingView</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  // De donde salen los datos venezolanos. Lo escribe al-cierre a las 5:30 pm
+  // hora de Venezuela y se sirve desde el repo publico, que manda CORS abierto.
+  // PENDIENTE PARA ALALZA: mover esto a un endpoint del backend. GitHub raw
+  // sirve con cache de 5 minutos y va bien, pero no esta pensado como CDN de
+  // produccion y puede limitar por volumen. Ver LEEME.md.
+  var FUENTE = "https://raw.githubusercontent.com/saulbenarroch-debug/telegram-finance-bot/main/al-cierre/cinta.json";
+  var CACHE = "sureconomics_cinta_datos";
+  var caja = document.getElementById("se-cinta-ve");
+
+  function numero(v) {
+    return v.toLocaleString("es-VE", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function pintar(datos) {
+    if (!datos || !datos.valores || !datos.valores.length) { caja.remove(); return; }
+    caja.innerHTML = datos.valores.map(function (v) {
+      var clase = v.variacion > 0 ? "sube" : (v.variacion < 0 ? "baja" : "igual");
+      var signo = v.variacion > 0 ? "+" : "";
+      // El titulo del navegador lleva la fuente y la fecha: la atribucion no
+      // cabe en la cinta, pero tiene que estar en alguna parte.
+      var titulo = v.fuente + " · cierre del " + (datos.fecha_cierre || "");
+      return '<span class="se-cinta__dato" title="' + titulo + '">' +
+             '<span class="se-cinta__etq">' + v.etiqueta + '</span>' +
+             '<span class="se-cinta__val">' + numero(v.valor) + '</span>' +
+             '<span class="se-cinta__var se-cinta__var--' + clase + '">' +
+             signo + v.variacion.toFixed(2) + '%</span></span>';
+    }).join("");
+  }
+
+  // Se pinta primero lo que haya en cache para que la cinta no parpadee, y
+  // luego se refresca. Si la red falla, se queda lo de antes en vez de vacio.
+  try {
+    var previo = sessionStorage.getItem(CACHE);
+    if (previo) pintar(JSON.parse(previo));
+  } catch (e) {}
+
+  // SE REINTENTA ANTES DE RENDIRSE. La primera version se rendia al primer
+  // fallo, y al probarla cayo justo en la ventana de cinco minutos de cache de
+  // GitHub tras publicar el archivo: un 404 pasajero, y la mitad venezolana
+  // desaparecia para ese lector hasta que recargara la pagina. Un fallo de red
+  // de dos segundos no puede costar la parte de la cinta que solo tenemos
+  // nosotros.
+  function traer(intento) {
+    fetch(FUENTE, {cache: "no-cache"})
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (d) {
+        pintar(d);
+        try { sessionStorage.setItem(CACHE, JSON.stringify(d)); } catch (e) {}
+      })
+      .catch(function () {
+        if (intento < 3) { setTimeout(function () { traer(intento + 1); }, intento * 4000); return; }
+        // Agotados los intentos: la cinta se queda solo con TradingView. A
+        // medias es mejor que con huecos o con un error a la vista.
+        if (!caja.querySelector(".se-cinta__dato")) caja.remove();
+      });
+  }
+  traer(1);
+})();
+</script>
