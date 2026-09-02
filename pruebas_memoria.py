@@ -54,6 +54,11 @@ NUEVOS = [
     # de un tercio del parecido. Si esto vuelve a salir como repetido, alguien
     # quito la regla de las dos palabras en memoria.parecido().
     "U.S.-Iran Strikes Put $100 Oil Back in Focus",
+    # El que obligo a subir el umbral de 0.31 a 0.36 el 02/09/2026. Se emparejo
+    # con "EL CHANTAJE DEL RIESGO PAIS Y EL SERVICIO DE LA DEUDA HONDUREÑA"
+    # compartiendo solo "riesgo" y "pais", que en un medio de economia son una
+    # coletilla y no identifican nada. Puntuaba 0.340.
+    "¿Por qué Venezuela, Argentina, Ecuador y Bolivia tienen el peor riesgo país de Latinoamérica? Las razones",
 ]
 
 

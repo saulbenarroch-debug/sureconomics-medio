@@ -23,15 +23,26 @@ raros ("Datanalisis", "dolarizacion", "Malvinas") aunque esten redactados
 distinto. Las palabras vacias se descartan porque aparecen en todo.
 
 EL UMBRAL SALE DE MEDIRLO, NO DE ELEGIRLO A OJO. Contra titulares reales, los
-que ya estaban publicados puntuan entre 0.384 y 1.000, y los que son noticia
-nueva entre 0.000 y 0.240. El umbral va en 0.31, en medio del hueco.
+que ya estaban publicados puntuan entre 0.375 y 1.000, y el peor falso positivo
+puntua 0.340. El umbral va en 0.36, en medio de ese hueco.
 
-La primera medicion dio 0.40 porque el peor duplicado que se habia probado
-puntuaba 0.53. Al llegar el titular original de Valora Analitik, que puntua
-0.399, se colo por milesimas y el motor iba a reescribir una nota ya publicada.
-Un umbral calibrado con pocos casos es un umbral provisional: cada duplicado
-nuevo que aparezca hay que meterlo en pruebas_memoria.py y volver a mirar el
-hueco, no ajustar el numero a ojo.
+HISTORIA DEL NUMERO, QUE ES LA ADVERTENCIA:
+
+  0.40  primera medicion. Se colo el titular de Valora Analitik, que puntua
+        0.399, y el motor iba a reescribir una nota publicada.
+  0.31  segunda. Aguanto hasta que una nota sobre el riesgo pais de cuatro
+        paises se emparejo con un articulo sobre la deuda de Honduras: solo
+        compartian "riesgo" y "pais", que en economia son una coletilla.
+  0.36  actual. Los duplicados reales puntuan de 0.375 a 1.000 y ese falso
+        positivo 0.340.
+
+EL HUECO SE ESTA CERRANDO Y CONVIENE SABERLO. Empezo siendo de 0.144 (0.240 a
+0.384) y ahora es de 0.035. No es que el umbral este mal: es que dos titulares
+de economia comparten vocabulario, y contar palabras tiene un limite. Cuando el
+hueco se cierre del todo habra que cambiar de metodo, no de numero.
+
+Cada duplicado nuevo que aparezca va a pruebas_memoria.py y se vuelve a mirar el
+hueco. No se ajusta a ojo.
 
 Y HACEN FALTA DOS PALABRAS EN COMUN COMO MINIMO. Una sola no es prueba de nada
 por rara que sea: los titulares en ingles aportan cuatro palabras utiles y una
@@ -61,7 +72,7 @@ VACIAS = {
     "puede", "pueden", "hace", "hacen", "dice", "dicen", "ser", "haber",
 }
 
-UMBRAL = 0.31
+UMBRAL = 0.36
 
 
 def _plano(texto):
