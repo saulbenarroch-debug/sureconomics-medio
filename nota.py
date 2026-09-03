@@ -354,6 +354,8 @@ def main():
     ap.add_argument("--chat", default="", help="chat de Telegram al que devolverla")
     ap.add_argument("--sin-subir", action="store_true",
                     help="escribe y entrega, pero no toca el panel")
+    ap.add_argument("--forzar", action="store_true",
+                    help="escribe aunque la memoria la de por publicada")
     ap.add_argument("--encargo", default="",
                     help="instruccion de edicion; en Telegram, el pie de foto")
     args = ap.parse_args()
@@ -451,11 +453,22 @@ def main():
         return 1
 
     # Lo barato primero: ¿ya lo contamos?
+    # FORZAR ES UNA PALABRA EN EL CHAT, no una bandera que nadie va a recordar.
+    # Con "igual" detras del enlace basta, que es como se dice en castellano:
+    # "escríbela igual". El propio bot lo explica cuando para una repetida, y
+    # hasta hoy lo ofrecia sin que existiera manera de hacerlo.
+    forzar = args.forzar or bool(
+        re.search(r"\b(igual|forzar|for[zc]ala|aunque (ya )?(este|est[eé]|salga))\b",
+                  _plano(args.encargo)))
+
     print("\n--- 1. ¿YA ESTA PUBLICADO? ---")
+    if forzar:
+        print("  (pedida a la fuerza: no se comprueba)")
     try:
         from motor import memoria
         titulo_previo, _, _ = leer_enlace(peticion)
-        ya = memoria.ya_cubierto(titulo_previo) if titulo_previo else None
+        ya = (None if forzar else
+              (memoria.ya_cubierto(titulo_previo) if titulo_previo else None))
         if ya:
             print("  SI. Coincide con: %s" % ya["titulo"])
             print("  https://www.sureconomics.com/%s" % ya["slug"])
