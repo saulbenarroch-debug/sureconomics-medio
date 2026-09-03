@@ -62,8 +62,22 @@ jobs:
           SURECONOMICS_API: ${{ secrets.SURECONOMICS_API }}
           SURECONOMICS_USUARIO: ${{ secrets.SURECONOMICS_USUARIO }}
           SURECONOMICS_CLAVE: ${{ secrets.SURECONOMICS_CLAVE }}
+          # LO QUE ESCRIBE LA GENTE VIAJA POR EL ENTORNO, NO POR LA LINEA DE
+          # COMANDOS. Con ${{ ... }} incrustado en el `run`, Actions sustituye el
+          # texto ANTES de que exista el shell: unas comillas o un `$(...)` en lo
+          # que alguien mande por Telegram se ejecutarian en el runner, que es
+          # donde viven el PAT y las claves del panel. Con enlaces el hueco era
+          # estrecho; desde que /nota acepta un tema escrito a mano, es texto
+          # libre. Asi el shell recibe variables y las cita el, que es lo unico
+          # que de verdad las neutraliza.
+          ENLACE: ${{ github.event.inputs.enlace }}
+          FOTO: ${{ github.event.inputs.foto }}
+          TIPO: ${{ github.event.inputs.tipo }}
+          QUIEN: ${{ github.event.inputs.quien }}
+          CHAT: ${{ github.event.inputs.chat }}
+          ENCARGO: ${{ github.event.inputs.encargo }}
         run: |
-          python nota.py "${{ github.event.inputs.enlace }}" --foto "${{ github.event.inputs.foto }}" --tipo "${{ github.event.inputs.tipo }}" --quien "${{ github.event.inputs.quien }}" --chat "${{ github.event.inputs.chat }}" --encargo "${{ github.event.inputs.encargo }}"
+          python nota.py "$ENLACE" --foto "$FOTO" --tipo "$TIPO" --quien "$QUIEN" --chat "$CHAT" --encargo "$ENCARGO"
 
       - name: Guardar lo producido
         if: always()

@@ -242,17 +242,28 @@ def _trozos(texto, tope=3900):
     return partes
 
 
-def _mensaje_telegram(chat, texto):
-    """Un mensaje suelto al chat. Devuelve True si Telegram lo acepto."""
+def _mensaje_telegram(chat, texto, botones=None):
+    """Un mensaje suelto al chat. Devuelve True si Telegram lo acepto.
+
+    'botones' es una lista de (etiqueta, dato) y sale como teclado en linea.
+    El dato viaja en callback_data, que Telegram limita a 64 bytes: NO CABE UN
+    ENLACE. Por eso se manda solo el numero de la opcion y el Worker recupera
+    la direccion del propio texto del mensaje, que ya la lleva.
+    """
     import json as _json
 
     ficha = os.environ.get("TELEGRAM_TOKEN", "").strip()
     if not ficha or not chat:
         return False
+    cuerpo = {"chat_id": chat, "text": texto, "parse_mode": "HTML",
+              "disable_web_page_preview": True}
+    if botones:
+        cuerpo["reply_markup"] = {"inline_keyboard": [
+            [{"text": etiqueta, "callback_data": dato}]
+            for etiqueta, dato in botones]}
     pet = urllib.request.Request(
         "https://api.telegram.org/bot%s/sendMessage" % ficha,
-        data=_json.dumps({"chat_id": chat, "text": texto, "parse_mode": "HTML",
-                          "disable_web_page_preview": True}).encode(),
+        data=_json.dumps(cuerpo).encode(),
         headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(pet, timeout=30):
         return True
@@ -274,19 +285,27 @@ def _avisar_captura(chat, hallado):
     # en realidad hay algo parecido pero incierto desperdicia el trabajo y deja
     # a la persona sin nada que hacer. Con el enlace delante, decide en dos
     # segundos algo que ninguna medida de parecido decide bien.
+    botones = []
     if hallado.get("dudoso") and hallado.get("candidatos"):
         partes += ["", "Lo más parecido que encontré:"]
-        for c in hallado["candidatos"]:
-            partes.append("· <b>%s</b> · %s\n<code>/nota %s</code>" % (
+        for n, c in enumerate(hallado["candidatos"], 1):
+            partes.append("<b>%d · %s</b> · %s\n<code>/nota %s</code>" % (
+                n,
                 _escapar((c.get("medio") or "")[:26]),
                 _escapar((c.get("titular") or "")[:110]),
                 _escapar(c.get("url") or "")))
-        partes += ["", "Si alguna es, cópiame su línea <code>/nota</code>."]
+            # La etiqueta va corta a proposito: el titular ya esta arriba y un
+            # boton largo se parte en varias lineas y se lee peor que el texto.
+            botones.append(("%d · %s" % (n, (c.get("medio") or "ese medio")[:24]),
+                            "nota:%d" % n))
+        # La linea /nota se queda aunque haya botones. Es la reserva si el
+        # teclado falla, y ademas es de donde el Worker saca la direccion.
+        partes += ["", "Toca la que sea y la escribo."]
     else:
         partes += ["", "Solo escribo desde el artículo original de un medio de "
                    "la lista, para que las cifras se puedan verificar. Si tienes "
                    "el enlace, mándalo con <code>/nota &lt;enlace&gt;</code>."]
-    return _mensaje_telegram(chat, "\n".join(partes))
+    return _mensaje_telegram(chat, "\n".join(partes), botones)
 
 
 def mandar_al_chat(borrador, chat, quien=""):
