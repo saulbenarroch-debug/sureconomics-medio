@@ -185,7 +185,18 @@ def buscar_original(lectura, dias=15, umbral=PARECIDO_MINIMO):
     except Exception as exc:  # noqa: BLE001
         print("  [aviso] no pude leer los feeds (%s); voy al buscador" % str(exc)[:70])
 
-    crudos += buscador.buscar(consulta, dias=dias, maximo=8, solo_lista_blanca=True)
+    # como_noticias=False y ordenar=False en LAS DOS busquedas. Se busca UNA
+    # noticia concreta, no se descubre nada: topic="news" excluye a los medios
+    # que no estan en el indice de noticias de Tavily, y criterio.ordenar()
+    # puntua interes periodistico, que es otra pregunta y descarta aciertos.
+    #
+    # LA PRIMERA SE QUEDO SIN EL ARREGLO Y NO SE VIO. El 02/09 se corrigio solo
+    # la segunda porque el reemplazo automatico no encajo con el texto real y no
+    # aviso de nada, y la prueba paso igual porque la noticia la encontro la de
+    # respaldo. Al dia siguiente el bot no encontro que John Ternus era el nuevo
+    # CEO de Apple, que estaba en seis medios de la lista.
+    crudos += buscador.buscar(consulta, dias=dias, maximo=8, solo_lista_blanca=True,
+                              como_noticias=False, ordenar=False)
     # Segundo intento con el titular entero: "busqueda" son palabras sueltas y
     # a veces el titular literal encuentra lo que ellas no.
     if titular:
@@ -193,18 +204,35 @@ def buscar_original(lectura, dias=15, umbral=PARECIDO_MINIMO):
                                   solo_lista_blanca=True,
                                   como_noticias=False, ordenar=False)
 
-    vistos, buenos = set(), []
+    # SE DEJA ESCRITO QUE SE BUSCO Y QUE SE ENCONTRO. Sin esto, un "no encuentro
+    # esta noticia" no se puede diagnosticar: el 03/09/2026 el bot rechazo la
+    # noticia de que John Ternus es el nuevo CEO de Apple y hubo que reproducir
+    # la busqueda a mano para ver que el fallo no estaba donde parecia. Cuesta
+    # dos lineas de registro y ahorra media hora cada vez.
+    print("     busque: %s  ->  %d candidatos" % (consulta[:70], len(crudos)))
+
+    vistos, buenos, descartados = set(), [], []
     for c in crudos:
         url = c.get("url") or ""
         if url in vistos or _es_portada(url):
             continue
         vistos.add(url)
         p = memoria.parecido(titular, c.get("titular", "")) if titular else 0.0
+        if p < umbral:
+            descartados.append((p, c.get("titular", "")))
         if p >= umbral:
             c = dict(c)
             c["parecido"] = round(p, 3)
             buenos.append(c)
     buenos.sort(key=lambda c: -c["parecido"])
+    # Si no pasa ninguno, se dice CUAL estuvo mas cerca y con cuanto. La
+    # diferencia entre "no existe la noticia" y "existe pero el umbral la corto"
+    # es la unica que importa para arreglarlo, y sin este registro no se ve.
+    if not buenos and descartados:
+        descartados.sort(reverse=True)
+        p, t = descartados[0]
+        print("     ninguno pasa el %.2f. El mas cercano: %.3f  %s"
+              % (umbral, p, t[:60]))
     return buenos
 
 
