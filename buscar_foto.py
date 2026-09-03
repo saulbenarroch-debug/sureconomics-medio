@@ -56,6 +56,76 @@ def _limpio(s):
     return " ".join("".join(fuera).split())
 
 
+def _consultar(parametros):
+    """Una llamada a Commons. Devuelve las paginas, o {} si no contesta."""
+    url = API + "?" + urllib.parse.urlencode(parametros)
+    peticion = urllib.request.Request(url, headers={"User-Agent": AGENTE})
+    try:
+        with urllib.request.urlopen(peticion, timeout=30) as r:
+            datos = json.load(r)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[aviso] Commons no respondio: {exc}")
+        return {}
+    return (datos.get("query") or {}).get("pages") or {}
+
+
+def _candidata(p):
+    """Una pagina de Commons convertida en candidata, o None si no trae imagen.
+
+    Estaba dentro de buscar() y hubo que sacarlo cuando entidad.py empezo a
+    pedir archivos POR SU NOMBRE en vez de buscarlos por texto: las reglas de
+    foto.py (licencia, apaisada, ancho, descripcion) tienen que ser las mismas
+    venga la candidata de donde venga. Duplicar este trozo habria dejado una de
+    las dos vias sin la mitad de los filtros.
+    """
+    ii = (p.get("imageinfo") or [None])[0]
+    if not ii:
+        return None
+    meta = ii.get("extmetadata") or {}
+    autor = _limpio((meta.get("Artist") or {}).get("value"))
+    licencia = _limpio((meta.get("LicenseShortName") or {}).get("value"))
+    anio = _limpio((meta.get("DateTimeOriginal") or {}).get("value"))[:4]
+    if licencia.lower().startswith("public domain"):
+        licencia = "Dominio público"
+    c = {
+        "titulo": p["title"].replace("File:", ""),
+        "url": ii.get("thumburl") or ii.get("url"),
+        "autor": autor or "autor no declarado",
+        "licencia": licencia or "licencia no declarada",
+        "anio": anio if anio.isdigit() else "",
+        "exige_credito": licencia.upper().startswith("CC BY"),
+        "ancho": ii.get("width") or 0,
+        "alto": ii.get("height") or 0,
+        "fuente_declarada": _limpio((meta.get("Credit") or {}).get("value")),
+        # La descripcion es lo unico que permite comprobar QUE sale en la
+        # foto. Sin ella no hay forma de saber que una vista de ciudad no es
+        # de otro continente.
+        "descripcion": _limpio((meta.get("ImageDescription") or {}).get("value")),
+    }
+    c["credito"] = credito(c)
+    return c
+
+
+def fichas(titulos, ancho=1600):
+    """Los datos de archivos CONCRETOS de Commons, por su nombre.
+
+    buscar() pregunta "que hay sobre esto"; esto pregunta "dame este archivo".
+    Lo usa entidad.py, que no busca: llega con el nombre exacto del archivo
+    porque se lo ha dicho Wikidata.
+    """
+    if not titulos:
+        return []
+    paginas = _consultar({
+        "action": "query",
+        "titles": "|".join("File:" + t.replace("File:", "") for t in titulos[:20]),
+        "prop": "imageinfo",
+        "iiprop": "url|size|extmetadata",
+        "iiurlwidth": str(ancho),
+        "format": "json",
+    })
+    return [c for c in (_candidata(p) for p in paginas.values()) if c]
+
+
 def buscar(consulta, n=5, ancho=1600):
     """Candidatas de Commons: [{titulo, url, autor, licencia, anio, credito}]."""
     parametros = {
@@ -74,49 +144,20 @@ def buscar(consulta, n=5, ancho=1600):
         "iiurlwidth": str(ancho),
         "format": "json",
     }
-    url = API + "?" + urllib.parse.urlencode(parametros)
-    peticion = urllib.request.Request(url, headers={"User-Agent": AGENTE})
-    try:
-        with urllib.request.urlopen(peticion, timeout=30) as r:
-            datos = json.load(r)
-    except Exception as exc:  # noqa: BLE001
-        print(f"[aviso] Commons no respondio: {exc}")
-        return []
-
-    paginas = (datos.get("query") or {}).get("pages") or {}
-    salida = []
-    for p in paginas.values():
-        ii = (p.get("imageinfo") or [None])[0]
-        if not ii:
-            continue
-        meta = ii.get("extmetadata") or {}
-        autor = _limpio((meta.get("Artist") or {}).get("value"))
-        licencia = _limpio((meta.get("LicenseShortName") or {}).get("value"))
-        anio = _limpio((meta.get("DateTimeOriginal") or {}).get("value"))[:4]
-        if licencia.lower().startswith("public domain"):
-            licencia = "Dominio público"
-        salida.append({
-            "titulo": p["title"].replace("File:", ""),
-            "url": ii.get("thumburl") or ii.get("url"),
-            "autor": autor or "autor no declarado",
-            "licencia": licencia or "licencia no declarada",
-            "anio": anio if anio.isdigit() else "",
-            "exige_credito": licencia.upper().startswith("CC BY"),
-            "ancho": ii.get("width") or 0,
-            "alto": ii.get("height") or 0,
-            "fuente_declarada": _limpio((meta.get("Credit") or {}).get("value")),
-            # La descripcion es lo unico que permite comprobar QUE sale en la
-            # foto. Sin ella no hay forma de saber que una vista de ciudad no es
-            # de otro continente.
-            "descripcion": _limpio((meta.get("ImageDescription") or {}).get("value")),
-        })
-    for c in salida:
-        c["credito"] = credito(c)
-    return salida
+    paginas = _consultar(parametros)
+    return [c for c in (_candidata(p) for p in paginas.values()) if c]
 
 
 def credito(c):
-    """La linea que se pega en el campo de credito del panel."""
+    """La linea que se pega en el campo de credito del panel.
+
+    UNA BANDERA NO ES UNA FOTO NI ES DE UN AÑO. Commons fecha esos archivos por
+    cuando se adopto el diseño, asi que la del Reino Unido saldria como
+    «Archivo, 1801 · Foto: ...», que es falso dos veces. Los simbolos llevan su
+    propia linea, sin fecha y sin llamarse foto.
+    """
+    if c.get("simbolo"):
+        return f"Imagen: {c['autor']} · {c['licencia']} · Wikimedia Commons"
     inicio = f"Archivo, {c['anio']} · " if c["anio"] else ""
     return f"{inicio}Foto: {c['autor']} · {c['licencia']} · Wikimedia Commons"
 

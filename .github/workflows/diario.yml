@@ -157,8 +157,15 @@ jobs:
           SMTP_CLAVE: ${{ secrets.SMTP_CLAVE }}
           DESTINATARIOS: ${{ secrets.DESTINATARIOS }}
           REMITENTE_NOMBRE: ${{ secrets.REMITENTE_NOMBRE }}
+        # --con-foto, desde el 03/09/2026. Estuvo apagado mientras la foto se
+        # elegia buscando en Commons palabras del titular, porque de ahi salian
+        # portadas del pais correcto y del asunto equivocado. Ahora la primera
+        # via es motor/entidad.py, que le pregunta a Wikidata cual es la imagen
+        # DE LA ENTIDAD de la que habla la pieza, y cuando no la hay prefiere
+        # dejarla sin portada antes que buscar por texto. Las piezas siguen
+        # siendo borradores: la foto la mira una persona igual.
         run: |
-          python orquestar.py --tanda "${{ needs.guardia.outputs.tanda }}" --piezas "${{ github.event.inputs.piezas || '6' }}" ${{ github.event.inputs.sin_subir == 'true' && '--sin-subir' || '' }}
+          python orquestar.py --tanda "${{ needs.guardia.outputs.tanda }}" --piezas "${{ github.event.inputs.piezas || '6' }}" --con-foto ${{ github.event.inputs.sin_subir == 'true' && '--sin-subir' || '' }}
 
       # Los borradores del dia se guardan aunque la subida al panel falle. Si
       # algo sale mal, el texto no se pierde: queda aqui para rescatarlo.

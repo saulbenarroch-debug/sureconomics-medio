@@ -121,17 +121,40 @@ def sirve(c, pais=None, asunto=None):
     """Un solo sitio donde estan todas las reglas. Devuelve (bool, motivo)."""
     if "no declarado" in c["autor"] or "no declarada" in c["licencia"]:
         return False, "sin autor o licencia declarados"
-    if c["ancho"] <= c["alto"]:
-        return False, "vertical (%sx%s)" % (c["ancho"], c["alto"])
-    if c["ancho"] < ANCHO_MINIMO:
-        return False, "estrecha (%s px)" % c["ancho"]
-    if SOSPECHOSAS.search(c["titulo"]) or SOSPECHOSAS.search(c.get("fuente_declarada", "")):
-        return False, "parece captura o material grafico, no foto"
+    # UN SVG NO TIENE MEDIDAS. Es vectorial: se dibuja al tamaño que se le pida
+    # y lo que declara es nominal. «Flag of Venezuela.svg» dice 900x600 y se
+    # rechazaba por estrecha; el logo de Deutsche Bank dice 150x150 y se
+    # rechazaba por vertical siendo cuadrado. Las dos son justo las imagenes que
+    # Edicion pidio. Las medidas solo significan algo en un mapa de bits, y ahi
+    # las dos reglas siguen enteras: el logo de Barclays, que es un JPEG de 437
+    # px, se sigue descartando con razon.
+    vectorial = c["titulo"].lower().endswith(".svg")
+    if not vectorial:
+        if c["ancho"] <= c["alto"]:
+            return False, "vertical (%sx%s)" % (c["ancho"], c["alto"])
+        if c["ancho"] < ANCHO_MINIMO:
+            return False, "estrecha (%s px)" % c["ancho"]
+
+    # SOSPECHOSAS descarta lo que PARECE material grafico colado por una
+    # busqueda de texto. Cuando el archivo lo declara Wikidata como la imagen
+    # de la entidad no hay nada que adivinar: si pedimos el logo de Nvidia, que
+    # el archivo se llame «NVIDIA logo.svg» es la confirmacion, no la sospecha.
+    if not c.get("de_wikidata"):
+        if (SOSPECHOSAS.search(c["titulo"])
+                or SOSPECHOSAS.search(c.get("fuente_declarada", ""))):
+            return False, "parece captura o material grafico, no foto"
 
     # Un grabado del XIX no es una foto de archivo, es otra cosa. La primera
     # corrida ilustro una nota sobre la venta de granos de esta semana con una
     # lamina de la revista Outing de 1885.
-    if c["anio"].isdigit() and int(c["anio"]) < 1980:
+    #
+    # NO APLICA A BANDERAS NI LOGOS. Commons fecha esos archivos por cuando se
+    # ADOPTO el diseño, no por cuando se hizo la imagen: la bandera del Reino
+    # Unido consta como de 1801 y se descartaba por antigua. Un simbolo no
+    # envejece como una fotografia, y ademas no promete haber presenciado nada,
+    # que es lo unico que hacia peligrosa la lamina de 1885.
+    if (not c.get("simbolo") and c["anio"].isdigit()
+            and int(c["anio"]) < 1980):
         return False, "demasiado antigua (%s), no es fotografia de archivo" % c["anio"]
 
     # LA REGLA QUE MAS DESCARTA, Y LA MAS NECESARIA. Si la pieza habla de un
@@ -185,8 +208,15 @@ def que_fotografiar(titulo, resumen=""):
         "cocaina, no de un puerto ni de una bandera. Ilustrar de que trata una "
         "noticia no es aprobar lo que cuenta, y una portada que evita el tema "
         "deja al lector sin saber de que va la pieza.\n"
-        "- NUNCA propongas fotografiar a una persona concreta por su nombre: no "
-        "hay imagenes con licencia de particulares y no se pueden publicar.\n"
+        # De las personas se ocupa entidad.py, que pregunta a Wikidata cual es
+        # su retrato. Aqui NO, y el motivo ya no es que no existan fotos libres
+        # de nadie -de un jefe de Estado las hay-, sino que esta via busca por
+        # texto: "Delcy Rodriguez" en Commons devuelve tambien a quien estuviera
+        # a su lado en el acto. Sin la ficha que confirme de quien es la cara,
+        # una foto de persona no se puede publicar.
+        "- NUNCA propongas fotografiar a una persona concreta por su nombre. De "
+        "las personas se ocupa otro paso, que si puede comprobar de quien es la "
+        "cara; esta busqueda no.\n"
         "- Entre dos y cuatro palabras.\n\n"
         'Devuelve solo JSON: {"buscar": ["...", "..."]} con dos propuestas, de '
         "la mas concreta a la mas general.\n\n"
@@ -258,6 +288,30 @@ def consultas(titulo, lugares, tema, describir=None):
 def para(titulo, lugares, tema, explicar=False, resumen=""):
     """Devuelve {url, credito, ...} o None. Ver la cabecera del archivo."""
     from buscar_foto import buscar
+
+    # PRIMERO, DE QUIEN O DE QUE HABLA. Preguntarle a Wikidata cual es la imagen
+    # de una entidad es otra pregunta que buscar en Commons palabras del
+    # titular, y da otra respuesta: "la imagen de Nvidia" es su logo, mientras
+    # que "fotos que digan Nvidia" es cualquier placa base. De aqui salen las
+    # portadas que Edicion pidio el 03/09/2026: si la nota es de Trump, Trump;
+    # si es de Venezuela, la bandera; si es de oro, oro; si es de una marca, su
+    # logo. Cuando no hay entidad reconocible se sigue como siempre.
+    from motor import entidad
+    por_entidad, conocidas = entidad.para(titulo, lugares, resumen, explicar)
+    if por_entidad:
+        return por_entidad
+
+    # SI SE SABE DE QUIEN HABLA, ES SU IMAGEN O NINGUNA. Cuando Wikidata
+    # reconoce la entidad pero no hay foto suya utilizable, buscar por texto es
+    # peor que no poner nada: la nota de la salida a bolsa de Shein cayo a la
+    # busqueda y eligio un retrato de Ali Mohamed Shein, expresidente de
+    # Zanzibar. Una persona real y ajena, de portada, por compartir apellido con
+    # una empresa. La busqueda por texto solo puede actuar cuando NO se ha
+    # identificado a nadie, que es cuando no hay nada que traicionar.
+    if conocidas:
+        print("   [foto] se sabe que habla de %s y no hay imagen suya: sin "
+              "portada" % ", ".join(conocidas))
+        return None
 
     # Que se tiene que ver, en ingles. Si el modelo no responde, vuelve vacio y
     # la busqueda sigue con las palabras del titular, como antes.
