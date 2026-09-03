@@ -111,6 +111,18 @@ PARECIDO_AUTOMATICO = 0.75
 PARECIDO_MINIMO = 0.45
 
 
+# Medios de la lista que casi siempre devuelven 401 o 403 al leerlos: su
+# contenido esta tras un muro de pago. Siguen en la lista blanca porque son
+# fuentes excelentes y a veces dejan pasar una nota, pero no se ofrecen los
+# primeros. Se amplia cuando aparezca otro; la comprobacion de verdad la hace
+# nota.py al intentar leerlos.
+TRAS_MURO = ("wsj.com", "ft.com", "bloomberg.com", "economist.com")
+
+
+def _tras_muro(url):
+    return 1 if any(d in (url or "") for d in TRAS_MURO) else 0
+
+
 def _es_portada(url):
     from urllib.parse import urlparse
     p = urlparse(url or "")
@@ -224,7 +236,12 @@ def buscar_original(lectura, dias=15, umbral=PARECIDO_MINIMO):
             c = dict(c)
             c["parecido"] = round(p, 3)
             buenos.append(c)
-    buenos.sort(key=lambda c: -c["parecido"])
+    # A IGUAL PARECIDO, PRIMERO EL QUE SE PUEDA LEER. Los siete candidatos de la
+    # noticia de Apple puntuaban exactamente 0.571 y los dos primeros eran del
+    # Wall Street Journal, que devuelve 401 tras su muro de pago. nota.py ya
+    # prueba el siguiente, pero el que se le enseña a la persona en la franja
+    # dudosa tambien debe ser uno que pueda abrir.
+    buenos.sort(key=lambda c: (-c["parecido"], _tras_muro(c.get("url", ""))))
     # Si no pasa ninguno, se dice CUAL estuvo mas cerca y con cuanto. La
     # diferencia entre "no existe la noticia" y "existe pero el umbral la corto"
     # es la unica que importa para arreglarlo, y sin este registro no se ve.

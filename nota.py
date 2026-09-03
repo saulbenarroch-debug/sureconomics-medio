@@ -361,6 +361,9 @@ def main():
     args = ap.parse_args()
 
     peticion = args.peticion.strip()
+    # Los demas medios que cuentan lo mismo, cuando la noticia viene de una
+    # captura o de un tuit. Con /nota a secas es una lista vacia.
+    alternativas = []
     print("=" * 70)
     # El pie de foto manda sobre el --tipo del workflow: lo escribio una persona
     # ahora mismo, y el otro es el valor por defecto del formulario.
@@ -436,7 +439,9 @@ def main():
                     print("  [chat] no pude avisar (%s)" % str(exc)[:70])
             return 0
         peticion = hallado["url"]
-        print("  original encontrado: %s" % hallado.get("medio", "")[:40])
+        alternativas = hallado.get("candidatos") or []
+        print("  original encontrado: %s  (%d medios lo cuentan)"
+              % (hallado.get("medio", "")[:40], len(alternativas) or 1))
         print("  %s" % peticion[:100])
 
     es_enlace = peticion.startswith("http://") or peticion.startswith("https://")
@@ -512,25 +517,50 @@ def main():
         print("  original: %s · %s" % (candidatos[0].get("medio", ""),
                                        candidatos[0].get("titular", "")[:70]))
         peticion = candidatos[0]["url"]
+        alternativas = candidatos
 
     print("\n--- 2. LEER LA FUENTE ---")
-    try:
-        titulo, parrafos, sitio = leer_enlace(peticion)
-    except Exception as exc:  # noqa: BLE001
-        print("  No pude leer ese enlace: %s" % str(exc)[:90])
+
+    # SE PRUEBAN TODOS LOS CANDIDATOS, NO SOLO EL PRIMERO. Cuando la noticia
+    # viene de una captura o de un tuit hay varios medios contando lo mismo, y
+    # unos cuantos bloquean la lectura automatica o estan tras un muro de pago.
+    # Rendirse con el primero es tirar la noticia teniendo cinco alternativas
+    # buenas en la mano: el 03/09/2026 pasó dos veces seguidas.
+    #
+    # Un enlace pedido a mano con /nota es una lista de uno: si ese falla, no
+    # hay nada que probar y se avisa igual que antes.
+    por_probar = [peticion] + [c["url"] for c in (alternativas or [])
+                               if c.get("url") and c["url"] != peticion]
+    titulo = parrafos = sitio = None
+    fallos = []
+    for i, url in enumerate(por_probar):
+        try:
+            t, p, s = leer_enlace(url)
+        except Exception as exc:  # noqa: BLE001
+            fallos.append((url, str(exc)[:70]))
+            print("  no se pudo leer %s (%s)" % (url[:58], str(exc)[:50]))
+            continue
+        if not p:
+            fallos.append((url, "responde pero no trae texto de nota"))
+            print("  sin texto de nota: %s" % url[:64])
+            continue
+        titulo, parrafos, sitio, peticion = t, p, s, url
+        if i:
+            print("  sirvió el candidato %d de %d" % (i + 1, len(por_probar)))
+        break
+
+    if not parrafos:
+        print("  Ninguno de los %d enlaces se pudo leer." % len(por_probar))
         # SE LE CONTESTA SIEMPRE A QUIEN LO PIDIO. El 02/09/2026 una peticion
         # murio aqui y el dueño no recibio nada: desde su lado el bot se quedo
         # mudo y tuvo que ir a mirar el registro de Actions.
-        _mensaje_telegram(args.chat, "⚠️ <b>No pude leer ese enlace.</b>\n\n"
-                          + _escapar(str(exc)[:120]) +
-                          "\n\nAlgunos medios bloquean la lectura automática. "
-                          "Prueba con otro medio que cuente lo mismo.")
-        return 0
-    if not parrafos:
-        print("  El enlace responde pero no encuentro texto de nota.")
-        _mensaje_telegram(args.chat, "⚠️ <b>Ese enlace no tiene texto de nota.</b>"
-                          "\n\nPuede ser un vídeo, una galería o un muro de pago. "
-                          "Mándame el enlace del artículo y lo escribo.")
+        detalle = "\n".join("• " + _escapar(u.split("/")[2]) for u, _ in fallos[:5])
+        _mensaje_telegram(
+            args.chat,
+            "⚠️ <b>No pude leer ninguna de las fuentes.</b>\n\n" + detalle +
+            "\n\nUnos bloquean la lectura automática y otros están tras un muro "
+            "de pago. Si encuentras la misma noticia en otro medio, mándamela "
+            "con <code>/nota</code>.")
         return 0
     print("  %s" % titulo[:90])
     print("  %d parrafos, %d caracteres" % (len(parrafos), sum(len(p) for p in parrafos)))
