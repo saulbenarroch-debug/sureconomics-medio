@@ -42,6 +42,11 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(r"C:\Users\saulb\telegram-finance-bot\.env")
 
+# Cuantos medios se meten en el expediente de una misma noticia. Tres bastan
+# para contrastar y no disparan el coste: mas texto es mas tokens en cada
+# llamada al modelo, y a partir del tercero repiten lo mismo.
+MAX_FUENTES = 3
+
 NAVEGADOR = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
              "(KHTML, like Gecko) Chrome/120.0 Safari/537.36")
 
@@ -446,16 +451,37 @@ def main():
 
     es_enlace = peticion.startswith("http://") or peticion.startswith("https://")
 
-    if not es_enlace:
-        # Sin enlace no hay documento que verificar. Se podria buscar en los
-        # feeds, pero eso es justo lo que hace la tanda: si el tema esta ahi,
-        # saldra sola. Se pide el enlace, que es barato para quien lo manda.
-        print("\nEsto no es un enlace. Manda la direccion de la nota:")
-        print("  /nota https://medio.com/la-noticia")
-        print("\nCon el enlace hay un documento concreto que verificar. Con un")
-        print("tema suelto habria que fiarse de lo que el modelo recuerde, y")
-        print("eso es exactamente lo que este motor no hace.")
-        return 1
+    if not es_enlace and peticion:
+        # UN TEMA SUELTO YA VALE. Hasta el 03/09/2026 se exigia enlace, y la
+        # razon era buena cuando se escribio: sin buscador, escribir sobre un
+        # tema era escribir de lo que el modelo recordara. Pero el buscador
+        # existe desde hace dias y buscar en la lista blanca ES tener fuente.
+        # La regla se quedo vieja y nadie la reviso.
+        #
+        # SI NO APARECE NADA, SIGUE SIN ESCRIBIRSE. Eso no cambia.
+        print("\n--- 0. TEMA SUELTO: BUSCO DE QUE HABLA ---")
+        from motor import captura
+        lectura = {"titular": peticion, "busqueda": peticion, "medio": "",
+                   "fecha": "", "texto": "", "legible": True}
+        # umbral=0: aqui el "titular" es lo que escribio la persona, no un
+        # titular real, asi que medir parecido contra el no dice nada. Lo que
+        # filtra es la lista blanca y el propio buscador.
+        candidatos = captura.buscar_original(lectura, umbral=0.0)
+        if not candidatos:
+            print("  No encuentro nada de eso en los medios de la lista.")
+            _mensaje_telegram(args.chat,
+                              "🔍 <b>No encuentro nada sobre eso.</b>\n\n"
+                              + _escapar(peticion[:120]) +
+                              "\n\nPuede que aún no lo haya publicado ningún "
+                              "medio de la lista. Si tienes el enlace, mándamelo "
+                              "con <code>/nota</code>.")
+            return 0
+        print("  %d medios lo cuentan. El primero:" % len(candidatos))
+        print("  %s · %s" % (candidatos[0].get("medio", ""),
+                             candidatos[0].get("titular", "")[:70]))
+        peticion = candidatos[0]["url"]
+        alternativas = candidatos
+        es_enlace = True
 
     # Lo barato primero: ¿ya lo contamos?
     # FORZAR ES UNA PALABRA EN EL CHAT, no una bandera que nadie va a recordar.
@@ -531,23 +557,39 @@ def main():
     # hay nada que probar y se avisa igual que antes.
     por_probar = [peticion] + [c["url"] for c in (alternativas or [])
                                if c.get("url") and c["url"] != peticion]
-    titulo = parrafos = sitio = None
-    fallos = []
-    for i, url in enumerate(por_probar):
+    leidas, fallos, dominios = [], [], set()
+    for url in por_probar:
+        if len(leidas) >= MAX_FUENTES:
+            break
+        # UN MEDIO UNA VEZ. El buscador devuelve la misma nota de La Nacion dos
+        # veces, con y sin "www", y meter dos copias del mismo texto en el
+        # expediente no contrasta nada: solo duplica sus errores.
+        dom = re.sub(r"^www\.", "", urllib.parse.urlparse(url).netloc)
+        if dom in dominios:
+            continue
         try:
             t, p, s = leer_enlace(url)
         except Exception as exc:  # noqa: BLE001
             fallos.append((url, str(exc)[:70]))
-            print("  no se pudo leer %s (%s)" % (url[:58], str(exc)[:50]))
+            print("  no se pudo leer %s (%s)" % (dom[:32], str(exc)[:46]))
             continue
         if not p:
             fallos.append((url, "responde pero no trae texto de nota"))
-            print("  sin texto de nota: %s" % url[:64])
+            print("  sin texto de nota: %s" % dom[:40])
             continue
-        titulo, parrafos, sitio, peticion = t, p, s, url
-        if i:
-            print("  sirvió el candidato %d de %d" % (i + 1, len(por_probar)))
-        break
+        dominios.add(dom)
+        leidas.append({"url": url, "titulo": t, "parrafos": p,
+                       "medio": s or medio_de(url)})
+        print("  leído: %-24s %d parrafos" % (dom[:24], len(p)))
+
+    if leidas:
+        # La primera manda: da el titular y el hecho. Las demas entran como
+        # contraste, con su propia fuente citada.
+        titulo = leidas[0]["titulo"]
+        parrafos = leidas[0]["parrafos"]
+        peticion = leidas[0]["url"]
+    else:
+        parrafos = None
 
     if not parrafos:
         print("  Ninguno de los %d enlaces se pudo leer." % len(por_probar))
@@ -565,21 +607,39 @@ def main():
     print("  %s" % titulo[:90])
     print("  %d parrafos, %d caracteres" % (len(parrafos), sum(len(p) for p in parrafos)))
 
-    nombre = _apodo(titulo or peticion)
-    archivo = AQUI / "fuentes_manuales" / (nombre + ".txt")
-    archivo.parent.mkdir(exist_ok=True)
-    archivo.write_text(
-        "url: %s\nmedio: %s\nfecha: %s\n\n%s\n" % (
-            peticion, sitio or medio_de(peticion), date.today().isoformat(),
-            "\n\n".join(parrafos)),
-        encoding="utf-8")
+    # SE REGISTRAN TODAS LAS QUE SE PUDIERON LEER. Dos o tres medios contando el
+    # mismo hecho no es comodidad: si uno se equivoca en una cifra, el otro no
+    # la respalda y el auditor lo ve. producir.py las funde con componer().
+    (AQUI / "fuentes_manuales").mkdir(exist_ok=True)
+    nombres = []
+    for i, f in enumerate(leidas):
+        apodo = _apodo(f["titulo"] or f["url"])
+        if apodo in nombres:                      # dos titulares casi iguales
+            apodo = "%s-%d" % (apodo[:34], i + 1)
+        archivo = AQUI / "fuentes_manuales" / (apodo + ".txt")
+        archivo.write_text(
+            "url: %s\nmedio: %s\nfecha: %s\n\n%s\n" % (
+                f["url"], f["medio"], date.today().isoformat(),
+                "\n\n".join(f["parrafos"])),
+            encoding="utf-8")
 
-    r = subprocess.run([sys.executable, str(AQUI / "agregar_fuente.py"), str(archivo)],
-                       capture_output=True, text=True, encoding="utf-8", errors="replace")
-    if r.returncode != 0:
-        print("  No se pudo registrar la fuente:")
-        print((r.stdout or "") + (r.stderr or "")[-300:])
+        r = subprocess.run([sys.executable, str(AQUI / "agregar_fuente.py"), str(archivo)],
+                           capture_output=True, text=True, encoding="utf-8",
+                           errors="replace")
+        if r.returncode != 0:
+            print("  no se pudo registrar %s" % f["medio"][:30])
+            print((r.stdout or "") + (r.stderr or "")[-200:])
+            continue
+        # Se lee el nombre que dice el registro, no se vuelve a calcular. Ver
+        # abajo: dos sitios calculando el mismo nombre se desincronizan.
+        dicho = re.search(r"manual:(\S+)", r.stdout or "")
+        nombres.append(dicho.group(1) if dicho else apodo.rstrip("-"))
+
+    if not nombres:
+        print("  No se pudo registrar ninguna fuente.")
         return 1
+    print("  %d fuente(s) en el expediente: %s" % (len(nombres), ", ".join(nombres)))
+    r = type("R", (), {"stdout": "manual:" + ",".join(nombres), "returncode": 0})()
 
     # SE LEE EL NOMBRE QUE DICE EL REGISTRO, no se vuelve a calcular aqui.
     # agregar_fuente.py limpia el nombre a su manera y le quita el guion final;

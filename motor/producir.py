@@ -156,7 +156,17 @@ def main():
         # Es el unico camino para los temas que no estan en ningun feed: el 25 de
         # agosto, siete de trece noticias del dia no aparecian en las 44 fuentes
         # y solo se llegaba a ellas buscando y abriendo la nota.
-        paquete = manual.extraer(args.manual)
+        # VARIAS FUENTES SEPARADAS POR COMA. Dos medios contando el mismo hecho
+        # no es comodidad, es contraste: si uno se equivoca en una cifra, el
+        # otro no la respalda y el auditor lo ve. componer() ya renombra los
+        # ids que chocan, que es donde estaria el peligro de atribuir una cifra
+        # a la fuente equivocada.
+        nombres = [n.strip() for n in args.manual.split(",") if n.strip()]
+        trozos = [x for x in (manual.extraer(n) for n in nombres) if x]
+        paquete = componer(*trozos) if trozos else None
+        if len(trozos) > 1:
+            print("   %d fuentes en el expediente: %s"
+                  % (len(trozos), ", ".join(nombres)))
     elif args.diarios:
         medios = None if args.diarios == "todos" else args.diarios.split(",")
         lote = noticias.extraer(medios, horas=args.horas, limite=1, tema=args.tema)
@@ -269,7 +279,7 @@ def main():
     elif args.ranking:
         base = f"ranking_{args.ranking}"
     elif args.manual:
-        base = args.manual
+        base = args.manual.split(",")[0].strip()
     elif args.diarios:
         base = args.diarios.replace(",", "-")
         # EL TEMA ENTRA EN EL NOMBRE. Dos piezas del mismo diario en el mismo dia

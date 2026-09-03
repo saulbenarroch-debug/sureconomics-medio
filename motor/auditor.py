@@ -18,8 +18,23 @@ import re
 import unicodedata
 from dataclasses import dataclass
 
-# Numero en norma española (1.234.567,89) o entero suelto.
-_NUM_ES = r"\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+,\d+|\d+"
+# Numero escrito con CUALQUIERA de las dos normas, la española (1.234.567,89) o
+# la inglesa (1,234,567.89), o entero suelto.
+#
+# La inglesa hace falta porque con esto se lee TAMBIEN EL EXPEDIENTE, y el
+# expediente copia la cifra tal como la publico el medio: El Economista escribe
+# «2.61%» y aqui se troceaba en un 2 y un 61 sueltos, con lo que el 2,61 legitimo
+# de la pieza salia como cifra inventada. Que la pieza no pueda escribir punto
+# decimal es otra cosa y se comprueba aparte, en DECIMAL_INGLES.
+#
+# El orden no se puede alterar: los millares van primero porque «1.500» es mil
+# quinientos en español.
+_NUM_ES = (
+    r"\d{1,3}(?:\.\d{3})+(?:,\d+)?"   # 1.234.567,89  norma española
+    r"|\d{1,3}(?:,\d{3})+(?:\.\d+)?"  # 1,234,567.89  norma inglesa
+    r"|\d+,\d+"                       # 2,61          decimal español
+    r"|\d+\.\d+"                      # 2.61          decimal ingles
+    r"|\d+")
 NUMERO = re.compile(_NUM_ES)
 # Decimal a la inglesa: punto seguido de 1 o 2 digitos. Con 3 seria un millar.
 DECIMAL_INGLES = re.compile(r"\b\d+\.\d{1,2}\b")
@@ -151,6 +166,43 @@ def _a_numero(token):
         return None
 
 
+def _valor_de(token):
+    """El numero que representa el token, escrito con la norma que sea.
+
+    EL PROBLEMA. El paquete copia la cifra tal como la escribio el medio, y ahi
+    conviven las dos normas: El Economista publica «109,400 millones» y la
+    redaccion, que escribe en español, lo pasa a «109.400 millones». Es el mismo
+    numero, pero comparados como texto no coinciden y la pieza se bloqueaba por
+    cifra inventada. Paso el 03/09/2026 con la nota del relevo en Apple.
+
+    LA REGLA, aplicada igual a los dos lados: un separador seguido de EXACTAMENTE
+    tres digitos son millares; cualquier otra cosa es decimal. Si aparecen los
+    dos separadores, el ultimo manda. No se devuelven varias lecturas posibles
+    porque eso abriria un agujero: con «2.61» valiendo tambien 261, el auditor
+    dejaria pasar un 261 que nadie publico. Con una sola lectura, «261» frente a
+    «2,61» sigue bloqueandose, que es justo lo que tiene que hacer.
+    """
+    t = token.strip()
+    if not re.fullmatch(r"\d[\d.,]*", t):
+        return None
+    ultimo = max(t.rfind("."), t.rfind(","))
+    if ultimo == -1:
+        return float(t)
+    cola = t[ultimo + 1:]
+    if not cola.isdigit():
+        return None
+    # Aqui ya no se puede usar _a_numero(): esa funcion asume norma española y
+    # convertiria el «2.61» ya normalizado en 261.
+    if len(cola) == 3:                             # millares: 109.400
+        limpio = re.sub(r"[.,]", "", t)
+    else:                                          # decimal: 2,61
+        limpio = re.sub(r"[.,]", "", t[:ultimo]) + "." + cola
+    try:
+        return float(limpio)
+    except ValueError:
+        return None
+
+
 def _es(valor):
     """El float otra vez en norma española, para el mensaje al editor."""
     t = f"{valor:,.2f}".replace(",", "\x00").replace(".", ",").replace("\x00", ".")
@@ -222,6 +274,11 @@ def auditar(pieza, paquete, encargo=""):
             permitidas.add(str(int(c.valor_crudo)))
     for periodo in {str(c.periodo) for c in paquete.cifras}:
         permitidas.update(NUMERO.findall(periodo))
+
+    # Las mismas cifras, pero como numero, para que la norma con que se escriban
+    # deje de importar. Ver _valor_de().
+    valores_permitidos = {v for v in (_valor_de(t) for t in permitidas)
+                          if v is not None}
 
     # Los ceros a la izquierda cuentan como el mismo numero. Una fecha guardada
     # como '2026-01-01' se escribe "al 1 de enero de 2026": el texto dice '1' y
@@ -308,6 +365,8 @@ def auditar(pieza, paquete, encargo=""):
     for token in NUMERO.findall(texto_sin_enlaces):
         if (token in permitidas or token in hipoteticas
                 or token in definiciones or _es_anio(token)):
+            continue
+        if _valor_de(token) in valores_permitidos:
             continue
         original = _redondeo_de(token, crudos)
         if original is not None:

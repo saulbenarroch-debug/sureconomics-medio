@@ -245,7 +245,23 @@ ECONOMICO = re.compile(
     r"presupuesto|subsidi|combustible|petr[oó]leo|gas |miner|agro|cosecha|"
     r"empresa|negocio|industri|comercio|fmi|banco mundial|cepal", re.IGNORECASE)
 
-_NUMERO_ES = r"\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+,\d+|\d+"
+# NO TODO EL MUNDO ESCRIBE LOS NUMEROS IGUAL, Y ESO LLEGO A FALSEAR UN DATO.
+# Esto solo aceptaba la norma española (1.234.567,89). El Economista es mexicano
+# y escribe «2.61%», con punto decimal: ninguna rama casaba en el «2.», el motor
+# avanzaba y enganchaba «61 %». El expediente quedaba diciendo que las acciones
+# de Apple subieron 61 % cuando la fuente decia 2,61 %. No es un fallo de
+# formato, es una cifra falsa firmada por un medio que nunca la publico.
+# Paso el 03/09/2026 con el relevo de Tim Cook.
+#
+# El orden de las ramas importa y no se puede alterar: las de millares van
+# primero porque «1.500» es mil quinientos en español, y solo si ninguna casa se
+# lee el separador como decimal.
+_NUMERO_ES = (
+    r"\d{1,3}(?:\.\d{3})+(?:,\d+)?"   # 1.234.567,89  norma española
+    r"|\d{1,3}(?:,\d{3})+(?:\.\d+)?"  # 1,234,567.89  norma inglesa
+    r"|\d+,\d+"                       # 2,61          decimal español
+    r"|\d+\.\d+"                      # 2.61          decimal ingles
+    r"|\d+")
 UNIDADES = re.compile(
     r"(?P<num>" + _NUMERO_ES + r")\s*"
     r"(?P<uni>%|por ciento|puntos b[aá]sicos|millones|mil millones|billones|"
