@@ -269,6 +269,29 @@ def _mensaje_telegram(chat, texto, botones=None):
         return True
 
 
+def _avisar_fallo(chat, titulo, explicacion):
+    """Le dice al chat por que no hubo nota.
+
+    TODA SALIDA SIN PIEZA TIENE QUE PASAR POR AQUI. Quien pide una nota desde
+    Telegram no ve el log de Actions: si el proceso termina sin escribir y sin
+    decir nada, la corrida consta en verde y la persona se queda mirando el
+    "escribiendo" hasta que se cansa. Pasaba en tres sitios de este mismo
+    archivo -ya publicada, sin fuentes, redaccion fallida- y el 03/09/2026
+    aparecio como si el bot llevara seis minutos colgado, cuando en realidad
+    habia acabado en dieciocho segundos haciendo lo correcto.
+
+    No corta nada si falla: la pieza, si existe, ya se entrego por correo.
+    """
+    if not chat:
+        return False
+    try:
+        return _mensaje_telegram(
+            chat, "⚠️ <b>%s.</b>\n\n%s" % (_escapar(titulo), _escapar(explicacion)))
+    except Exception as exc:  # noqa: BLE001
+        print("  [chat] no pude avisar (%s)" % str(exc)[:70])
+        return False
+
+
 def _avisar_captura(chat, hallado):
     """Le dice a quien mando la captura por que no se escribio.
 
@@ -523,6 +546,23 @@ def main():
             print("  SI. Coincide con: %s" % ya["titulo"])
             print("  https://www.sureconomics.com/%s" % ya["slug"])
             print("\nNo se escribe nada. Si aun asi la quieres, dilo y se fuerza.")
+            # ESTO SE AVISA AL CHAT O PARECE QUE EL BOT SE COLGO. Salia solo por
+            # el log de Actions, que no lo mira nadie desde Telegram: se pedia
+            # una nota, no llegaba nada, y la corrida constaba en verde. Paso el
+            # 03/09/2026 con el relevo en Apple, que ya estaba publicada.
+            if args.chat:
+                try:
+                    _mensaje_telegram(
+                        args.chat,
+                        "📌 <b>Esa ya está publicada.</b>\n\n"
+                        "<i>%s</i>\nhttps://www.sureconomics.com/%s\n\n"
+                        "Si aun así la quieres, la escribo otra vez:\n"
+                        "<code>/nota %s igual</code>"
+                        % (_escapar(ya["titulo"]), ya["slug"],
+                           _escapar(peticion)),
+                        [("Escribirla igual", "forzar:1")])
+                except Exception as exc:  # noqa: BLE001
+                    print("  [chat] no pude avisar (%s)" % str(exc)[:70])
             return 0
         print("  no, es nueva")
     except Exception as exc:  # noqa: BLE001
@@ -656,6 +696,9 @@ def main():
 
     if not nombres:
         print("  No se pudo registrar ninguna fuente.")
+        _avisar_fallo(args.chat, "No pude registrar ninguna fuente",
+                      "Leí la página pero el expediente salió vacío. "
+                      "Prueba con otro medio que cuente lo mismo.")
         return 1
     print("  %d fuente(s) en el expediente: %s" % (len(nombres), ", ".join(nombres)))
     r = type("R", (), {"stdout": "manual:" + ",".join(nombres), "returncode": 0})()
@@ -690,6 +733,9 @@ def main():
     borrador = AQUI / "borradores" / ("%s_%s.txt" % (nombre, args.tipo.lower()))
     if not borrador.exists():
         print("\nNo se genero el borrador. Revisa el fallo de arriba.")
+        _avisar_fallo(args.chat, "No pude escribirla",
+                      "La fuente se leyó bien, pero la redacción falló. "
+                      "Vuelve a pedírmela; si insiste, hay que mirar el log.")
         return 1
 
     print("\n--- 4. ENTREGA ---")
