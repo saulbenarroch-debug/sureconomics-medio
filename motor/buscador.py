@@ -99,6 +99,51 @@ def _limpio(s):
     return re.sub(r"[^\x20-\x7e\xc0-\xff]", "", s or "").strip()
 
 
+# Las dos señales de que una direccion es un indice y no una nota. Van por la
+# RUTA y por el TITULAR, porque cada medio marca una cosa: Clarín y El Tiempo no
+# ponen /tag/ en la direccion pero titulan «Nombre - Clarín.com» o «Nombre:
+# Noticias, Fotos y Videos», y El Estímulo si pone /etiqueta/.
+_RUTA_INDICE = re.compile(
+    r"/(tag|tags|etiqueta|etiquetas|tema|temas|topic|topics|autor|author|"
+    r"seccion|secciones|categoria|category|buscar|search|archivo)(/|$|\?)|"
+    # El archivo paginado de una seccion: /venezuela/page/731/
+    r"/(page|pagina)/\d+", re.I)
+_TITULAR_INDICE = re.compile(
+    r"noticias,?\s+fotos\s+y\s+videos|^etiqueta\s*:|^tema\s*:|^tag\s*:|"
+    r"ultimas?\s+noticias\s+de|toda\s+la\s+informaci[oó]n\s+sobre|"
+    # «Venezuela - Página 731 de 8174 - EL NACIONAL» y «Venezuela Archives»:
+    # el archivo de una seccion. Se colo el 03/09/2026 y fue la primera fuente
+    # que se leyo, con once parrafos que eran titulares sueltos.
+    r"p[aá]gina\s+\d+\s+de\s+\d+|page\s+\d+\s+of\s+\d+|\barchives\b|"
+    r"^[^|·\-]{3,40}\s+[-|]\s+[a-z0-9áéíóúñ.]+\.com$", re.I)
+
+# UN PODCAST TAMPOCO ES UNA NOTA. El 03/09/2026, buscando lo que habia dicho
+# María Corina Machado, la unica pagina que se dejo leer fue «BBC Audio | Global
+# News Podcast»: cinco parrafos de descripcion del episodio. La pieza se escribio
+# desde ahi y hablaba del acuerdo petrolero en general, no de lo que ella dijo.
+# Una ficha de audio o de video no tiene el texto de la noticia, solo su resumen.
+_MEDIO_NO_ESCRITO = re.compile(
+    r"^bbc\s+audio\b|\|\s*(podcast|audio|video|en vivo|directo)\b|"
+    r"\b(podcast|videos?)\s*\||^escucha\b", re.I)
+_RUTA_NO_ESCRITA = re.compile(
+    r"/(audio|audios|podcast|podcasts|video|videos|multimedia|galeria|"
+    r"en-vivo|directo)(/|$|\?)", re.I)
+
+
+def _es_indice(titular, url):
+    """¿Es la pagina indice de un tema, en vez de una noticia?"""
+    ruta = urlparse(url or "").path
+    if _RUTA_INDICE.search(ruta) or _RUTA_NO_ESCRITA.search(ruta):
+        return True
+    if _MEDIO_NO_ESCRITO.search(_limpio(titular)):
+        return True
+    # Una portada o una raiz de seccion tampoco es una nota: sin ruta no hay
+    # articulo que leer.
+    if len(ruta.strip("/")) < 3:
+        return True
+    return bool(_TITULAR_INDICE.search(_limpio(titular)))
+
+
 def buscar(consulta, dias=30, maximo=10, solo_lista_blanca=False,
            como_noticias=True, ordenar=True):
     """Devuelve candidatos: [{titular, medio, url, fecha, extracto}].
@@ -115,7 +160,12 @@ def buscar(consulta, dias=30, maximo=10, solo_lista_blanca=False,
         "api_key": clave,
         "query": consulta,
         "search_depth": "advanced",
-        "max_results": maximo,
+        # SE PIDE DE SOBRA PORQUE LUEGO SE DESCARTA. Los indices por personaje
+        # se llevan los primeros puestos en una busqueda por texto, asi que
+        # pidiendo justo 'maximo' se filtraban los seis y quedaban CERO
+        # resultados, con articulos de Reuters y BBC esperando en el puesto
+        # siete. Se piden tres veces mas y se corta despues de limpiar.
+        "max_results": min(maximo * 3, 30),
         "days": dias,
         # include_answer va en False a proposito: ese resumen es de una IA y no
         # se usa en ningun caso. Ver la regla 1 de este modulo.
@@ -148,6 +198,17 @@ def buscar(consulta, dias=30, maximo=10, solo_lista_blanca=False,
 
     salida = []
     for x in r.json().get("results", []):
+        # DE UNA PAGINA DE ETIQUETA NO SE PUEDE ESCRIBIR NADA. Buscando "María
+        # Corina Machado" el 03/09/2026, los primeros resultados eran «María
+        # Corina Machado: Noticias, Fotos y Videos», «María Corina Machado -
+        # Clarín.com» y «Etiqueta: María Corina Machado»: los indices que cada
+        # medio tiene por personaje, que no cuentan ningun hecho. Se colaban
+        # porque son las paginas donde ese nombre aparece mas veces, que es
+        # justo lo que premia una busqueda por texto. Ocupaban los primeros
+        # puestos y el bot se quedaba sin fuente que leer aunque debajo hubiera
+        # articulos de Reuters y BBC sobre ella.
+        if _es_indice(x.get("title"), x["url"]):
+            continue
         dominio = urlparse(x["url"]).netloc.replace("www.", "")
         medio = next((m["nombre"] for m in MEDIOS.values()
                       if urlparse(m["url"]).netloc.replace("www.", "") == dominio),
@@ -163,7 +224,11 @@ def buscar(consulta, dias=30, maximo=10, solo_lista_blanca=False,
     # Con ordenar=False se devuelve tal cual: cuando se busca UNA noticia
     # concreta, quien llama filtra por parecido con el titular, y criterio
     # puntua interes periodistico, que es otra pregunta y descarta aciertos.
-    return criterio.ordenar(salida) if ordenar else salida
+    # El recorte va DESPUES de ordenar: si se cortase antes, el orden por
+    # criterio periodistico se aplicaria solo a un trozo arbitrario de lo que
+    # devolvio el buscador.
+    salida = criterio.ordenar(salida) if ordenar else salida
+    return salida[:maximo]
 
 
 def informe(consulta, candidatos):

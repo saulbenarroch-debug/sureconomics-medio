@@ -116,7 +116,11 @@ PARECIDO_MINIMO = 0.45
 # fuentes excelentes y a veces dejan pasar una nota, pero no se ofrecen los
 # primeros. Se amplia cuando aparezca otro; la comprobacion de verdad la hace
 # nota.py al intentar leerlos.
-TRAS_MURO = ("wsj.com", "ft.com", "bloomberg.com", "economist.com")
+# reuters.com entro el 03/09/2026: en una sola corrida devolvio 401 siete
+# veces. No cobra por leer, pero bloquea a los lectores automaticos igual que un
+# muro de pago, y para esto es lo mismo: no se puede leer.
+TRAS_MURO = ("wsj.com", "ft.com", "bloomberg.com", "economist.com",
+             "reuters.com")
 
 
 def _tras_muro(url):

@@ -174,6 +174,63 @@ def medio_de(url):
     return d.split(".")[0].replace("-", " ").title()
 
 
+# El relleno con que se pide un encargo hablando. "Redáctame algo de lo que dijo
+# María Corina Machado hoy" no se busca entero: se busca "María Corina Machado".
+#
+# POR QUE IMPORTA TANTO. El 03/09/2026 la frase completa devolvio de primero
+# "Trump announces new round of drug-pricing deals", que no tiene nada que ver, y
+# la pieza acabo escribiendose de otra cosa. Con el nombre solo, los seis
+# primeros eran de ese mismo dia y sobre lo que ella habia dicho. Un buscador
+# reparte el peso entre todas las palabras, y "lo", "que", "dijo" y "hoy" pesan
+# lo mismo que el nombre sin decir nada.
+_RELLENO = re.compile(
+    r"\b(lo\s+que\s+dijo|que\s+dijo|lo\s+de|algo\s+de|sobre\s+lo\s+de|"
+    r"qu[eé]\s+pas[oó]\s+con|qu[eé]\s+hay\s+de|las?\s+declaraciones?\s+de|"
+    r"la\s+noticia\s+de|una\s+nota\s+de|hoy|ayer|esta\s+ma[nñ]ana|"
+    r"esta\s+tarde|ahora\s+mismo|[uú]ltima\s+hora)\b", re.I)
+
+
+def _consulta_limpia(texto):
+    """El encargo hablado, convertido en terminos de busqueda."""
+    limpio = _RELLENO.sub(" ", texto)
+    limpio = re.sub(r"\s{2,}", " ", limpio).strip(" ,.:;¿?¡!")
+    # Si al quitar el relleno no queda casi nada, se busca el original: mejor
+    # una busqueda floja que una vacia.
+    return limpio if len(limpio) >= 4 else texto
+
+
+def _habla_de(candidato, consulta):
+    """¿El candidato nombra de verdad lo que se busco?
+
+    EL BUSCADOR NO GARANTIZA QUE SI. Con topic="news" e include_domains, Tavily
+    a veces contesta con lo ULTIMO de esos dominios en vez de con lo que casa:
+    el 03/09/2026, buscando "María Corina Machado", devolvio en dos corridas
+    seguidas seis piezas correctas y, minutos despues, «Giorgia Meloni's
+    enviable stability» y un exlider de Reform Wales. La misma consulta y los
+    mismos parametros. Sin esta comprobacion, la pieza se escribe de lo que
+    saliera, y eso ya paso: una nota pedida sobre Machado se redacto desde una
+    ficha de podcast sobre el acuerdo petrolero.
+
+    Es la misma idea que ya filtra las fotos: no basta con que el buscador lo
+    devuelva, tiene que NOMBRAR la cosa.
+    """
+    palabras = [p for p in re.findall(r"[^\W\d_]{4,}", _plano(consulta))
+                if p not in _VACIAS_CONSULTA]
+    if not palabras:
+        return True
+    ficha = _plano("%s %s" % (candidato.get("titular", ""),
+                              candidato.get("extracto", "")))
+    return any(p in ficha for p in palabras)
+
+
+# Palabras que no distinguen nada aunque midan mas de tres letras.
+_VACIAS_CONSULTA = {
+    "sobre", "para", "como", "desde", "hasta", "entre", "esta", "este",
+    "todos", "todas", "cada", "nuevo", "nueva", "segun", "tras", "ante",
+    "noticia", "noticias", "nota", "pieza", "medio", "medios",
+}
+
+
 ES_TUIT = re.compile(r"^https?://(www\.)?(x|twitter)\.com/[^/]+/status/(\d+)", re.I)
 
 
@@ -502,13 +559,44 @@ def main():
         #
         # SI NO APARECE NADA, SIGUE SIN ESCRIBIRSE. Eso no cambia.
         print("\n--- 0. TEMA SUELTO: BUSCO DE QUE HABLA ---")
-        from motor import captura
-        lectura = {"titular": peticion, "busqueda": peticion, "medio": "",
-                   "fecha": "", "texto": "", "legible": True}
-        # umbral=0: aqui el "titular" es lo que escribio la persona, no un
-        # titular real, asi que medir parecido contra el no dice nada. Lo que
-        # filtra es la lista blanca y el propio buscador.
-        candidatos = captura.buscar_original(lectura, umbral=0.0)
+        from motor import buscador, captura
+
+        # LOS DOS MODOS, PORQUE NINGUNO BASTA SOLO. El de noticias trae fecha y
+        # lo reciente, pero su relevancia es INESTABLE: el 03/09/2026, con
+        # "María Corina Machado", devolvio seis piezas correctas de ese dia y,
+        # minutos despues y con los mismos parametros, «Giorgia Meloni's
+        # enviable stability» y un exlider de Reform Wales. El general acierta
+        # el tema pero no filtra por fecha ni la devuelve. Juntarlos y quedarse
+        # con lo que NOMBRA el asunto sale mejor que elegir uno.
+        consulta = _consulta_limpia(peticion)
+        if consulta != peticion:
+            print("  busco por: %s" % consulta)
+        crudos = []
+        for dias, noticias in ((3, True), (15, True), (15, False)):
+            crudos += buscador.buscar(consulta, dias=dias, maximo=10,
+                                      solo_lista_blanca=True,
+                                      como_noticias=noticias, ordenar=False)
+        vistos, candidatos = set(), []
+        for c in crudos:
+            u = (c.get("url") or "").split("?")[0]
+            if not u or u in vistos or not _habla_de(c, consulta):
+                continue
+            vistos.add(u)
+            candidatos.append(c)
+        print("  %d de %d candidatos nombran el asunto"
+              % (len(candidatos), len(crudos)))
+        if not candidatos:
+            # Ultimo recurso: el emparejador de capturas, que rastrea tambien
+            # los RSS de la lista. Para un tema que no es de esta semana -un
+            # acuerdo en marcha, una serie- suele tenerlo.
+            print("  nada en el buscador; pruebo el rastreo de la lista")
+            lectura = {"titular": peticion, "busqueda": consulta, "medio": "",
+                       "fecha": "", "texto": "", "legible": True}
+            # umbral=0: aqui el "titular" es lo que escribio la persona, no un
+            # titular real, asi que medir parecido contra el no dice nada. Lo
+            # que filtra es la lista blanca y el propio buscador.
+            candidatos = [c for c in captura.buscar_original(lectura, umbral=0.0)
+                          if _habla_de(c, consulta)]
         if not candidatos:
             print("  No encuentro nada de eso en los medios de la lista.")
             _mensaje_telegram(args.chat,
@@ -518,6 +606,12 @@ def main():
                               "medio de la lista. Si tienes el enlace, mándamelo "
                               "con <code>/nota</code>.")
             return 0
+        # LOS QUE NO SE DEJAN LEER, AL FINAL. Reuters devolvio 401 siete veces
+        # seguidas en la corrida del 03/09/2026 y se llevo casi todos los
+        # intentos; lo unico que quedo legible fue una ficha de podcast. Ir en
+        # ese orden no es una preferencia editorial: los de arriba simplemente
+        # no tienen texto que leer.
+        candidatos.sort(key=lambda c: captura._tras_muro(c.get("url", "")))
         print("  %d medios lo cuentan. El primero:" % len(candidatos))
         print("  %s · %s" % (candidatos[0].get("medio", ""),
                              candidatos[0].get("titular", "")[:70]))
