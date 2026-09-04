@@ -239,7 +239,7 @@ def es_de_aqui(f, lugares):
     return False
 
 
-def archivos_de(f):
+def archivos_de(f, con_bandera=True):
     """Que archivo de Commons le corresponde, en orden de preferencia.
 
     EL ORDEN ES LA REGLA QUE PIDIO EDICION, escrita: si la nota habla de una
@@ -249,6 +249,24 @@ def archivos_de(f):
     """
     if f["persona"]:
         return [x for x in (f[IMAGEN],) if x]
+    # LA BANDERA SOLO SI EL PAIS ES EL ASUNTO, no si es lo que quedaba.
+    # Decision de Edicion el 04/09/2026, viendo la primera tanda con foto: de
+    # tres portadas, dos eran banderas. «LA BANCA ESPAÑOLA AFRONTA PRESIONES»
+    # salio con la bandera de España, que dice el pais y nada del asunto, y
+    # «BRAVONIX PROYECTA INGRESOS EN BRASIL» con la de Brasil porque la empresa
+    # no tiene ficha. El pais entra el ultimo de la lista justo por ser lo menos
+    # concreto, y usarlo cuando lo concreto fallo es rellenar. Mejor sin
+    # portada. Si la pieza es DE Venezuela y de nada mas, su bandera sigue
+    # siendo la imagen correcta, y eso es lo que mide con_bandera.
+    #
+    # Y SE CAE LA ENTIDAD ENTERA, no solo su bandera. Quitando unicamente la
+    # bandera, el hueco lo ocupaba su P18: «Spain - Location Map» para la banca
+    # española y «Brazil topo.jpg» para Bravonix. Un mapa del pais no dice mas
+    # que su bandera; el problema no era la bandera, era ilustrar con el pais.
+    # Tener P41 es la señal de que la entidad ES un pais o una region: nada mas
+    # la tiene.
+    if not con_bandera and f[BANDERA]:
+        return []
     # LA BANDERA VA ANTES QUE LA IMAGEN, y esto no es un detalle: P18 de
     # Venezuela es una foto del embalse La Vueltosa. Es de Venezuela y no dice
     # nada. Solo los paises y las regiones tienen P41, asi que tener bandera es
@@ -265,6 +283,11 @@ def resolver(nombres, lugares=None):
     a menos protagonista, y la portada tiene que ser del protagonista.
     """
     fichas, conocidas = [], []
+    # ¿Es el pais el unico asunto de la pieza? Si el titular nombra algo mas
+    # -una empresa, una mercancia, una persona-, la bandera deja de valer como
+    # portada. Ver archivos_de().
+    utiles = [n for n in nombres[:4] if n and len(n) >= 3]
+    con_bandera = len(utiles) == 1
     for n in nombres[:4]:
         if not n or len(n) < 3:
             continue
@@ -279,7 +302,7 @@ def resolver(nombres, lugares=None):
         # por si solo: es lo que impide que, al no encontrar su foto, se acabe
         # cogiendo cualquier archivo que comparta el nombre. Ver para().
         conocidas.append(f["nombre"] or n)
-        if not archivos_de(f):
+        if not archivos_de(f, con_bandera):
             print("   [entidad] '%s' (%s) no tiene imagen" % (n, ident))
             continue
         if not es_de_aqui(f, lugares):
@@ -287,6 +310,7 @@ def resolver(nombres, lugares=None):
                   % (n, f["nombre"] or ident, " ni ".join(lugares)))
             continue
         f["pedido"] = n
+        f["con_bandera"] = con_bandera
         fichas.append(f)
     return fichas, conocidas
 
@@ -300,7 +324,7 @@ def candidatas(nombres, lugares=None):
     salida = []
     fichas_utiles, conocidas = resolver(nombres, lugares)
     for f in fichas_utiles:
-        archivos = archivos_de(f)
+        archivos = archivos_de(f, f["con_bandera"])
         # HAY QUE REORDENAR. fichas_commons() pide todos los archivos en una
         # sola llamada y la API los devuelve en SU orden, no en el que se
         # pidieron: de Venezuela llegaba el embalse antes que la bandera y de
