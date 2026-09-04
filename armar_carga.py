@@ -74,7 +74,7 @@ sys.path.insert(0, str(AQUI / ".libs"))
 # archivo. Paso tres veces el 28/08/2026. reconfigure cambia el que ya hay.
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
-from motor import clasificar, foto as buscador  # noqa: E402
+from motor import clasificar, foto as buscador, memoria  # noqa: E402
 
 # Nuestro formato -> el del sitio. No son equivalentes uno a uno: nuestra
 # 'Investigacion' entra como 'informe', que no lleva bloque de opinion al pie
@@ -180,6 +180,11 @@ def main():
         print("No hay piezas en %s/" % carpeta)
         return 1
 
+    # Una sola consulta al sitio para todas las piezas de la corrida. Pedirlo
+    # dentro del bucle serian seis llamadas identicas.
+    catalogo = memoria.publicadas()
+    peso = memoria.pesos(catalogo)
+
     carga = []
     for ruta in rutas:
         formato = formato_de(ruta.read_text(encoding="utf-8").split("\n", 1)[0])
@@ -187,6 +192,27 @@ def main():
             ruta, con_intertitulos=formato != "noticia")
         if not titulo:
             print("  %s: sin titulo, se salta" % ruta.name)
+            continue
+
+        # SE VUELVE A MIRAR SI YA ESTABA PUBLICADO, AHORA CON EL TITULAR EN
+        # ESPAÑOL. El filtro de duplicados corre antes de escribir, cuando el
+        # titular todavia es el de la fuente, y eso NO ATRAVIESA EL IDIOMA.
+        #
+        # Medido el 04/09/2026: la nota del oro de Países Bajos venia de Folha,
+        # "Por que a Holanda retirou toneladas de ouro dos Estados Unidos".
+        # Contra lo ya publicado puntuaba 0.336 y pasaba, porque no comparte una
+        # sola palabra con "PAÍSES BAJOS" ni "ORO": en portugues son "Holanda" y
+        # "ouro". Ya escrita en español, la misma pieza puntua 0.620 contra
+        # "BANCO CENTRAL DE LOS PAÍSES BAJOS RETIRA TONELADAS DE ORO DESDE NUEVA
+        # YORK", publicada cuatro horas antes. Se subio la tercera version del
+        # mismo hecho en dos dias.
+        #
+        # La comprobacion de antes se queda: ahorra escribir lo que ya se sabe
+        # repetido. Esta es la que ve lo que la otra no puede ver.
+        repetida = memoria.ya_cubierto(titulo, catalogo, peso=peso)
+        if repetida:
+            print("  %s: YA PUBLICADA como «%s». No se sube."
+                  % (ruta.name[:28], repetida["titulo"][:56]))
             continue
 
         cuerpo_plano = " ".join(s for _, s in partes)

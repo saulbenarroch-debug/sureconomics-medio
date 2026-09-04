@@ -633,7 +633,20 @@ def main():
         print("  (pedida a la fuerza: no se comprueba)")
     try:
         from motor import memoria
-        titulo_previo, _, _ = leer_enlace(peticion)
+        # UN TUIT SE LEE COMO TUIT TAMBIEN AQUI. El paso 2 ya lo distingue, pero
+        # esta comprobacion llamaba a leer_enlace() sobre la direccion de x.com,
+        # que no sirve el texto a un lector automatico: devuelve su muro de
+        # acceso. El titulo que salia de ahi no era el del tuit, y se comparaba
+        # ESO contra lo publicado. El 04/09/2026 un tuit sobre la inflacion de
+        # Venezuela se bloqueo señalando una nota del oro de Países Bajos, que
+        # no tiene nada que ver: el bloqueo era correcto -esa noticia si estaba
+        # publicada- pero la pieza que se nombraba salia de comparar basura.
+        # Un motivo equivocado hace que una decision buena parezca un fallo.
+        if ES_TUIT.match(peticion):
+            _, texto_tuit = leer_tuit(peticion)
+            titulo_previo = (texto_tuit or "")[:200]
+        else:
+            titulo_previo, _, _ = leer_enlace(peticion)
         ya = (None if forzar else
               (memoria.ya_cubierto(titulo_previo) if titulo_previo else None))
         if ya:
