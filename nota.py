@@ -372,7 +372,7 @@ def leer_instagram(url):
     salen la cuenta y el texto.
     """
     if not ES_INSTAGRAM.match(url or ""):
-        return None, None, None
+        return {}
     import html as _html
 
     try:
@@ -381,7 +381,7 @@ def leer_instagram(url):
         with urllib.request.urlopen(pet, timeout=30) as r:
             doc = r.read().decode("utf-8", "replace")
     except Exception:  # noqa: BLE001
-        return None, None, None
+        return {}
 
     def meta(prop):
         m = re.search(r'property="og:%s"[^>]+content="([^"]*)"' % prop, doc)
@@ -391,7 +391,7 @@ def leer_instagram(url):
 
     desc, titulo = meta("description"), meta("title")
     if not desc and not titulo:
-        return None, None, None
+        return {}
 
     # EL CONTADOR VA DELANTE CUANDO EL POST TIENE INTERACCIONES, y no siempre:
     # de un post sin ellas llega "beycocapital on September 2, 2026: ...", y de
@@ -402,14 +402,43 @@ def leer_instagram(url):
     desc = re.sub(r"^\s*[\d.,KMkm]+\s+likes?,\s*[\d.,KMkm]+\s+comments?\s*-\s*",
                   "", desc)
 
-    # "beycocapital on September 2, 2026: «...»"  ->  cuenta y pie por separado.
-    m = re.match(r"\s*([A-Za-z0-9._]+)\s+on\s+[^:]+:\s*(.*)", desc, re.S)
-    cuenta, texto = (m.group(1), m.group(2)) if m else ("", desc)
+    # "beycocapital on September 2, 2026: «...»"  ->  cuenta, FECHA y pie.
+    #
+    # LA FECHA ES DEL POST Y NO DE HOY. Se guardaba date.today(), y eso solo
+    # acierta cuando el post es del dia: mandando uno de julio, la fuente
+    # quedaba fechada hoy y la pieza databa como de hoy algo dicho hace dos
+    # meses. Para un medio eso no es un detalle. Lo pregunto Edicion el
+    # 07/09/2026 mirando una pieza que, por casualidad, si era del dia.
+    m = re.match(r"\s*([A-Za-z0-9._]+)\s+on\s+([^:]+):\s*(.*)", desc, re.S)
+    cuenta, cuando, texto = (m.group(1), m.group(2), m.group(3)) if m \
+        else ("", "", desc)
     # El nombre visible ("Bloomberg Línea") dice mas que el usuario y es lo que
     # luego se busca en la lista blanca. Va delante del " on Instagram:".
     visible = titulo.split(" on Instagram")[0].strip()
     texto = re.sub(r'^[«"“]|[»"”]\.?$', "", texto.strip()).strip()
-    return (visible or cuenta or None), (texto or None), (cuenta or None)
+    return {"autor": visible or cuenta or None, "texto": texto or None,
+            "usuario": cuenta or None, "fecha": _fecha_en_ingles(cuando)}
+
+
+# Los meses vienen en ingles porque asi los sirve Instagram, sea cual sea el
+# idioma del post.
+_MESES_EN = {"january": 1, "february": 2, "march": 3, "april": 4, "may": 5,
+             "june": 6, "july": 7, "august": 8, "september": 9, "october": 10,
+             "november": 11, "december": 12}
+
+
+def _fecha_en_ingles(texto):
+    """«September 7, 2026» -> «2026-09-07». Cadena vacía si no se reconoce.
+
+    No se inventa una fecha por defecto: si no se entiende, se deja vacía y el
+    expediente lo dice. Poner la de hoy es peor que no poner ninguna, porque
+    parece un dato y no lo es.
+    """
+    m = re.search(r"([A-Za-z]+)\s+(\d{1,2}),\s*(\d{4})", texto or "")
+    if not m:
+        return ""
+    mes = _MESES_EN.get(m.group(1).lower())
+    return "%s-%02d-%02d" % (m.group(3), mes, int(m.group(2))) if mes else ""
 
 
 def leer_publicacion(url):
@@ -433,9 +462,9 @@ def leer_publicacion(url):
         return {"autor": autor, "usuario": usuario, "texto": texto,
                 "red": "x", "que_es": "tuit"}
     if ES_INSTAGRAM.match(url or ""):
-        autor, texto, usuario = leer_instagram(url)
-        return {"autor": autor, "usuario": usuario, "texto": texto,
-                "red": "instagram", "que_es": "publicación de Instagram"}
+        d = dict(leer_instagram(url))
+        d.update(red="instagram", que_es="publicación de Instagram")
+        return d
     return None
 
 
@@ -516,9 +545,19 @@ def registrar_publicacion(url, post, propia):
     (AQUI / "fuentes_manuales").mkdir(exist_ok=True)
     texto = post.get("texto") or ""
     nombre = _apodo(texto[:60] or url)
+    # LA FECHA DEL POST, no la de hoy. Si Instagram no la da, se deja la de hoy
+    # y se AVISA: una fuente sin fecha es un problema conocido, una fuente con
+    # una fecha inventada es un dato falso que nadie va a mirar dos veces.
+    cuando = post.get("fecha") or ""
+    if not cuando:
+        cuando = date.today().isoformat()
+        print("  [aviso] la publicación no dice su fecha; uso la de hoy (%s)"
+              % cuando)
+    elif cuando != date.today().isoformat():
+        print("  ojo: la publicación es del %s, no de hoy" % cuando)
     ficha = {
         "hecho": texto[:180],
-        "fecha": date.today().isoformat(),
+        "fecha": cuando,
         "medio": propia["medio"],
         "url": url,
         "texto": texto,
