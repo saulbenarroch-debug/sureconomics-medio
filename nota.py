@@ -949,19 +949,27 @@ def main():
         for l in (r.stderr or "").strip().splitlines()[-6:]:
             print("    " + l[:150])
 
-    # EL NOMBRE SE CALCULA EN DOS SITIOS Y HABIA QUE MIRAR EL OTRO. producir.py
-    # bautiza el borrador con la PRIMERA fuente (`args.manual.split(",")[0]`),
-    # pero aqui se pasaba la lista entera: desde que /nota lee varias fuentes,
-    # `nombre` es "n1,n2,n3" y este exists() daba False SIEMPRE. La pieza se
-    # escribia, pasaba el auditor y se quedaba en el disco del runner: no
-    # llegaba a Telegram ni subia al panel, y la corrida terminaba diciendo que
-    # no se habia generado. Estuvo asi desde que se añadio el multi-fuente.
+    # SE LEE EL NOMBRE QUE DIJO producir.py, NO SE VUELVE A CALCULAR.
     #
-    # Y el tipo tiene que ser el RESUELTO, no args.tipo: con "hazla editorial"
-    # en el encargo, producir.py escribe `_editorial.txt` y aqui se buscaba
-    # `_noticia.txt`.
-    base = nombre.split(",")[0].strip()
-    borrador = AQUI / "borradores" / ("%s_%s.txt" % (base, tipo.lower()))
+    # Calcularlo aqui por segunda vez ya costo caro: producir.py bautiza el
+    # borrador con la PRIMERA fuente y aqui se pasaba la lista entera, asi que
+    # desde que /nota lee varias fuentes el exists() daba False SIEMPRE. La
+    # pieza se escribia, pasaba el auditor y se quedaba en el disco del runner,
+    # sin llegar a Telegram ni al panel, y la corrida terminaba diciendo que no
+    # se habia generado.
+    #
+    # Y ahora producir.py ademas numera el archivo cuando ya existe uno igual,
+    # para no pisar una columna anterior. O sea que el nombre depende de lo que
+    # haya en el disco y NO se puede deducir desde fuera. Se lee de su salida,
+    # que es la unica fuente de verdad, y el calculo local queda solo de reserva
+    # por si algun dia cambia ese mensaje.
+    dicho = re.search(r"Borrador guardado en borradores/(\S+\.txt)",
+                      r.stdout or "")
+    if dicho:
+        borrador = AQUI / "borradores" / dicho.group(1)
+    else:
+        base = nombre.split(",")[0].strip()
+        borrador = AQUI / "borradores" / ("%s_%s.txt" % (base, tipo.lower()))
     if not borrador.exists():
         print("\nNo se genero el borrador. Revisa el fallo de arriba.")
         print("  buscaba: %s" % borrador.name)

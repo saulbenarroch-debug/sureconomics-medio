@@ -294,6 +294,28 @@ def main():
     else:
         base = f"{args.pais.lower()}_{args.indicador}"
     nombre = f"{base}_{args.tipo.lower()}"
+
+    # NO SE PISA NADA. El nombre sale de la primera fuente y del tipo, asi que
+    # dos columnas sobre el mismo tema en el mismo dia caian en el mismo archivo
+    # y la segunda borraba a la primera sin decir nada. Paso el 05/09/2026: una
+    # columna firmada por Óscar Doval desaparecio al encargar otra sobre el mismo
+    # acuerdo petrolero.
+    #
+    # Se numera en vez de meter el autor en el nombre porque el autor no cierra
+    # el caso: dos columnas de la MISMA persona sobre lo mismo seguirian
+    # chocando. Con esto no choca ninguna, venga de donde venga.
+    #
+    # Es la regla que ya estaba escrita ahi arriba para --diarios ("un borrador
+    # que desaparece en silencio es peor que uno que falla") y que no se habia
+    # aplicado a esta via.
+    if (carpeta / f"{nombre}.txt").exists():
+        for n in range(2, 100):
+            if not (carpeta / f"{nombre}-{n}.txt").exists():
+                print(f"  [aviso] ya habia un '{nombre}.txt'; guardo como "
+                      f"'{nombre}-{n}.txt' para no borrarlo")
+                nombre = f"{nombre}-{n}"
+                break
+
     (carpeta / f"{nombre}.json").write_text(
         json.dumps({"pieza": pieza,
                     "bloqueada": auditor.bloqueada(hallazgos),
