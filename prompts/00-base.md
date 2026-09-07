@@ -137,7 +137,7 @@ Eliges **exactamente uno** de cada eje. Si ninguno encaja, no inventes: dilo en
 
 | Eje | Valores permitidos |
 |---|---|
-| `tipo` | `Noticia` · `Opinión` · `Investigación` · `Educación` · `Editorial` |
+| `tipo` | `Noticia` · `Análisis` · `Opinión` · `Investigación` · `Educación` · `Editorial` |
 | `region` | `Latinoamérica` · `Mundo` |
 | `subregion` | Si región = Latinoamérica: `Centroamérica` · `Norteamérica` (solo México) · `Región Andina` · `Caribe` · `Cono Sur` · `América Latina` (toda la región).<br>Si región = Mundo: `América` · `Europa` · `Asia` · `África` · `Oceanía` |
 | `pais` | País específico, o `Latam` si la pieza es regional |
@@ -264,7 +264,8 @@ si escribes una cifra sin declararla, la pieza se bloquea.
 artículos educativos: si necesitas un número ilustrativo que no está en el
 paquete ("supongamos un salario de 100 unidades"), **decláralo aquí** y
 preséntalo en el texto como evidentemente hipotético. Sin declararlo, la
-pieza se bloquea. En noticia, opinión, editorial e investigación va vacío.
+pieza se bloquea. En noticia, análisis, opinión, editorial e investigación va
+vacío.
 
 `cifras_de_definicion` es para las constantes de manual, no para datos: *"la
 hiperinflación se define por subidas mensuales superiores al 50 %"*, *"un punto

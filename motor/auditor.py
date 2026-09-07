@@ -362,6 +362,16 @@ def auditar(pieza, paquete, encargo=""):
         r"septiembre|setiembre|octubre|noviembre|diciembre)"
         r"(?:\s+de\s+\d{4})?", " ", texto_sin_enlaces, flags=re.I)
 
+    # Y LA FECHA EN NUMEROS TAMPOCO. Una linea de referencia dice «El Nacional,
+    # 2026-08-31, disponible en: ...»: el enlace ya se quita, pero la fecha
+    # dejaba sueltos un '08' y un '31' que se contaban como cifras inventadas.
+    # Bloqueo el primer Análisis que produjo el motor, el 05/09/2026, por citar
+    # bien sus fuentes. Vale para cualquier formato de fecha en numeros, que es
+    # como las escriben los pies de fuente.
+    texto_sin_enlaces = re.sub(
+        r"\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b|\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b",
+        " ", texto_sin_enlaces)
+
     for token in NUMERO.findall(texto_sin_enlaces):
         if (token in permitidas or token in hipoteticas
                 or token in definiciones or _es_anio(token)):

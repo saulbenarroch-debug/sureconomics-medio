@@ -56,7 +56,22 @@ def _plano(t):
     return "".join(c for c in t if not unicodedata.combining(c))
 
 
-TIPOS = ["Noticia", "Opinión", "Editorial", "Investigación", "Educación"]
+TIPOS = ["Noticia", "Análisis", "Opinión", "Editorial", "Investigación",
+         "Educación"]
+
+# Como se llama cada tipo cuando lo pide una persona. "Análisis" va PRIMERO en
+# TIPOS y "artículo" apunta aquí porque en el sitio ese formato se llama
+# 'articulo': quien escribe "hazme un artículo" está pidiendo eso, no una
+# columna de opinión.
+#
+# 'reportaje' e 'informe' caen en Investigación, que es el formato al que
+# corresponden en el panel.
+SINONIMOS = {
+    "articulo": "Análisis", "analisis": "Análisis",
+    "columna": "Opinión", "opinion": "Opinión",
+    "reportaje": "Investigación", "informe": "Investigación",
+    "explicador": "Educación", "explicativo": "Educación",
+}
 
 
 def leer_encargo(texto, tipo_por_defecto="Noticia"):
@@ -67,10 +82,14 @@ def leer_encargo(texto, tipo_por_defecto="Noticia"):
     de edicion y viaja en --encargo, que es el mismo camino por el que entro la
     tesis de Óscar en la serie del acuerdo petrolero.
 
-    "ARTICULO" NO ES UN TIPO QUE EL MOTOR SEPA ESCRIBIR. El panel lo tiene como
-    formato y el redactor no: sus cinco prompts son Noticia, Opinion, Editorial,
-    Investigacion y Educacion. Si alguien lo pide, se dice en vez de mandar
-    calladamente una noticia y que parezca que se ignoro la instruccion.
+    "ARTICULO" YA ES UN TIPO, desde el 05/09/2026. Hasta entonces el motor tenia
+    cinco prompts y ninguno se llamaba asi, aunque el sitio si tenia el formato
+    'articulo': quien pedia un articulo recibia un aviso y una noticia. Ahora
+    existe Análisis (prompts/60-analisis.md) y "articulo" apunta a el.
+
+    Los sinonimos importan porque nadie escribe el nombre interno del tipo. Se
+    pide "una columna", "un reportaje", "un explicador", y cada uno de esos
+    tiene un tipo al que corresponde. Ver SINONIMOS.
     """
     texto = (texto or "").strip()
     if not texto:
@@ -82,11 +101,14 @@ def leer_encargo(texto, tipo_por_defecto="Noticia"):
         # "hazla editorial" y "opinion" tanto con tilde como sin ella.
         if re.search(r"\b" + _plano(t)[:6], plano):
             return t, texto, ""
-    if re.search(r"\barticulo", plano):
-        return (tipo_por_defecto, texto,
-                "Pediste artículo. El motor escribe Noticia, Opinión, Editorial, "
-                "Investigación o Educación; va como %s y el resto del pie se "
-                "usa igual." % tipo_por_defecto)
+    # LA PALABRA ENTERA, no la raiz de seis letras que se usa arriba. Con la
+    # raiz, "inform" casaba con «informó» y "report" con «reportó», que son
+    # verbos corrientes en un encargo: "hazme algo sobre lo que informó el BCV"
+    # habria pedido una Investigación. Los nombres de TIPOS si aguantan la raiz
+    # porque son palabras raras; estos no.
+    for palabra, tipo in SINONIMOS.items():
+        if re.search(r"\b%ss?\b" % palabra, plano):
+            return tipo, texto, ""
     return tipo_por_defecto, texto, ""
 
 

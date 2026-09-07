@@ -27,6 +27,13 @@ PROMPTS = {
     "Editorial": "30-editorial.md",
     "Investigación": "40-investigacion.md",
     "Educación": "50-educacion.md",
+    # Añadido el 05/09/2026 a peticion de Edicion. El sitio ya tenia el formato
+    # 'articulo' y el motor era el unico que no sabia escribirlo: cuando alguien
+    # pedia "un articulo", nota.py avisaba de que no existia y entregaba una
+    # noticia. Es la pieza intermedia: la noticia cuenta el hecho, la opinion
+    # defiende una tesis firmada, y el analisis explica el mecanismo sin
+    # defender nada.
+    "Análisis": "60-analisis.md",
 }
 
 
