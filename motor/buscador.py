@@ -26,6 +26,7 @@ como fuente. El buscador acorta la busqueda, no sustituye la comprobacion.
 
 import os
 import re
+import unicodedata
 from urllib.parse import urlparse
 
 import requests
@@ -78,6 +79,61 @@ REFERENCIA = [
 ARTICULOS_DE = {
     "feeds.bbci.co.uk": "bbc.com",          # BBC Mundo publica en bbc.com
 }
+
+
+def dominios_de(nombre):
+    """Los dominios de un medio nombrado a la ligera, o [] si no esta en la lista.
+
+    PARA QUE SIRVE: cuando una captura o un post de Instagram dice de QUE MEDIO
+    es, esa es la pista mas fuerte que hay y hasta el 07/09/2026 se tiraba. Una
+    captura de Bloomberg Línea sobre Radia Perlman se buscaba por palabras del
+    titular en los 45 medios de la lista, no encontraba nada y la corrida
+    terminaba con "no encuentro esta noticia en ninguna fuente verificable"
+    teniendo el medio delante.
+
+    Se compara SIN espacios ni tildes contra el nombre de la lista, porque quien
+    lo escribe es un modelo leyendo un logo: dijo "bloomberglinea" y en la lista
+    pone "Bloomberg Línea". Comparar las cadenas tal cual no casa nunca.
+    """
+    buscado = re.sub(r"[^a-z0-9]", "",
+                     unicodedata.normalize("NFKD", str(nombre or "").lower()))
+    buscado = "".join(c for c in buscado if not unicodedata.combining(c))
+    if len(buscado) < 4:
+        return []
+    # GANA LA COINCIDENCIA MAS LARGA, que es la mas especifica. Vale la
+    # coincidencia por dentro porque la captura puede decir
+    # "bloomberglineamercados" o un post firmar "El Nacional Web"; pero sin esta
+    # regla, "bloomberglinea" arrastraba tambien a Bloomberg -"bloomberg" cabe
+    # dentro-, que es OTRO medio y ademas de pago. Buscar el original en el
+    # diario equivocado no es un matiz.
+    exactos, parciales = [], []
+    for clave, m in MEDIOS.items():
+        pelado = re.sub(r"[^a-z0-9]", "", unicodedata.normalize(
+            "NFKD", m["nombre"].lower()))
+        pelado = "".join(c for c in pelado if not unicodedata.combining(c))
+        if pelado == buscado or clave == buscado:
+            exactos.append((len(pelado), m["url"]))
+        elif pelado in buscado or buscado in pelado:
+            parciales.append((len(pelado), m["url"]))
+
+    # LO EXACTO MANDA SOBRE LO PARCIAL. Sin esto, "Bloomberg" a secas caia en
+    # Bloomberg Línea, porque "bloomberg" cabe dentro y es la cadena mas larga.
+    # Son dos medios distintos y en direcciones contrarias: Bloomberg no se deja
+    # leer y Bloomberg Línea si.
+    encajes = exactos or parciales
+    if not encajes:
+        return []
+    mejor = max(n for n, _ in encajes)
+
+    fuera = set()
+    for n, url in encajes:
+        if n != mejor:
+            continue
+        host = urlparse(url).netloc.replace("www.", "")
+        fuera.add(ARTICULOS_DE.get(host, host))
+        if host.startswith("feeds."):
+            fuera.add(host[len("feeds."):])
+    return sorted(fuera)
 
 
 def dominios_permitidos():
@@ -145,7 +201,7 @@ def _es_indice(titular, url):
 
 
 def buscar(consulta, dias=30, maximo=10, solo_lista_blanca=False,
-           como_noticias=True, ordenar=True):
+           como_noticias=True, ordenar=True, dominios=None):
     """Devuelve candidatos: [{titular, medio, url, fecha, extracto}].
 
     Lista vacia si no hay clave, si Tavily falla o si no encuentra nada dentro
@@ -184,7 +240,12 @@ def buscar(consulta, dias=30, maximo=10, solo_lista_blanca=False,
         # El indice general con "advanced" reordena y criterio.ordenar acababa
         # descartandola igual. En "basic" sobrevive.
         cuerpo["search_depth"] = "basic"
-    if solo_lista_blanca:
+    # 'dominios' acota a UNOS medios concretos y manda sobre la lista entera.
+    # Se usa cuando ya se sabe de que diario es la noticia -lo dice la captura o
+    # la cuenta que la publico- y entonces buscarla en los otros 44 es ruido.
+    if dominios:
+        cuerpo["include_domains"] = list(dominios)
+    elif solo_lista_blanca:
         cuerpo["include_domains"] = dominios_permitidos()
 
     try:

@@ -345,6 +345,81 @@ def leer_tuit(url):
     return None, None
 
 
+ES_INSTAGRAM = re.compile(
+    r"^https?://(www\.)?instagram\.com/(p|reel|tv)/([\w-]+)", re.I)
+
+
+def leer_instagram(url):
+    """Devuelve (cuenta, texto) de una publicacion de Instagram, o (None, None).
+
+    EL TRUCO ES EL USER-AGENT, y no hace falta ni Tavily ni credenciales.
+    Instagram es una aplicacion de JavaScript como X: a un navegador le sirve una
+    pagina vacia y leer_enlace() encuentra cero parrafos ("sin texto de nota:
+    instagram.com", que es lo que salio el 07/09/2026 con dos enlaces que
+    mandaron Edicion y Ariana). Pero a un RASTREADOR le sirve las etiquetas
+    Open Graph para poder previsualizar el enlace, y ahi va el pie entero.
+
+    Medido ese mismo dia con un post real: con agente de navegador, og:title y
+    og:description vienen VACIOS; con 'facebookexternalhit' -el que usa Telegram
+    para sus previsualizaciones- vienen los dos, con la cuenta, la fecha y 524
+    caracteres de pie.
+
+    No es un rodeo: es la via que Instagram publica a proposito para que se
+    puedan previsualizar sus enlaces. La alternativa, su API oficial, exige una
+    app de Meta revisada.
+
+    og:description trae "cuenta on September 2, 2026: «el pie»", que es de donde
+    salen la cuenta y el texto.
+    """
+    if not ES_INSTAGRAM.match(url or ""):
+        return None, None
+    import html as _html
+
+    try:
+        pet = urllib.request.Request(
+            url, headers={"User-Agent": "facebookexternalhit/1.1"})
+        with urllib.request.urlopen(pet, timeout=30) as r:
+            doc = r.read().decode("utf-8", "replace")
+    except Exception:  # noqa: BLE001
+        return None, None
+
+    def meta(prop):
+        m = re.search(r'property="og:%s"[^>]+content="([^"]*)"' % prop, doc)
+        if not m:
+            m = re.search(r'content="([^"]*)"[^>]+property="og:%s"' % prop, doc)
+        return _html.unescape(m.group(1)) if m else ""
+
+    desc, titulo = meta("description"), meta("title")
+    if not desc and not titulo:
+        return None, None
+
+    # "beycocapital on September 2, 2026: «...»"  ->  cuenta y pie por separado.
+    m = re.match(r"\s*([A-Za-z0-9._]+)\s+on\s+[^:]+:\s*(.*)", desc, re.S)
+    cuenta, texto = (m.group(1), m.group(2)) if m else ("", desc)
+    # El nombre visible ("Bloomberg Línea") dice mas que el usuario y es lo que
+    # luego se busca en la lista blanca. Va delante del " on Instagram:".
+    visible = titulo.split(" on Instagram")[0].strip()
+    texto = re.sub(r'^[«"“]|[»"”]\.?$', "", texto.strip()).strip()
+    return (visible or cuenta or None), (texto or None)
+
+
+def leer_publicacion(url):
+    """El texto de una publicacion de red social: (autor, texto, como_se_llama).
+
+    X e Instagram tienen el mismo problema y la misma forma de resolverse, asi
+    que se atienden por la misma puerta. Tener dos ramas paralelas en el flujo
+    es como se llega a que una se arregle y la otra no: paso con la comprobacion
+    de duplicados, que distinguia el tuit en un sitio y no en el otro.
+    """
+    if ES_TUIT.match(url or ""):
+        autor, texto = leer_tuit(url)
+        return autor, texto, "tuit"
+    if ES_INSTAGRAM.match(url or ""):
+        autor, texto = leer_instagram(url)
+        return autor, texto, "publicación de Instagram"
+    return None, None, ""
+
+
 def _escapar(t):
     return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
@@ -748,9 +823,10 @@ def main():
         # no tiene nada que ver: el bloqueo era correcto -esa noticia si estaba
         # publicada- pero la pieza que se nombraba salia de comparar basura.
         # Un motivo equivocado hace que una decision buena parezca un fallo.
-        if ES_TUIT.match(peticion):
-            _, texto_tuit = leer_tuit(peticion)
-            titulo_previo = (texto_tuit or "")[:200]
+        _, texto_red, _ = leer_publicacion(peticion)
+        if texto_red is not None or ES_TUIT.match(peticion) or \
+                ES_INSTAGRAM.match(peticion):
+            titulo_previo = (texto_red or "")[:200]
         else:
             titulo_previo, _, _ = leer_enlace(peticion)
         # Se compara contra las piezas DE SU MISMO FORMATO: una columna sobre lo
@@ -790,14 +866,16 @@ def main():
     # lee para saber QUE buscar, y se escribe desde el articulo original. Un
     # tuit no se puede auditar, y en esta misma casa uno afirmaba algo falso
     # sobre las Malvinas que solo se detecto comprobandolo aparte.
-    if ES_TUIT.match(peticion):
-        print("\n--- 2. ES UN TUIT: LO LEO Y BUSCO EL ORIGINAL ---")
-        autor, texto = leer_tuit(peticion)
+    if ES_TUIT.match(peticion) or ES_INSTAGRAM.match(peticion):
+        autor, texto, que_es = leer_publicacion(peticion)
+        print("\n--- 2. ES UN %s: LO LEO Y BUSCO EL ORIGINAL ---"
+              % que_es.upper())
         if not texto:
-            print("  No pude leer ese tuit.")
-            _mensaje_telegram(args.chat, "🔍 <b>No pude leer ese tuit.</b>\n\n"
-                              "Puede estar borrado o ser una cuenta protegida. "
-                              "Si tienes el enlace de la noticia, mándamelo con "
+            print("  No pude leer ese %s." % que_es)
+            _mensaje_telegram(args.chat,
+                              "🔍 <b>No pude leer ese enlace.</b>\n\nPuede estar "
+                              "borrado o ser una cuenta privada. Si tienes el "
+                              "enlace de la noticia, mándamelo con "
                               "<code>/nota</code>.")
             return 0
         print("  @%s: %s" % (autor, texto[:110]))

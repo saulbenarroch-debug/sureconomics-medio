@@ -190,7 +190,28 @@ def buscar_original(lectura, dias=15, umbral=PARECIDO_MINIMO):
     # nota de El Pais de dos horas de antiguedad no devolvia nada, ni siquiera
     # buscando sin restringir dominios. Los RSS, en cambio, la tienen al minuto,
     # y ademas son la lista blanca por construccion.
+    # LO PRIMERO DE TODO: SI SE SABE DE QUE MEDIO ES, SE BUSCA AHI.
+    #
+    # La captura trae el logo del diario y el modelo lo lee; un post de
+    # Instagram trae la cuenta que lo publico. Esa es la pista mas fuerte que
+    # hay y se estaba tirando: el 07/09/2026 una captura de Bloomberg Línea
+    # sobre Radia Perlman se buscaba por palabras del titular en los 45 medios
+    # de la lista, no encontraba nada, y la corrida terminaba diciendo "no
+    # encuentro esta noticia en ninguna fuente verificable" con el nombre del
+    # medio impreso dos lineas mas arriba.
+    #
+    # Buscar en su diario es otra pregunta, no la misma con menos ruido: dentro
+    # de un solo dominio, un titular parecido casi siempre ES la nota.
     crudos = []
+    suyos = buscador.dominios_de(lectura.get("medio"))
+    if suyos:
+        print("  dice que es de %s: busco ahi primero" % ", ".join(suyos))
+        crudos += buscador.buscar(consulta, dias=dias, maximo=8,
+                                  dominios=suyos, como_noticias=False,
+                                  ordenar=False)
+        if crudos:
+            print("  %d resultado(s) en su propio medio" % len(crudos))
+
     try:
         from motor.fuentes import noticias
         # titulares() y no extraer(): el 'limite' de extraer es un tope GLOBAL y
