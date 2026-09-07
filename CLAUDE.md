@@ -61,8 +61,34 @@ documentado más abajo, caso por caso.
 - una **captura de pantalla** → la lee, deduce el medio y busca el original
 - un **enlace de X o de Instagram** → lee la publicación y busca el original
 
-Nunca escribe desde el tuit o la captura: esos dicen QUÉ buscar. Se escribe desde
-el artículo del medio, que es lo único auditable.
+Un tuit o una captura dicen QUÉ buscar; se escribe desde el artículo del medio,
+que es lo auditable. **Con una excepción, y tiene dos condiciones.**
+
+### Cuando la publicación SÍ es la fuente
+
+Si no aparece el artículo original, la publicación puede serlo, pero solo si se
+sabe **de quién es la cuenta** (`fuente_de_la_publicacion` en `nota.py`):
+
+1. **La cuenta es de un medio de la lista.** Lo que Bloomberg Línea publica en su
+   Instagram lo publica Bloomberg Línea. Fuente secundaria, se cita igual que su
+   web: *«según informó Bloomberg Línea en su cuenta de Instagram»*.
+2. **La cuenta es de una figura pública.** Que un jefe de Estado diga algo en su
+   cuenta ES la noticia, y es fuente **primaria**: no se cuenta que ocurrió algo,
+   se cuenta que lo dijo.
+
+**La diferencia entre las dos viaja en la instrucción y no es cosmética.** En la
+primera los datos son reportería del medio; en la segunda son **afirmaciones de
+quien habla**, y el prompt exige atribuirle cada una («según dijo», «afirmó»).
+Publicar como hecho comprobado lo que solo dice un post es el error que este
+sistema existe para impedir.
+
+**Nada de esto lo decide un modelo.** El medio se comprueba contra la lista
+blanca; la persona, contra **Wikidata**, que guarda la cuenta oficial de cada
+figura pública (P2003 Instagram, P2002 X). De cualquiera de ellas hay cuentas de
+parodia y de suplantación: escribir «Trump dijo» desde una que no es la suya
+sería el peor fallo posible del motor. Comprobado que `realdonaldtrump`,
+`delcyrodriguezven` y `nicolasmaduro` resuelven a su persona, y que
+`beycocapital`, `espacio.media` y `bloomberglinea` no resuelven a nadie.
 
 ## Tipos de pieza
 

@@ -372,7 +372,7 @@ def leer_instagram(url):
     salen la cuenta y el texto.
     """
     if not ES_INSTAGRAM.match(url or ""):
-        return None, None
+        return None, None, None
     import html as _html
 
     try:
@@ -381,7 +381,7 @@ def leer_instagram(url):
         with urllib.request.urlopen(pet, timeout=30) as r:
             doc = r.read().decode("utf-8", "replace")
     except Exception:  # noqa: BLE001
-        return None, None
+        return None, None, None
 
     def meta(prop):
         m = re.search(r'property="og:%s"[^>]+content="([^"]*)"' % prop, doc)
@@ -391,7 +391,16 @@ def leer_instagram(url):
 
     desc, titulo = meta("description"), meta("title")
     if not desc and not titulo:
-        return None, None
+        return None, None, None
+
+    # EL CONTADOR VA DELANTE CUANDO EL POST TIENE INTERACCIONES, y no siempre:
+    # de un post sin ellas llega "beycocapital on September 2, 2026: ...", y de
+    # uno con ellas "167 likes, 2 comments - bloomberglinea on September 7...".
+    # Sin quitarlo, el usuario salia vacio, y el usuario es lo que permite
+    # comprobar DE QUIEN es la cuenta: sin el, una publicacion de una figura
+    # publica no se podria verificar y no se escribiria. Se vio el 07/09/2026.
+    desc = re.sub(r"^\s*[\d.,KMkm]+\s+likes?,\s*[\d.,KMkm]+\s+comments?\s*-\s*",
+                  "", desc)
 
     # "beycocapital on September 2, 2026: «...»"  ->  cuenta y pie por separado.
     m = re.match(r"\s*([A-Za-z0-9._]+)\s+on\s+[^:]+:\s*(.*)", desc, re.S)
@@ -400,24 +409,129 @@ def leer_instagram(url):
     # luego se busca en la lista blanca. Va delante del " on Instagram:".
     visible = titulo.split(" on Instagram")[0].strip()
     texto = re.sub(r'^[«"“]|[»"”]\.?$', "", texto.strip()).strip()
-    return (visible or cuenta or None), (texto or None)
+    return (visible or cuenta or None), (texto or None), (cuenta or None)
 
 
 def leer_publicacion(url):
-    """El texto de una publicacion de red social: (autor, texto, como_se_llama).
+    """Una publicacion de red social, o None si no lo es o no se pudo leer.
+
+    Devuelve un diccionario y no una tupla porque le fueron haciendo falta mas
+    campos -el USUARIO ademas del nombre visible, para poder comprobar de quien
+    es la cuenta- y una tupla que crece se rompe en el sitio que nadie mira.
 
     X e Instagram tienen el mismo problema y la misma forma de resolverse, asi
     que se atienden por la misma puerta. Tener dos ramas paralelas en el flujo
     es como se llega a que una se arregle y la otra no: paso con la comprobacion
     de duplicados, que distinguia el tuit en un sitio y no en el otro.
     """
-    if ES_TUIT.match(url or ""):
+    m = ES_TUIT.match(url or "")
+    if m:
         autor, texto = leer_tuit(url)
-        return autor, texto, "tuit"
+        # El usuario va en la propia direccion: x.com/<usuario>/status/<id>.
+        usuario = (url.split("x.com/")[-1].split("twitter.com/")[-1]
+                   .split("/")[0].split("?")[0])
+        return {"autor": autor, "usuario": usuario, "texto": texto,
+                "red": "x", "que_es": "tuit"}
     if ES_INSTAGRAM.match(url or ""):
-        autor, texto = leer_instagram(url)
-        return autor, texto, "publicación de Instagram"
-    return None, None, ""
+        autor, texto, usuario = leer_instagram(url)
+        return {"autor": autor, "usuario": usuario, "texto": texto,
+                "red": "instagram", "que_es": "publicación de Instagram"}
+    return None
+
+
+def fuente_de_la_publicacion(post):
+    """¿Se puede escribir DESDE esta publicacion? Devuelve como citarla, o None.
+
+    LA REGLA DE LA CASA ERA "UN POST NO ES FUENTE", y sigue siendo cierta para
+    un post cualquiera: no se puede auditar lo que dice una cuenta que no se
+    sabe de quien es. Pero hay dos casos en los que la publicacion SI es una
+    fuente legitima, y negarse a escribirlos era perder noticias reales:
+
+      1. LA CUENTA ES DE UN MEDIO DE LA LISTA. Lo que Bloomberg Línea publica en
+         su Instagram lo publica Bloomberg Línea. Es fuente secundaria, igual
+         que su web, y se cita igual.
+
+      2. LA CUENTA ES DE UNA FIGURA PUBLICA. Que un jefe de Estado diga algo en
+         su cuenta ES la noticia, y es fuente PRIMARIA: no se cuenta que ocurrio
+         algo, se cuenta que lo dijo. Los diarios llevan haciendo esto desde que
+         existen las redes.
+
+    LA DIFERENCIA ENTRE LAS DOS IMPORTA Y VIAJA EN LA INSTRUCCION. En la primera
+    los datos son reporteria del medio; en la segunda son AFIRMACIONES DE QUIEN
+    HABLA, y presentarlas como hechos comprobados seria justo el error que este
+    sistema existe para impedir.
+
+    Y EN NINGUN CASO LO DECIDE UN MODELO. El medio se comprueba contra la lista
+    blanca y la persona contra Wikidata, que guarda la cuenta oficial de cada
+    figura publica. De cualquiera de ellas hay cuentas de parodia y de
+    suplantacion; escribir "Trump dijo" desde una que no es la suya seria el
+    peor fallo posible de este motor.
+    """
+    if not post or not post.get("texto"):
+        return None
+    from motor import buscador, entidad
+
+    red = post.get("red") or "instagram"
+    donde = "Instagram" if red == "instagram" else "X"
+    usuario = (post.get("usuario") or "").lstrip("@")
+
+    # 1. ¿Es la cuenta de un medio de la lista?
+    if buscador.dominios_de(post.get("autor")) or buscador.dominios_de(usuario):
+        medio = post.get("autor") or usuario
+        return {
+            "medio": medio,
+            "por": "medio de la lista",
+            "declarante": "",
+            "instruccion": (
+                "La fuente es lo que %s publicó en su cuenta de %s. Cítalo así, "
+                "por su nombre y diciendo que fue en %s. Es fuente secundaria "
+                "como cualquier diario." % (medio, donde, donde)),
+        }
+
+    # 2. ¿Es la cuenta oficial de una figura publica?
+    quien = entidad.de_quien_es_la_cuenta(usuario, red)
+    if quien:
+        return {
+            "medio": "%s (cuenta oficial en %s)" % (quien["nombre"], donde),
+            "por": "figura pública verificada en Wikidata",
+            "declarante": quien["nombre"],
+            "instruccion": (
+                "La fuente es lo que %s publicó en su cuenta oficial de %s. La "
+                "noticia es QUE LO DIJO, no que sea cierto: atribúyele cada "
+                "afirmación y cada cifra ('según dijo', 'afirmó', 'sostuvo'). No "
+                "escribas como hecho comprobado nada que solo diga esa "
+                "publicación." % (quien["nombre"], donde)),
+        }
+    return None
+
+
+def registrar_publicacion(url, post, propia):
+    """Deja la publicacion en fuentes_manuales/ y devuelve su nombre.
+
+    Es la misma via que usa la redaccion para los medios que no se dejan leer
+    por maquina: el texto se guarda entero y el auditor comprueba contra el.
+    """
+    import json as _json
+
+    (AQUI / "fuentes_manuales").mkdir(exist_ok=True)
+    texto = post.get("texto") or ""
+    nombre = _apodo(texto[:60] or url)
+    ficha = {
+        "hecho": texto[:180],
+        "fecha": date.today().isoformat(),
+        "medio": propia["medio"],
+        "url": url,
+        "texto": texto,
+        # El pie entero es la cita: es contra esto que el auditor comprueba que
+        # una frase entrecomillada exista de verdad.
+        "citas": [texto],
+    }
+    if propia.get("declarante"):
+        ficha["declarante"] = propia["declarante"]
+    (AQUI / "fuentes_manuales" / (nombre + ".json")).write_text(
+        _json.dumps(ficha, ensure_ascii=False, indent=2), encoding="utf-8")
+    print("  publicación registrada como fuente '%s'" % nombre)
+    return nombre
 
 
 def _escapar(t):
@@ -626,6 +740,141 @@ def mandar_al_chat(borrador, chat, quien=""):
     return enviados > 0
 
 
+def producir_y_entregar(nombre, tipo, encargo, autor, args,
+                        portada_url="", declarar_ia=False):
+    """Escribe desde una fuente ya registrada, audita y entrega.
+
+    UNA SOLA VIA DE ENTREGA. Aqui llegan los dos caminos: el normal,
+    que lee uno o varios articulos y los registra, y el de una
+    publicacion de red social que es fuente por si misma. Correo,
+    Telegram y panel son los mismos para los dos, y tenerlos dos veces
+    es como se llega a que uno se arregle y el otro no.
+    """
+    print("\n--- 3. ESCRIBIR Y AUDITAR ---")
+    r = subprocess.run(
+        [sys.executable, str(AQUI / "motor" / "producir.py"),
+         "--tipo", tipo, "--manual", nombre, "--encargo", encargo]
+        + (["--autor", autor] if autor else []),
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        timeout=25 * 60)
+    print((r.stdout or "")[-1500:])
+    if r.returncode != 0 and (r.stderr or "").strip():
+        print("  FALLO:")
+        for l in (r.stderr or "").strip().splitlines()[-6:]:
+            print("    " + l[:150])
+
+    # SE LEE EL NOMBRE QUE DIJO producir.py, NO SE VUELVE A CALCULAR.
+    #
+    # Calcularlo aqui por segunda vez ya costo caro: producir.py bautiza el
+    # borrador con la PRIMERA fuente y aqui se pasaba la lista entera, asi que
+    # desde que /nota lee varias fuentes el exists() daba False SIEMPRE. La
+    # pieza se escribia, pasaba el auditor y se quedaba en el disco del runner,
+    # sin llegar a Telegram ni al panel, y la corrida terminaba diciendo que no
+    # se habia generado.
+    #
+    # Y ahora producir.py ademas numera el archivo cuando ya existe uno igual,
+    # para no pisar una columna anterior. O sea que el nombre depende de lo que
+    # haya en el disco y NO se puede deducir desde fuera. Se lee de su salida,
+    # que es la unica fuente de verdad, y el calculo local queda solo de reserva
+    # por si algun dia cambia ese mensaje.
+    dicho = re.search(r"Borrador guardado en borradores/(\S+\.txt)",
+                      r.stdout or "")
+    borrador = AQUI / "borradores" / dicho.group(1) if dicho else None
+    if not borrador or not borrador.exists():
+        # LA RESERVA NO REPITE LA REGLA DEL NOMBRE, BUSCA POR EL PRINCIPIO. Que
+        # las dos partes calculen el nombre completo es justo lo que fallo dos
+        # veces esta semana; con un glob, cualquier cambio de sufijo -el tipo,
+        # el numero de los repetidos- sigue encontrandolo.
+        base = nombre.split(",")[0].strip()
+        hallados = sorted((AQUI / "borradores").glob(base + "_*.txt"),
+                          key=lambda p: p.stat().st_mtime)
+        borrador = hallados[-1] if hallados else (
+            AQUI / "borradores" / ("%s_%s.txt" % (base, tipo.lower())))
+    if not borrador.exists():
+        print("\nNo se genero el borrador. Revisa el fallo de arriba.")
+        print("  buscaba: %s" % borrador.name)
+        _avisar_fallo(args.chat, "No pude escribirla",
+                      "La fuente se leyó bien, pero la redacción falló. "
+                      "Vuelve a pedírmela; si insiste, hay que mirar el log.")
+        return 1
+
+    print("\n--- 4. ENTREGA ---")
+    carpeta = AQUI / ("peticion-" + date.today().isoformat() + "-" + nombre[:18])
+    carpeta.mkdir(exist_ok=True)
+    for sufijo in (".txt", ".json"):
+        origen = borrador.with_suffix(sufijo)
+        if origen.exists():
+            (carpeta / ("1-" + nombre[:26] + sufijo)).write_bytes(origen.read_bytes())
+    r = subprocess.run([sys.executable, str(AQUI / "enviar.py"), str(carpeta), args.correo],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    print((r.stdout or "")[-300:])
+
+    # El correo va primero y siempre. Esto es un extra: quien la pidio por el
+    # chat la recibe por el chat, sin cambiar de aplicacion para leerla.
+    #
+    # Y VA ENVUELTO PORQUE ES UN EXTRA. La primera version no lo estaba y un
+    # simple "import os" que faltaba tumbo la corrida entera DESPUES de haber
+    # escrito la pieza y mandado el correo: el trabajo estaba hecho, la nota
+    # entregada, y GitHub mando un aviso de fallo. Nada que ocurra despues de la
+    # entrega puede marcar la corrida como fallida.
+    if args.chat:
+        try:
+            mandar_al_chat(borrador, args.chat, args.quien)
+        except Exception as exc:  # noqa: BLE001
+            print("  [chat] no se pudo mandar (%s). El correo ya salio." % str(exc)[:90])
+
+    # 5. Al panel, COMO BORRADOR. Ni aqui ni en subir.py hay forma de publicar:
+    #    publicar es un acto editorial y lo hace una persona.
+    #
+    #    Va al final y envuelto, por lo mismo de siempre: si el panel esta caido
+    #    o la cuenta de servicio no responde, la pieza ya se escribio, se auditó
+    #    y se entrego por dos canales. No se pierde nada.
+    if not args.sin_subir and os.environ.get("SURECONOMICS_USUARIO", "").strip():
+        print("\n--- 5. AL PANEL ---")
+        try:
+            r = subprocess.run([sys.executable, str(AQUI / "armar_carga.py"), str(carpeta)],
+                               capture_output=True, text=True, encoding="utf-8",
+                               errors="replace", timeout=20 * 60)
+            print((r.stdout or "")[-400:])
+            carga = carpeta / "carga.json"
+
+            # La portada que llego por el chat se mete AQUI, pisando lo que
+            # hubiera decidido armar_carga.py. Si una persona se molesto en
+            # mandar una imagen concreta, manda ella y no el buscador.
+            if carga.exists() and portada_url:
+                import json as _json
+                d = _json.loads(carga.read_text(encoding="utf-8"))
+                piezas = d if isinstance(d, list) else d.get("piezas", [])
+                for pieza in piezas:
+                    pieza["foto"] = portada_url
+                    pieza["credito"] = ""
+                    if declarar_ia and LINEA_IA not in (pieza.get("cuerpo_html") or ""):
+                        pieza["cuerpo_html"] = (pieza.get("cuerpo_html") or "") + LINEA_IA
+                carga.write_text(_json.dumps(d, ensure_ascii=False, indent=2),
+                                 encoding="utf-8")
+                print("  portada puesta en la carga%s"
+                      % (" y declarada como IA" if declarar_ia else ""))
+
+            if carga.exists():
+                # Se suben tambien las bloqueadas, marcadas con el aviso. Es lo
+                # que pidio el dueño: mejor tenerla en el panel y arreglarla ahi.
+                r = subprocess.run([sys.executable, str(AQUI / "subir.py"), str(carga),
+                                    "--subir-bloqueadas"],
+                                   capture_output=True, text=True, encoding="utf-8",
+                                   errors="replace", timeout=20 * 60)
+                print((r.stdout or "")[-700:] + (r.stderr or "")[-300:])
+            else:
+                print("  No se armo la carga. No se sube nada.")
+        except Exception as exc:  # noqa: BLE001
+            print("  [panel] no se pudo subir (%s)." % str(exc)[:90])
+            print("  La pieza esta entregada por correo y por el chat.")
+    elif not args.sin_subir:
+        print("\n[panel] sin SURECONOMICS_USUARIO: no se sube. Solo correo y chat.")
+
+    print("\nListo. Queda en borrador, como todo.")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description="Una pieza a peticion")
     ap.add_argument("peticion", nargs="?", default="",
@@ -654,6 +903,9 @@ def main():
     # Los demas medios que cuentan lo mismo, cuando la noticia viene de una
     # captura o de un tuit. Con /nota a secas es una lista vacia.
     alternativas = []
+    # Se rellena solo cuando la fuente acaba siendo la propia publicación de una
+    # red social. Ver fuente_de_la_publicacion().
+    nombre_manual = None
     print("=" * 70)
     # El pie de foto manda sobre el --tipo del workflow: lo escribio una persona
     # ahora mismo, y el otro es el valor por defecto del formulario.
@@ -854,10 +1106,9 @@ def main():
         # no tiene nada que ver: el bloqueo era correcto -esa noticia si estaba
         # publicada- pero la pieza que se nombraba salia de comparar basura.
         # Un motivo equivocado hace que una decision buena parezca un fallo.
-        _, texto_red, _ = leer_publicacion(peticion)
-        if texto_red is not None or ES_TUIT.match(peticion) or \
-                ES_INSTAGRAM.match(peticion):
-            titulo_previo = (texto_red or "")[:200]
+        post = leer_publicacion(peticion)
+        if post is not None:
+            titulo_previo = (post.get("texto") or "")[:200]
         else:
             titulo_previo, _, _ = leer_enlace(peticion)
         # Se compara contra las piezas DE SU MISMO FORMATO: una columna sobre lo
@@ -898,7 +1149,13 @@ def main():
     # tuit no se puede auditar, y en esta misma casa uno afirmaba algo falso
     # sobre las Malvinas que solo se detecto comprobandolo aparte.
     if ES_TUIT.match(peticion) or ES_INSTAGRAM.match(peticion):
-        autor, texto, que_es = leer_publicacion(peticion)
+        post = leer_publicacion(peticion) or {}
+        # 'cuenta' y NO 'autor': aqui vivia un fallo callado. Esta rama asignaba
+        # a 'autor' el nombre de la cuenta y pisaba la firma de la pieza, asi que
+        # "/nota <tuit> firma: Óscar Doval" habria publicado firmado por la
+        # cuenta del tuit. Quien firma y quien publico el post no son lo mismo.
+        cuenta, texto = post.get("autor"), post.get("texto")
+        que_es = post.get("que_es") or "publicación"
         print("\n--- 2. ES UN %s: LO LEO Y BUSCO EL ORIGINAL ---"
               % que_es.upper())
         if not texto:
@@ -909,27 +1166,54 @@ def main():
                               "enlace de la noticia, mándamelo con "
                               "<code>/nota</code>.")
             return 0
-        print("  @%s: %s" % (autor, texto[:110]))
+        print("  @%s: %s" % (cuenta, texto[:110]))
         from motor import captura
         # El texto crudo del tuit NO sirve como consulta: hashtags, arrobas y
         # guiones dan cero resultados. Se destila a titular y palabras clave.
         lectura = captura.leer_texto(texto) or {
             "titular": texto[:180], "busqueda": texto[:180],
-            "medio": autor, "fecha": "", "texto": texto, "legible": True}
-        lectura["medio"] = autor
+            "medio": cuenta, "fecha": "", "texto": texto, "legible": True}
+        lectura["medio"] = cuenta
         print("  busco: %s" % lectura.get("busqueda", ""))
         candidatos = captura.buscar_original(lectura)
         if not candidatos:
-            print("  No encuentro esta noticia en ninguna fuente verificable.")
-            _avisar_captura(args.chat, {
-                "lectura": lectura,
-                "motivo": "leí el tuit, pero no encuentro la noticia en ninguna "
-                          "fuente verificable. Un tuit solo no se puede auditar."})
-            return 0
-        print("  original: %s · %s" % (candidatos[0].get("medio", ""),
-                                       candidatos[0].get("titular", "")[:70]))
-        peticion = candidatos[0]["url"]
-        alternativas = candidatos
+            # SI NO HAY ARTICULO, LA PUBLICACION PUEDE SER LA FUENTE, pero solo
+            # cuando se sabe DE QUIEN ES la cuenta. Ver fuente_de_la_publicacion.
+            propia = fuente_de_la_publicacion(post)
+            if propia:
+                print("  sin artículo, pero la cuenta es de %s (%s): escribo "
+                      "desde la publicación" % (propia["medio"], propia["por"]))
+                # Se registra y se SIGUE la cadena de siempre. No hay una via
+                # aparte: auditoria, correo, Telegram y panel son los mismos, y
+                # duplicarlos es como se llega a que uno se arregle y el otro no.
+                nombre_manual = registrar_publicacion(peticion, post, propia)
+                encargo = (encargo + " " + propia["instruccion"]).strip()
+            else:
+                print("  No encuentro esta noticia en ninguna fuente verificable.")
+                _avisar_captura(args.chat, {
+                    "lectura": lectura,
+                    "motivo": "leí la publicación, pero no encuentro la noticia "
+                              "en ninguna fuente verificable, y la cuenta que la "
+                              "publica no es de un medio de la lista ni de una "
+                              "figura pública con cuenta registrada."})
+                return 0
+        # Solo si HAY original. Cuando la fuente acaba siendo la propia
+        # publicación, `candidatos` está vacía y esto reventaba con IndexError
+        # justo después de registrarla bien.
+        if candidatos:
+            print("  original: %s · %s" % (candidatos[0].get("medio", ""),
+                                           candidatos[0].get("titular", "")[:70]))
+            peticion = candidatos[0]["url"]
+            alternativas = candidatos
+
+    if nombre_manual:
+        # La fuente ya está registrada: es la propia publicación. No hay nada
+        # que leer y se entra directo a escribir, por la cadena de siempre.
+        print("\n--- 2. LA FUENTE ES LA PROPIA PUBLICACIÓN ---")
+        print("  registrada como '%s'" % nombre_manual)
+        # portada_url y declarar_ia van por defecto: una publicación de red
+        # social no trae portada adjunta, y de la portada se ocupa armar_carga.
+        return producir_y_entregar(nombre_manual, tipo, encargo, autor, args)
 
     print("\n--- 2. LEER LA FUENTE ---")
 
@@ -1045,129 +1329,8 @@ def main():
         print("  [aviso] el registro no dijo el nombre; uso '%s'" % nombre)
     print("  fuente registrada como '%s'" % nombre)
 
-    print("\n--- 3. ESCRIBIR Y AUDITAR ---")
-    r = subprocess.run(
-        [sys.executable, str(AQUI / "motor" / "producir.py"),
-         "--tipo", tipo, "--manual", nombre, "--encargo", encargo]
-        + (["--autor", autor] if autor else []),
-        capture_output=True, text=True, encoding="utf-8", errors="replace",
-        timeout=25 * 60)
-    print((r.stdout or "")[-1500:])
-    if r.returncode != 0 and (r.stderr or "").strip():
-        print("  FALLO:")
-        for l in (r.stderr or "").strip().splitlines()[-6:]:
-            print("    " + l[:150])
-
-    # SE LEE EL NOMBRE QUE DIJO producir.py, NO SE VUELVE A CALCULAR.
-    #
-    # Calcularlo aqui por segunda vez ya costo caro: producir.py bautiza el
-    # borrador con la PRIMERA fuente y aqui se pasaba la lista entera, asi que
-    # desde que /nota lee varias fuentes el exists() daba False SIEMPRE. La
-    # pieza se escribia, pasaba el auditor y se quedaba en el disco del runner,
-    # sin llegar a Telegram ni al panel, y la corrida terminaba diciendo que no
-    # se habia generado.
-    #
-    # Y ahora producir.py ademas numera el archivo cuando ya existe uno igual,
-    # para no pisar una columna anterior. O sea que el nombre depende de lo que
-    # haya en el disco y NO se puede deducir desde fuera. Se lee de su salida,
-    # que es la unica fuente de verdad, y el calculo local queda solo de reserva
-    # por si algun dia cambia ese mensaje.
-    dicho = re.search(r"Borrador guardado en borradores/(\S+\.txt)",
-                      r.stdout or "")
-    borrador = AQUI / "borradores" / dicho.group(1) if dicho else None
-    if not borrador or not borrador.exists():
-        # LA RESERVA NO REPITE LA REGLA DEL NOMBRE, BUSCA POR EL PRINCIPIO. Que
-        # las dos partes calculen el nombre completo es justo lo que fallo dos
-        # veces esta semana; con un glob, cualquier cambio de sufijo -el tipo,
-        # el numero de los repetidos- sigue encontrandolo.
-        base = nombre.split(",")[0].strip()
-        hallados = sorted((AQUI / "borradores").glob(base + "_*.txt"),
-                          key=lambda p: p.stat().st_mtime)
-        borrador = hallados[-1] if hallados else (
-            AQUI / "borradores" / ("%s_%s.txt" % (base, tipo.lower())))
-    if not borrador.exists():
-        print("\nNo se genero el borrador. Revisa el fallo de arriba.")
-        print("  buscaba: %s" % borrador.name)
-        _avisar_fallo(args.chat, "No pude escribirla",
-                      "La fuente se leyó bien, pero la redacción falló. "
-                      "Vuelve a pedírmela; si insiste, hay que mirar el log.")
-        return 1
-
-    print("\n--- 4. ENTREGA ---")
-    carpeta = AQUI / ("peticion-" + date.today().isoformat() + "-" + nombre[:18])
-    carpeta.mkdir(exist_ok=True)
-    for sufijo in (".txt", ".json"):
-        origen = borrador.with_suffix(sufijo)
-        if origen.exists():
-            (carpeta / ("1-" + nombre[:26] + sufijo)).write_bytes(origen.read_bytes())
-    r = subprocess.run([sys.executable, str(AQUI / "enviar.py"), str(carpeta), args.correo],
-                       capture_output=True, text=True, encoding="utf-8", errors="replace")
-    print((r.stdout or "")[-300:])
-
-    # El correo va primero y siempre. Esto es un extra: quien la pidio por el
-    # chat la recibe por el chat, sin cambiar de aplicacion para leerla.
-    #
-    # Y VA ENVUELTO PORQUE ES UN EXTRA. La primera version no lo estaba y un
-    # simple "import os" que faltaba tumbo la corrida entera DESPUES de haber
-    # escrito la pieza y mandado el correo: el trabajo estaba hecho, la nota
-    # entregada, y GitHub mando un aviso de fallo. Nada que ocurra despues de la
-    # entrega puede marcar la corrida como fallida.
-    if args.chat:
-        try:
-            mandar_al_chat(borrador, args.chat, args.quien)
-        except Exception as exc:  # noqa: BLE001
-            print("  [chat] no se pudo mandar (%s). El correo ya salio." % str(exc)[:90])
-
-    # 5. Al panel, COMO BORRADOR. Ni aqui ni en subir.py hay forma de publicar:
-    #    publicar es un acto editorial y lo hace una persona.
-    #
-    #    Va al final y envuelto, por lo mismo de siempre: si el panel esta caido
-    #    o la cuenta de servicio no responde, la pieza ya se escribio, se auditó
-    #    y se entrego por dos canales. No se pierde nada.
-    if not args.sin_subir and os.environ.get("SURECONOMICS_USUARIO", "").strip():
-        print("\n--- 5. AL PANEL ---")
-        try:
-            r = subprocess.run([sys.executable, str(AQUI / "armar_carga.py"), str(carpeta)],
-                               capture_output=True, text=True, encoding="utf-8",
-                               errors="replace", timeout=20 * 60)
-            print((r.stdout or "")[-400:])
-            carga = carpeta / "carga.json"
-
-            # La portada que llego por el chat se mete AQUI, pisando lo que
-            # hubiera decidido armar_carga.py. Si una persona se molesto en
-            # mandar una imagen concreta, manda ella y no el buscador.
-            if carga.exists() and portada_url:
-                import json as _json
-                d = _json.loads(carga.read_text(encoding="utf-8"))
-                piezas = d if isinstance(d, list) else d.get("piezas", [])
-                for pieza in piezas:
-                    pieza["foto"] = portada_url
-                    pieza["credito"] = ""
-                    if declarar_ia and LINEA_IA not in (pieza.get("cuerpo_html") or ""):
-                        pieza["cuerpo_html"] = (pieza.get("cuerpo_html") or "") + LINEA_IA
-                carga.write_text(_json.dumps(d, ensure_ascii=False, indent=2),
-                                 encoding="utf-8")
-                print("  portada puesta en la carga%s"
-                      % (" y declarada como IA" if declarar_ia else ""))
-
-            if carga.exists():
-                # Se suben tambien las bloqueadas, marcadas con el aviso. Es lo
-                # que pidio el dueño: mejor tenerla en el panel y arreglarla ahi.
-                r = subprocess.run([sys.executable, str(AQUI / "subir.py"), str(carga),
-                                    "--subir-bloqueadas"],
-                                   capture_output=True, text=True, encoding="utf-8",
-                                   errors="replace", timeout=20 * 60)
-                print((r.stdout or "")[-700:] + (r.stderr or "")[-300:])
-            else:
-                print("  No se armo la carga. No se sube nada.")
-        except Exception as exc:  # noqa: BLE001
-            print("  [panel] no se pudo subir (%s)." % str(exc)[:90])
-            print("  La pieza esta entregada por correo y por el chat.")
-    elif not args.sin_subir:
-        print("\n[panel] sin SURECONOMICS_USUARIO: no se sube. Solo correo y chat.")
-
-    print("\nListo. Queda en borrador, como todo.")
-    return 0
+    return producir_y_entregar(nombre, tipo, encargo, autor, args,
+                               portada_url, declarar_ia)
 
 
 if __name__ == "__main__":

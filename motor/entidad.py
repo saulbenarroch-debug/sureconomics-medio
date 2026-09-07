@@ -145,6 +145,45 @@ def para(titulo, lugares=None, resumen="", explicar=False):
     return None, conocidas
 
 
+# De quien es una cuenta, segun Wikidata. P2003 es el usuario de Instagram y
+# P2002 el de X.
+CUENTAS = {"instagram": "P2003", "x": "P2002", "twitter": "P2002"}
+
+
+def de_quien_es_la_cuenta(usuario, red="instagram"):
+    """¿A quien pertenece esa cuenta? Devuelve la ficha, o None.
+
+    ES LA COMPROBACION QUE PERMITE ESCRIBIR DESDE UNA DECLARACION. Contar que
+    "Trump dijo" apoyandose en una cuenta que no es la suya seria el peor error
+    posible de este sistema, y no es un riesgo teorico: de cualquier figura
+    publica hay cuentas de parodia, de fans y de suplantacion.
+
+    Wikidata guarda la cuenta OFICIAL de cada persona e institucion, asi que la
+    pregunta se responde con un dato y no con el criterio de un modelo: el
+    usuario que firma el post o es el que Wikidata tiene registrado, o no se
+    escribe desde ahi.
+
+    Comprobado el 07/09/2026: realdonaldtrump, delcyrodriguezven y nicolasmaduro
+    resuelven a su persona; beycocapital, espacio.media y bloomberglinea no
+    resuelven a nadie, que es el resultado correcto para una cuenta que no es de
+    una figura publica documentada.
+    """
+    propiedad = CUENTAS.get((red or "").lower())
+    usuario = (usuario or "").strip().lstrip("@")
+    if not propiedad or not usuario:
+        return None
+    d = _pedir({"action": "query", "list": "search",
+                "srsearch": "haswbstatement:%s=%s" % (propiedad, usuario),
+                "srlimit": "3", "format": "json"})
+    for r in (d.get("query") or {}).get("search", []):
+        f = ficha(r["title"])
+        # Solo personas. Una empresa o un medio con cuenta se atiende por la
+        # lista blanca, que es donde se decide si es fuente aceptable.
+        if f and f.get("persona"):
+            return f
+    return None
+
+
 def buscar_ficha(nombre, idioma="es"):
     """El identificador de Wikidata que mejor case con ese nombre, o None."""
     d = _pedir({"action": "wbsearchentities", "search": nombre[:120],
