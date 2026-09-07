@@ -1,0 +1,289 @@
+# SurEconomics — el medio
+
+Contexto para Claude Code y para cualquiera del equipo que trabaje en este repo.
+Si cambias algo estructural (una fuente, un umbral, un horario, un secreto),
+**actualízalo aquí en el mismo commit**.
+
+El bot de Telegram vive en otro repo (`C:\Users\saulb\telegram-finance-bot`) y
+tiene su propio CLAUDE.md. Ese es la **puerta**; este es el **motor**.
+
+## Qué es
+
+Un medio digital latinoamericano de economía, finanzas y economía política. Línea
+editorial progresista sin extremos, decisión del dueño. Publica en
+sureconomics.com a través de un panel propio.
+
+**El motor no publica.** Todo lo que produce entra como BORRADOR y lo aprueba una
+persona. No hay excepción, y varias decisiones de este repo solo se entienden
+desde ahí.
+
+## La regla que explica el resto
+
+> **El código trae las cifras y audita. La IA solo redacta prosa.**
+
+Todo lo verificable —cifras, fechas, atribuciones, duplicados, formato— lo decide
+código determinista. El modelo escribe el texto y propone; nunca decide si algo
+es cierto. Cuando algo de esto se relaja, se rompe en producción: está
+documentado más abajo, caso por caso.
+
+## Cómo va una pieza de la nada al panel
+
+```
+  recolectar / captura / nota          ¿de qué se escribe?
+        ↓
+  motor/documentalista.py              arma el EXPEDIENTE (paquete.py)
+        ↓
+  motor/redactor.py                    prompts/ + perfiles/  → prosa
+        ↓
+  motor/economista.py                  critica el razonamiento; si dice
+                                       "revisar", el redactor da otra pasada
+        ↓
+  motor/auditor.py                     bloquea lo que no cuadre
+        ↓
+  armar_carga.py                       clasifica, busca foto, arma carga.json
+        ↓
+  subir.py                             POST al panel, siempre como borrador
+```
+
+## Los tres caminos de entrada
+
+| Camino | Qué lo dispara | Archivo |
+|---|---|---|
+| **Tandas diarias** | cron del Worker, 8:00 y 14:00 VET | `orquestar.py` → `.github/workflows/diario.yml` |
+| **A petición** | `/nota` en Telegram | `nota.py` → `nota.yml` |
+| **Vigilancia** | enlaces sueltos que alguien deja | `vigilar.py` → `vigilancia.yml` |
+
+`/nota` acepta cuatro cosas y las distingue solo:
+
+- un **enlace** de un medio → escribe desde esa fuente
+- un **tema escrito a mano** → lo busca en la lista blanca y cruza hasta
+  `MAX_FUENTES = 3` medios
+- una **captura de pantalla** → la lee, deduce el medio y busca el original
+- un **enlace de X o de Instagram** → lee la publicación y busca el original
+
+Nunca escribe desde el tuit o la captura: esos dicen QUÉ buscar. Se escribe desde
+el artículo del medio, que es lo único auditable.
+
+## Tipos de pieza
+
+Seis, cada uno con su prompt en `prompts/`. `armar_carga.FORMATOS` los traduce a
+los cinco formatos que tiene el sitio.
+
+| Tipo | Prompt | Formato en el panel | Firma |
+|---|---|---|---|
+| Noticia | `10-noticia.md` | `noticia` | Redacción |
+| **Análisis** | `60-analisis.md` | `articulo` | Redacción |
+| Opinión | `20-opinion.md` | `articulo` | **persona, obligatoria** |
+| Editorial | `30-editorial.md` | `editorial` | Redacción |
+| Investigación | `40-investigacion.md` | `informe` | **persona, obligatoria** |
+| Educación | `50-educacion.md` | `articulo` | opcional |
+
+**La frontera entre Noticia, Análisis y Opinión es lo único difícil de esto.** La
+noticia cuenta el hecho. La opinión defiende una tesis y la firma una persona. El
+análisis explica el mecanismo sin defender nada: *el lector tiene que poder
+discrepar de la conclusión y quedarse con la explicación*. Está escrito en
+`60-analisis.md` y es el criterio con el que se corrige.
+
+Nadie escribe el nombre interno del tipo: se pide "un artículo", "una columna",
+"un reportaje". `nota.SINONIMOS` los traduce. **Artículo = Análisis**, porque en
+el sitio ese formato se llama `articulo`.
+
+## Umbrales, y de dónde sale cada número
+
+Ninguno se elige a ojo. Todos salen de medir contra casos reales y todos tienen
+su historia escrita al lado del código.
+
+| Constante | Valor | Dónde | Qué decide |
+|---|---|---|---|
+| `memoria.UMBRAL` | 0.36 | `motor/memoria.py` | si algo ya se publicó |
+| `captura.PARECIDO_MINIMO` | 0.45 | `motor/captura.py` | si un candidato es la nota |
+| `captura.PARECIDO_AUTOMATICO` | 0.75 | `motor/captura.py` | si lo es sin preguntar |
+| `nota.MAX_FUENTES` | 3 | `nota.py` | cuántos medios se cruzan |
+| `foto.ANCHO_MINIMO` | 1000 | `motor/foto.py` | portada demasiado pequeña |
+
+`memoria.UMBRAL` lleva su propia bitácora en el docstring (0.40 → 0.31 → 0.36) y
+un aviso que hay que respetar: **el hueco entre duplicados reales y falsos
+positivos se ha estrechado de 0.144 a 0.035.** Cuando se cierre habrá que cambiar
+de método, no de número.
+
+## Reglas de oro (no negociables)
+
+1. **Ninguna cifra que no esté en el expediente.** Ni redondeada, ni estimada. El
+   auditor lo comprueba y bloquea.
+2. **Toda fuente usada se nombra en el texto**, no solo al pie. La lista de
+   fuentes del final no es una atribución.
+3. **Secretos solo en `.env` y en GitHub Secrets.** Nunca en el código ni pegados
+   en un chat. Si uno se expone, se revoca antes de rotarlo.
+4. **Degradación suave.** Si Tavily cae, quedan los feeds. Si Gemini se agota,
+   está Groq. Si el panel falla, el correo sale igual. Mantener ese patrón.
+5. **Nada se publica solo.** Todo entra como borrador.
+6. **El `schedule:` de GitHub no es el reloj.** Llega con horas de retraso
+   (medido: 12:00 UTC → 16:22). Lo dispara el cron del Worker. El `schedule` de
+   `diario.yml` se queda como red: la `guardia` salta el del reloj si esa tanda
+   ya salió.
+
+## Trampas conocidas (leer antes de depurar)
+
+Cada una costó al menos una tarde.
+
+### Del expediente y el auditor
+
+1. **Las cifras vienen con la norma del medio que las publicó.** El Economista es
+   mexicano y escribe `2.61%`; el extractor entendía solo la norma española y
+   guardaba `61 %`. No era un fallo de formato: el expediente afirmaba que Apple
+   subió 61 % citando a un medio que dijo 2,61 %. Se aceptan las dos normas, con
+   los millares antes que los decimales para que `1.500` siga siendo mil
+   quinientos.
+2. **Una fecha no es una cifra.** Ni «2 de septiembre», ni `2026-08-31` en una
+   línea de referencia. Las dos formas se quitan antes de buscar números.
+3. **Si dos medios publican la misma cifra, basta nombrar a uno.** Con el
+   multi-fuente, la cifra del titular la publica todo el que cubre la historia:
+   exigir la lista entera bloqueaba piezas que citaban correctamente y empujaba a
+   atribuirle a un medio algo leído en otro.
+4. **Un aviso por hueco, no por cifra.** La comprobación de atribución vivía
+   dentro del bucle de advertencias y salían nueve hallazgos idénticos.
+
+### De la memoria de duplicados
+
+5. **El filtro previo no atraviesa el idioma.** Corre antes de escribir, cuando
+   el titular todavía es el de la fuente: «Por que a Holanda retirou toneladas de
+   ouro» puntúa 0.336 y pasa; ya en español, la misma pieza puntúa 0.620. Por eso
+   se comprueba **otra vez en `armar_carga.py`**, con el titular final.
+6. **Se compara contra piezas del MISMO formato.** Una columna sobre lo que ya se
+   reportó no es un duplicado: es lo que hace un medio todos los días.
+7. **Un tuit se lee como tuit también en la comprobación de duplicados.** Pasarle
+   la URL de x.com a `leer_enlace()` devuelve su muro de acceso, y se comparaba
+   esa basura contra lo publicado: un bloqueo correcto señalando la pieza
+   equivocada. Un motivo equivocado hace que una decisión buena parezca un fallo.
+
+### De los archivos y los procesos
+
+8. **`producir.py` fija su salida a UTF-8, y no es cosmético.** Al llamarlo como
+   subproceso, la tubería usa cp1252 y la «ó» de `opinión` se pierde: `nota.py`
+   buscaba `opini?n-2.txt`, no existía, y daba por no generada una pieza escrita
+   y auditada. Ni Telegram ni panel.
+9. **El nombre del borrador se calcula en UN sitio.** Lo calculaban los dos y
+   falló dos veces en una semana. Ahora `producir.py` lo imprime y `nota.py` lo
+   lee de ahí. Además se numera (`-2`, `-3`) si ya existe: dos columnas del mismo
+   tema se pisaban en silencio.
+
+### De la búsqueda
+
+10. **`topic:"news"` de Tavily excluye a los medios pequeños**, y además su
+    relevancia es inestable: la misma consulta devolvió seis piezas correctas y,
+    minutos después, resultados de otro tema. Por eso se consultan los dos modos
+    y **se exige que el candidato NOMBRE el asunto**.
+11. **Las páginas de etiqueta ganan una búsqueda por texto.** «Nombre: Noticias,
+    Fotos y Videos», «Nombre - Diario.com», «Sección - Página 731 de 8174». Son
+    donde ese nombre aparece más veces. `_es_indice()` las descarta, y se piden
+    tres veces más resultados de los que se van a usar porque el filtro vacía la
+    primera página.
+12. **Una ficha de podcast no es una nota.** «BBC Audio | Global News Podcast» se
+    deja leer y devuelve el resumen del episodio; la pieza se escribió desde ahí.
+13. **El relleno de hablar arruina la consulta.** «lo que dijo X hoy» reparte el
+    peso entre palabras vacías: el primer resultado era de otro tema. Se limpia
+    antes de buscar (`nota._consulta_limpia`).
+14. **Si la captura dice de qué medio es, se va ahí primero** —y se leen sus
+    feeds a fondo (21 días, 100 por feed) en vez de por encima como los 51. Leer
+    hondo en uno cuesta lo mismo que leer por encima en cuarenta.
+15. **Los feeds de sección no son solo de economía.** De un medio aprobado, una
+    nota fuera de su sección económica era invisible. Los feeds añadidos van con
+    `economia=False`: `titulares()` (capturas) los ve enteros, `extraer()` (pozo
+    de las tandas) les exige vocabulario económico.
+16. **Google News encuentra lo que el RSS no ve, pero su enlace no sirve.** Es un
+    redirector cifrado que desde 2024 solo salta por JavaScript (comprobado
+    decodificándolo: 437 bytes, sin URL dentro). `titulares_google()` **nunca
+    devuelve enlaces** a propósito, para que ninguno pueda colar un redirector en
+    el expediente. Sirve para decir «esto existe, pásame el enlace».
+
+### De las redes sociales
+
+17. **X e Instagram son aplicaciones de JavaScript**: `leer_enlace()` encuentra
+    cero párrafos. X se lee por su oEmbed. **Instagram se lee cambiando el
+    User-Agent**: a un navegador le sirve la página vacía, a
+    `facebookexternalhit` le sirve las etiquetas Open Graph con la cuenta, la
+    fecha y el pie entero. Es la vía que Instagram publica para que se puedan
+    previsualizar sus enlaces; su API oficial exige una app de Meta revisada.
+18. **Los dos se atienden por la misma puerta** (`leer_publicacion`). Tener dos
+    ramas paralelas es como se llega a que una se arregle y la otra no.
+
+### De las portadas
+
+19. **La imagen ilustra el ASUNTO, no la sección.** Buscar en Commons palabras
+    del titular daba el Museu do Ipiranga encabezando una nota de morosidad. Se
+    le pregunta a **Wikidata cuál es la imagen de la entidad**: P18 imagen, P154
+    logo, P41 bandera.
+20. **Si se sabe de quién habla y no hay imagen suya, no se pone ninguna.** Sin
+    esto, una nota sobre la salida a bolsa de Shein eligió el retrato de Ali
+    Mohamed Shein, expresidente de Zanzíbar.
+21. **La bandera solo si el país es el ÚNICO asunto.** Si el titular nombra algo
+    más, o es la imagen de eso o ninguna. Y se descarta la entidad país entera,
+    no solo su bandera: quitando solo P41, el hueco lo ocupaba el mapa del país.
+22. **Wikidata separa figura pública de particular sin que nadie mantenga una
+    lista.** Un jefe de Estado tiene ficha y retrato libre; la víctima de un
+    suceso, no. Cuando no hay ficha no hay foto, que es el resultado que se
+    quería.
+23. **Un SVG no tiene medidas** y Commons fecha banderas y logos por cuando se
+    adoptó el diseño (la del Reino Unido consta como de 1801). Las reglas de
+    tamaño y antigüedad no se les aplican; a las fotografías sí, enteras.
+
+## Comandos
+
+```bash
+python orquestar.py --tanda manana --piezas 6 --con-foto   # la tanda completa
+python nota.py "<enlace o tema>" --tipo Análisis            # una pieza
+python nota.py "<tema>" --tipo Opinión --autor "Nombre"     # una columna
+python armar_carga.py <carpeta>                             # carga.json
+python subir.py <carga.json> --subir-bloqueadas             # al panel
+python reauditar.py <nombre-sin-extension>                  # volver a auditar
+python comprobar.py                                         # salud de fuentes e IA
+python buscar_foto.py "<consulta>"                          # portadas a mano
+```
+
+Las pruebas son scripts `pruebas_*.py`: auditor, memoria, paquete, candidato y
+clasificar. **No hay framework**: se corren y se mira la salida.
+
+Sin Python global en Windows: hay un runtime portátil en
+`C:\Users\saulb\telegram-finance-bot\.pyruntime\`.
+
+## Credenciales y cuentas
+
+- **Panel:** `SURECONOMICS_USUARIO` / `SURECONOMICS_CLAVE`. No hay token
+  estático: `subir.py` hace `POST /auth/login` y reintenta una vez ante un 401.
+- **`JWT_SECRET_KEY` del backend NO se comparte jamás.** Firma los tokens: con
+  ella se puede falsificar la sesión de cualquier usuario.
+- **Las claves viven en el `.env` del bot**, que es la misma máquina. Si algún
+  día se separan los despliegues, esto pasa a un `.env` propio.
+- **Tavily** (`TAVILY_API_KEY`): plan gratuito de 1.000 créditos/mes. Cuando se
+  agota devuelve **432** y la búsqueda desaparece en silencio salvo por el aviso.
+  Sin ella quedan los feeds. Pago por uso a $0,008 el crédito.
+- **Gemini** con respaldo en **Groq**. Cada modelo tiene cuota diaria propia. Si
+  Gemini se agota, `comprobar.py` lo da por **fallo crítico y no arranca la
+  tanda**: es deliberado, pero conviene saberlo cuando una corrida falle en un
+  minuto sin escribir nada.
+
+## Convenciones
+
+- **Español** en comentarios, docstrings y mensajes de commit.
+- Los comentarios explican **por qué**, no qué. Casi la mitad de las líneas de
+  este repo son explicación, y es a propósito: buena parte de lo que hay aquí son
+  decisiones aprendidas a golpes. **Si borras un comentario así, se repite el
+  error.**
+- Sin dependencias nuevas salvo necesidad real.
+- Antes de cambiar un umbral, **mídelo** contra casos reales y deja la medición
+  escrita.
+
+## Pendientes conocidos
+
+- **Rotar la clave de `sur@bot.com`** (se pegó en un chat) y bajarle el rol de
+  `admin` a `editor`.
+- Recargar Tavily. Mientras tanto, capturas y temas sueltos van solo con feeds.
+- No hay endpoint de subida de imágenes en el panel (`POST /admin/media` da 405):
+  solo se puede adjuntar por dirección web. `motor/imagen_publica.py` es un apaño
+  hasta que los desarrolladores lo añadan con la migración a R2.
+- Ampliar la lista blanca con macro de EE. UU. **Ojo:** hay que probar por
+  separado el host del RSS y el del artículo; `bancaynegocios.com` tiene el feed
+  muerto y los artículos legibles, y por eso está en `REFERENCIA` y no en
+  `MEDIOS`.
+- Barrer las piezas publicadas por si hay atribuciones invertidas: el auditor
+  comprueba que la fuente se nombre, no que la cita sea suya.
