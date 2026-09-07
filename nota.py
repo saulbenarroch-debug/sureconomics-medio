@@ -965,11 +965,17 @@ def main():
     # por si algun dia cambia ese mensaje.
     dicho = re.search(r"Borrador guardado en borradores/(\S+\.txt)",
                       r.stdout or "")
-    if dicho:
-        borrador = AQUI / "borradores" / dicho.group(1)
-    else:
+    borrador = AQUI / "borradores" / dicho.group(1) if dicho else None
+    if not borrador or not borrador.exists():
+        # LA RESERVA NO REPITE LA REGLA DEL NOMBRE, BUSCA POR EL PRINCIPIO. Que
+        # las dos partes calculen el nombre completo es justo lo que fallo dos
+        # veces esta semana; con un glob, cualquier cambio de sufijo -el tipo,
+        # el numero de los repetidos- sigue encontrandolo.
         base = nombre.split(",")[0].strip()
-        borrador = AQUI / "borradores" / ("%s_%s.txt" % (base, tipo.lower()))
+        hallados = sorted((AQUI / "borradores").glob(base + "_*.txt"),
+                          key=lambda p: p.stat().st_mtime)
+        borrador = hallados[-1] if hallados else (
+            AQUI / "borradores" / ("%s_%s.txt" % (base, tipo.lower())))
     if not borrador.exists():
         print("\nNo se genero el borrador. Revisa el fallo de arriba.")
         print("  buscaba: %s" % borrador.name)

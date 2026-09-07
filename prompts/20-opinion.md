@@ -31,6 +31,17 @@ un autor, no inventes uno ni firmes como redacción: devuelve la pieza con
 Una opinión sin autor no es una opinión: es un editorial anónimo. Si lo que
 corresponde es un editorial, se usa el prompt de editorial.
 
+## Nombra al medio DENTRO del texto, no solo al pie
+
+Opinar no exime de atribuir. Si un dato viene de un diario, ese diario se nombra
+en la frase que lo usa: *"según Contrapunto"*, *"como publicó El Pitazo"*. La
+lista de fuentes del final **no cuenta** como atribución.
+
+La primera columna que produjo el motor, el 07/09/2026, se bloqueó por esto y
+por nada más: usaba nueve datos de Contrapunto y no lo nombraba ni una vez. Una
+columna es tuya en el juicio, no en los hechos, y los hechos siguen siendo de
+quien los reportó.
+
 ## Estructura
 
 1. **Título** — una línea.

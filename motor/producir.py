@@ -15,6 +15,22 @@ _RAIZ = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_RAIZ))
 sys.path.insert(0, str(_RAIZ / ".libs"))  # openpyxl, para Damodaran
 
+# LA SALIDA VA EN UTF-8, Y NO ES COSMETICA. Este era el unico script del repo
+# que no lo fijaba, y cuando nota.py lo llama como subproceso la tuberia usa la
+# codificacion del sistema (cp1252 en Windows): la «ó» de "opinión" no cabe y
+# sale un caracter de reemplazo.
+#
+# Eso rompio algo de verdad el 07/09/2026. nota.py lee de esta salida el nombre
+# del borrador -porque desde que se numeran los repetidos ya no se puede deducir
+# desde fuera-, buscaba "opini?n-2.txt", no existia, y daba por no generada una
+# pieza que estaba escrita y auditada. La columna no llegaba ni a Telegram ni al
+# panel.
+#
+# reconfigure y NO io.TextIOWrapper: envolver el buffer crea un objeto nuevo y
+# el primero que se recoge cierra el buffer. Esta escrito en armar_carga.py, que
+# ya lo sufrio tres veces.
+sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 from dotenv import load_dotenv  # noqa: E402
 
 from motor import auditor, documentalista, economista, redactor  # noqa: E402
