@@ -550,6 +550,11 @@ def auditar(pieza, paquete, encargo=""):
                           "falta la firma (puede ser 'Redacción SurEconomics')"))
 
     # --- 7. Las advertencias del paquete son obligatorias --------------------
+    # La comprobacion de atribucion se hace UNA VEZ, aunque el paquete traiga
+    # nueve avisos de "ATRIBUCIÓN OBLIGATORIA": no depende del aviso, mira el
+    # paquete entero contra el texto entero. Corriendola por cada uno salian
+    # nueve hallazgos identicos, y quien los lee es un editor con prisa.
+    atribucion_revisada = False
     for aviso in paquete.advertencias:
         anios = re.findall(r"\b(19\d{2}|20\d{2})\b", aviso)
         # Si el extractor avisa que el dato es viejo, el año TIENE que aparecer
@@ -560,6 +565,9 @@ def auditar(pieza, paquete, encargo=""):
                                   f"el paquete avisa que el dato es de {anios[0] if anios else '?'} "
                                   f"y el texto no lo dice en ninguna parte"))
         elif "ATRIBUCIÓN OBLIGATORIA" in aviso:
+            if atribucion_revisada:
+                continue
+            atribucion_revisada = True
             # Publicar la cifra de un diario esta bien; publicarla sin decir de
             # quien es, no. La atribucion es lo que separa citar de apropiarse,
             # y se comprueba: el nombre del medio tiene que estar en el texto.
@@ -575,15 +583,37 @@ def auditar(pieza, paquete, encargo=""):
             # dos caracteres: la calificacion de Damodaran es "C", y un "in texto"
             # a secas la encontraba en cualquier parte, asi que se exigia
             # atribucion siempre.
-            usadas = set()
+            # SI VARIOS MEDIOS PUBLICAN LA MISMA CIFRA, BASTA NOMBRAR A UNO.
+            #
+            # Esta era la parte que fallaba desde que /nota lee varias fuentes.
+            # La cifra del titular la publica TODO el que cubre la historia: el
+            # acuerdo petrolero de septiembre salia con "65.000 millones de
+            # barriles" en El Nacional y en Contrapunto a la vez. La columna del
+            # 07/09/2026 escribio "de acuerdo con informaciones difundidas por El
+            # Nacional... 65.000 millones", que es exactamente como se cita, y se
+            # bloqueo nueve veces por no nombrar ademas a Contrapunto.
+            #
+            # Un periodista cita DE DONDE TOMO el dato, no a todos los que lo
+            # publicaron. Exigir la lista entera no es mas riguroso: obliga a
+            # amontonar medios en una frase y, peor, empuja a atribuirle a uno
+            # algo que se leyo en otro.
+            #
+            # Asi que se agrupa por VALOR: cada cifra que aparece en el texto
+            # crea un requisito, y el requisito se cumple nombrando a cualquiera
+            # de los medios que la publican.
+            por_valor = {}
             for c in paquete.cifras:
                 valor = str(c.valor).strip()
                 if len(valor) < 3:
                     continue
-                if re.search(rf"(?<![\w,.]){re.escape(valor)}(?![\w])", texto):
-                    usadas.add(c.fuente_id)
-            # El medio de la noticia se nombra siempre: el hecho es suyo.
-            usadas |= {f.id for f in paquete.fuentes[:1]}
+                por_valor.setdefault(valor, set()).add(c.fuente_id)
+
+            requisitos = [ids for valor, ids in por_valor.items()
+                          if re.search(rf"(?<![\w,.]){re.escape(valor)}(?![\w])",
+                                       texto)]
+            # El medio de la noticia se nombra siempre: el hecho es suyo. Este
+            # requisito no tiene alternativa, va solo.
+            requisitos += [{f.id} for f in paquete.fuentes[:1]]
             # Se comprueban las PARTES del nombre, no la cadena entera. Una
             # fuente puede llamarse "J.P. Morgan (EMBIG), vía Banco Central de
             # Reserva del Perú" y eso jamas aparece literal en un texto bien
@@ -601,15 +631,33 @@ def auditar(pieza, paquete, encargo=""):
                 return re.sub(r"[^a-z0-9]", "", s)
 
             texto_pelado = _pelado(texto)
-            faltan = []
-            for f in (f for f in paquete.fuentes if f.id in usadas):
-                for parte in _partes_del_nombre(f.institucion):
-                    if _pelado(parte) not in texto_pelado:
-                        faltan.append(parte)
-            if faltan:
+            por_id = {f.id: f for f in paquete.fuentes}
+
+            def nombrada(ident):
+                """¿Esta esa fuente nombrada en el texto, con todas sus partes?"""
+                f = por_id.get(ident)
+                if not f:
+                    return False
+                return all(_pelado(p) in texto_pelado
+                           for p in _partes_del_nombre(f.institucion))
+
+            # UN AVISO POR MEDIO QUE FALTA, no uno por cifra. Nueve cifras del
+            # mismo diario daban nueve lineas identicas, y quien las lee es un
+            # editor con prisa: repetir no informa, esconde.
+            dichos = set()
+            for ids in requisitos:
+                if any(nombrada(i) for i in ids):
+                    continue
+                opciones = [por_id[i].institucion for i in sorted(ids)
+                            if i in por_id]
+                if not opciones or tuple(opciones) in dichos:
+                    continue
+                dichos.add(tuple(opciones))
+                cual = (opciones[0] if len(opciones) == 1
+                        else "alguno de estos: " + ", ".join(opciones))
                 h.append(Hallazgo("bloqueo", "sin-atribucion",
-                                  f"la informacion es de {', '.join(faltan)} y el "
-                                  f"texto no lo nombra en ninguna parte"))
+                                  f"la informacion es de {cual} y el texto no lo "
+                                  f"nombra en ninguna parte"))
             if "sacado de" not in (pieza.get("sacado_de") or "").lower():
                 h.append(Hallazgo("bloqueo", "sin-sacado-de",
                                   "falta la linea «Sacado de: <medio>, <fecha> · "
