@@ -27,7 +27,7 @@ como fuente. El buscador acorta la busqueda, no sustituye la comprobacion.
 import os
 import re
 import unicodedata
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
 import requests
 
@@ -81,6 +81,17 @@ ARTICULOS_DE = {
 }
 
 
+def _sin_tildes(s):
+    """Minusculas y sin acentos, conservando espacios."""
+    s = unicodedata.normalize("NFKD", str(s or "").lower())
+    return "".join(c for c in s if not unicodedata.combining(c))
+
+
+def _pelado(s):
+    """Solo letras y numeros: para comparar nombres de medios."""
+    return re.sub(r"[^a-z0-9]", "", _sin_tildes(s))
+
+
 def dominios_de(nombre):
     """Los dominios de un medio nombrado a la ligera, o [] si no esta en la lista.
 
@@ -95,9 +106,21 @@ def dominios_de(nombre):
     lo escribe es un modelo leyendo un logo: dijo "bloomberglinea" y en la lista
     pone "Bloomberg Línea". Comparar las cadenas tal cual no casa nunca.
     """
-    buscado = re.sub(r"[^a-z0-9]", "",
-                     unicodedata.normalize("NFKD", str(nombre or "").lower()))
-    buscado = "".join(c for c in buscado if not unicodedata.combining(c))
+    return sorted({d for _, d, _ in _encajes(nombre)})
+
+
+def claves_de(nombre):
+    """Las CLAVES de la lista blanca de ese medio, para leer sus feeds a fondo.
+
+    dominios_de() sirve para acotar una busqueda; esto, para ir directo a sus
+    RSS. Es la misma correspondencia y por eso comparten _encajes().
+    """
+    return sorted({k for k, _, _ in _encajes(nombre)})
+
+
+def _encajes(nombre):
+    """(clave, dominio, url) de los medios que casan con ese nombre."""
+    buscado = _pelado(nombre)
     if len(buscado) < 4:
         return []
     # GANA LA COINCIDENCIA MAS LARGA, que es la mas especifica. Vale la
@@ -108,13 +131,11 @@ def dominios_de(nombre):
     # diario equivocado no es un matiz.
     exactos, parciales = [], []
     for clave, m in MEDIOS.items():
-        pelado = re.sub(r"[^a-z0-9]", "", unicodedata.normalize(
-            "NFKD", m["nombre"].lower()))
-        pelado = "".join(c for c in pelado if not unicodedata.combining(c))
+        pelado = _pelado(m["nombre"])
         if pelado == buscado or clave == buscado:
-            exactos.append((len(pelado), m["url"]))
+            exactos.append((len(pelado), clave, m["url"]))
         elif pelado in buscado or buscado in pelado:
-            parciales.append((len(pelado), m["url"]))
+            parciales.append((len(pelado), clave, m["url"]))
 
     # LO EXACTO MANDA SOBRE LO PARCIAL. Sin esto, "Bloomberg" a secas caia en
     # Bloomberg Línea, porque "bloomberg" cabe dentro y es la cadena mas larga.
@@ -123,17 +144,89 @@ def dominios_de(nombre):
     encajes = exactos or parciales
     if not encajes:
         return []
-    mejor = max(n for n, _ in encajes)
+    mejor = max(n for n, _, _ in encajes)
 
-    fuera = set()
-    for n, url in encajes:
+    fuera = []
+    for n, clave, url in encajes:
         if n != mejor:
             continue
         host = urlparse(url).netloc.replace("www.", "")
-        fuera.add(ARTICULOS_DE.get(host, host))
+        fuera.append((clave, ARTICULOS_DE.get(host, host), url))
         if host.startswith("feeds."):
-            fuera.add(host[len("feeds."):])
-    return sorted(fuera)
+            fuera.append((clave, host[len("feeds."):], url))
+    return fuera
+
+
+def titulares_google(consulta, dominios=None, maximo=4):
+    """Titulares que Google News encuentra, SIN enlace utilizable.
+
+    PARA QUE SIRVE Y PARA QUE NO. Google News es gratis y no gasta creditos, y
+    encuentra lo que el rastreo de RSS no ve: el 07/09/2026, una nota de
+    tecnologia de Bloomberg Línea que sus feeds de economia no traen. Pero su
+    enlace es un redirector cifrado que desde 2024 solo salta por JavaScript,
+    asi que del lado del servidor no lleva a ninguna parte. Se comprobo tambien
+    decodificando el «CBM...»: son 437 bytes cifrados, sin URL dentro.
+
+    O sea que NO sirve para escribir -sin enlace no hay nota que leer ni que
+    auditar-, pero si para DECIRLE A LA REDACCION QUE LA NOTA EXISTE y con que
+    titular exacto. Eso convierte un "no encuentro nada" en un enlace que la
+    persona pega en cinco segundos.
+
+    Nunca devuelve enlaces a proposito: que ningun camino de este archivo pueda
+    colar un redirector en el expediente.
+    """
+    import xml.etree.ElementTree as ET
+
+    q = (consulta or "").strip()
+    if not q:
+        return []
+    if dominios:
+        q = "(%s) %s" % (" OR ".join("site:" + d for d in dominios), q)
+    url = ("https://news.google.com/rss/search?q=" + quote(q) +
+           "&hl=es-419&gl=VE&ceid=VE:es-419")
+    try:
+        r = requests.get(url, timeout=25,
+                         headers={"User-Agent": "Mozilla/5.0 (compatible; "
+                                                "SurEconomics/1.0)"})
+        raiz = ET.fromstring(r.content)
+    except Exception as exc:  # noqa: BLE001
+        print("[aviso] Google News no respondio: %s" % str(exc)[:60])
+        return []
+
+    # Las mismas palabras que se exigen en nota.py: sin esto Google devuelve
+    # tambien las paginas de seccion del medio ("Tecnología: últimas noticias").
+    claves = [p for p in re.findall(r"[^\W\d_]{4,}", _sin_tildes(consulta.lower()))
+              if p not in ("sobre", "para", "como", "segun", "noticias")]
+    fuera, vistos = [], set()
+    for it in raiz.findall(".//item"):
+        titular = _limpio(it.findtext("title") or "")
+        # Aqui NO se puede usar _es_indice(): pide una direccion y Google News
+        # no da ninguna utilizable, y con la ruta vacia esa funcion lo da todo
+        # por portada y descarta hasta el resultado bueno. Se miran solo las
+        # señales del TITULAR, que es lo unico que hay.
+        if not titular or _TITULAR_INDICE.search(titular) \
+                or _MEDIO_NO_ESCRITO.search(titular):
+            continue
+        plano = _sin_tildes(titular.lower())
+        if claves and sum(1 for k in claves if k in plano) < 2:
+            continue
+        medio = ""
+        for hijo in it:
+            if hijo.tag.endswith("source"):
+                medio = (hijo.text or "").strip()
+        # Google News pega " - Medio" al final de cada titular. El medio ya va
+        # en su propio campo, y repetido dentro del titular ensucia el aviso.
+        if medio and titular.endswith(" - " + medio):
+            titular = titular[:-len(" - " + medio)].rstrip()
+        clave = (titular[:60], medio)
+        if clave in vistos:
+            continue
+        vistos.add(clave)
+        fuera.append({"titular": titular, "medio": medio,
+                      "fecha": (it.findtext("pubDate") or "")[:16]})
+        if len(fuera) >= maximo:
+            break
+    return fuera
 
 
 def dominios_permitidos():

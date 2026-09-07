@@ -205,12 +205,29 @@ def buscar_original(lectura, dias=15, umbral=PARECIDO_MINIMO):
     crudos = []
     suyos = buscador.dominios_de(lectura.get("medio"))
     if suyos:
-        print("  dice que es de %s: busco ahi primero" % ", ".join(suyos))
+        print("  dice que es de %s: voy ahi primero" % ", ".join(suyos))
+        # SUS FEEDS, A FONDO. El rastreo general mira 45 horas y 12 notas por
+        # medio, que para 51 medios ya es mucho pedir. Pero cuando se sabe de
+        # cual es, son dos o tres feeds y se pueden leer enteros: la nota de
+        # Bloomberg Línea del 07/09/2026 estaba en su feed de tecnologia, en la
+        # posicion 30 y con tres dias, o sea fuera de la ventana por partida
+        # doble. Leer hondo en UN medio cuesta lo mismo que leer por encima en
+        # cuarenta y encuentra lo que aquello no puede.
+        claves = buscador.claves_de(lectura.get("medio"))
+        if claves:
+            try:
+                from motor.fuentes import noticias as _n
+                crudos += _n.titulares(medios=claves, horas=24 * 21,
+                                       por_medio=100)
+                print("  %d titulares de sus propios feeds" % len(crudos))
+            except Exception as exc:  # noqa: BLE001
+                print("  [aviso] no pude leer sus feeds (%s)" % str(exc)[:60])
+        antes = len(crudos)
         crudos += buscador.buscar(consulta, dias=dias, maximo=8,
                                   dominios=suyos, como_noticias=False,
                                   ordenar=False)
-        if crudos:
-            print("  %d resultado(s) en su propio medio" % len(crudos))
+        if len(crudos) > antes:
+            print("  %d resultado(s) buscando en su dominio" % (len(crudos) - antes))
 
     try:
         from motor.fuentes import noticias

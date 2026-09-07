@@ -510,6 +510,37 @@ def _avisar_captura(chat, hallado):
         partes += ["", "Lo que leí en la imagen:",
                    "<i>" + _escapar(lectura["titular"][:200]) + "</i>"]
 
+    # LO QUE GOOGLE NEWS SI VE, cuando no hay ningun candidato. Decir "no
+    # encuentro nada" desperdicia lo que si se sabe: Google News encuentra notas
+    # que el rastreo de RSS no ve -el 07/09/2026, una de tecnologia de Bloomberg
+    # Línea, porque de ese medio solo tenemos los feeds de economia-, pero su
+    # enlace es un redirector cifrado que no lleva a ninguna parte.
+    #
+    # Asi que se enseña el TITULAR EXACTO y se pide el enlace. La persona lo
+    # encuentra en un clic: un callejon sin salida pasa a ser cinco segundos.
+    if not hallado.get("candidatos"):
+        try:
+            from motor import buscador
+            vistos = buscador.titulares_google(
+                lectura.get("busqueda") or lectura.get("titular", ""),
+                buscador.dominios_de(lectura.get("medio")))
+        except Exception:  # noqa: BLE001
+            vistos = []
+        if vistos:
+            partes += ["", "Pero <b>sí existe</b>. Esto es lo que encuentro:"]
+            for v in vistos:
+                # La fecha llega como "Fri, 04 Sep 2026": el dia de la semana
+                # no aporta nada en un aviso de dos lineas.
+                fecha = (v.get("fecha") or "")[5:]
+                partes.append("· <b>%s</b>%s\n<i>%s</i>" % (
+                    _escapar(v["medio"][:26]),
+                    (" · " + _escapar(fecha)) if fecha else "",
+                    _escapar(v["titular"][:150])))
+            partes += ["", "No puedo abrirla desde ahí: Google News da un enlace "
+                       "que no lleva al diario. Búscala y mándame el enlace con "
+                       "<code>/nota</code> y la escribo."]
+            return _mensaje_telegram(chat, "\n".join(partes))
+
     # CUANDO HAY CANDIDATOS DUDOSOS SE ENSEÑAN. Decir "no la encuentro" cuando
     # en realidad hay algo parecido pero incierto desperdicia el trabajo y deja
     # a la persona sin nada que hacer. Con el enlace delante, decide en dos

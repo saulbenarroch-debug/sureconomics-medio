@@ -175,6 +175,41 @@ MEDIOS = {
     "bbglinmerc":  dict(nombre="Bloomberg Línea", pais="Latam", economia=True,
                         url="https://www.bloomberglinea.com/arc/outboundfeeds/"
                             "rss/category/mercados/?outputType=xml"),
+
+    # SECCIONES QUE NO SON ECONOMIA, DE MEDIOS QUE YA ESTABAN. Añadidas el
+    # 07/09/2026 por un fallo concreto: una captura de Bloomberg Línea sobre
+    # Radia Perlman y la IA no se encontraba en ninguna parte, y no era un
+    # problema de fechas -sus feeds cubren tres semanas- sino de SECCION: la
+    # nota es de tecnologia y de ese medio solo teniamos economia y mercados.
+    # Cualquier nota de un diario aprobado que caiga fuera de su seccion
+    # economica era invisible para el rastreo.
+    #
+    # VAN CON economia=False A PROPOSITO, y no es un descuido: extraer(), que
+    # llena el pozo de las tandas, exige vocabulario economico a los feeds
+    # marcados asi, mientras que titulares(), que empareja capturas, no filtra
+    # nada. O sea que sirven para ENCONTRAR el original de lo que manda la
+    # redaccion, pero no arrastran deportes ni farandula a las tandas diarias.
+    #
+    # Probadas una por una: estas seis responden con 100 notas y las del dia.
+    # bloomberglinea/energia y elnacional/politica y /tecnologia devuelven cero
+    # y por eso no estan.
+    "bbglintec":   dict(nombre="Bloomberg Línea", pais="Latam", economia=False,
+                        url="https://www.bloomberglinea.com/arc/outboundfeeds/"
+                            "rss/category/tecnologia/?outputType=xml"),
+    "bbglinneg":   dict(nombre="Bloomberg Línea", pais="Latam", economia=False,
+                        url="https://www.bloomberglinea.com/arc/outboundfeeds/"
+                            "rss/category/negocios/?outputType=xml"),
+    "bbglinlat":   dict(nombre="Bloomberg Línea", pais="Latam", economia=False,
+                        url="https://www.bloomberglinea.com/arc/outboundfeeds/"
+                            "rss/category/latinoamerica/?outputType=xml"),
+    "infobaetec":  dict(nombre="Infobae", pais="Argentina", economia=False,
+                        url="https://www.infobae.com/arc/outboundfeeds/rss/"
+                            "category/tecno/?outputType=xml"),
+    "infobaepol":  dict(nombre="Infobae", pais="Argentina", economia=False,
+                        url="https://www.infobae.com/arc/outboundfeeds/rss/"
+                            "category/politica/?outputType=xml"),
+    "elnacmundo":  dict(nombre="El Nacional", pais="Venezuela", economia=False,
+                        url="https://www.elnacional.com/mundo/feed/"),
     # Nicho latinoamericano que ya usaba el bot: negocios, M&A, capital de riesgo
     # y fintech. Utiles para la linea de Conocimiento.
     # Publica POCO: suele haber varios dias entre notas. Consultarla con ventana
