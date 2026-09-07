@@ -159,12 +159,29 @@ def parecido(a, b, peso=None):
     return comun / base if base else 0.0
 
 
-def ya_cubierto(titular, catalogo=None, umbral=UMBRAL, peso=None):
-    """Devuelve el titulo ya publicado que coincide, o None."""
+def ya_cubierto(titular, catalogo=None, umbral=UMBRAL, peso=None, formato=None):
+    """Devuelve el titulo ya publicado que coincide, o None.
+
+    'formato' ACOTA LA COMPARACION A LAS PIEZAS DE SU MISMA CLASE, y es lo que
+    permite comentar lo que ya se reporto.
+
+    Una columna sobre el acuerdo petrolero no es un duplicado de la noticia que
+    dio ese acuerdo: es lo que hace un medio todos los dias. Sin esto, pedir una
+    opinion o un analisis sobre cualquier tema de actualidad chocaba siempre con
+    la noticia que ya lo habia contado, que es precisamente el tema del que se
+    quiere opinar. Paso el 05/09/2026 con la primera columna que se encargo.
+
+    Lo que si sigue bloqueando es una SEGUNDA columna sobre lo mismo, porque
+    entonces se compara contra las columnas publicadas. Los pesos se calculan
+    con el catalogo entero a proposito: lo que hace raro a un termino es que
+    aparezca poco en TODO lo publicado, no dentro de un formato.
+    """
     if catalogo is None:
         catalogo = publicadas()
     if peso is None:
         peso = pesos(catalogo)
+    if formato:
+        catalogo = [c for c in catalogo if c.get("formato") == formato]
     mejor, puntos = None, 0.0
     for pieza in catalogo:
         p = parecido(titular, pieza["titulo"], peso)

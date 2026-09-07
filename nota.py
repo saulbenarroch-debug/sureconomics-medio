@@ -253,6 +253,58 @@ _VACIAS_CONSULTA = {
 }
 
 
+# QUIEN FIRMA, sacado de lo que se escribio a mano.
+#
+# La opinion EXIGE nombre y apellido: sin autor devuelve faltantes:["autor"] y no
+# hay pieza. Pidiendola por Telegram no llegaba ninguno, asi que las columnas
+# simplemente no se podian encargar desde el bot.
+#
+# SE EXIGEN DOS PALABRAS EN MAYUSCULA, o sea nombre y apellido. Con una sola,
+# "una columna de Venezuela" habria firmado la pieza como "Venezuela": en
+# español "de" introduce tanto al autor como el tema, y no hay forma de
+# distinguirlos por la gramatica. Un nombre completo si es una señal fiable, y
+# ademas es lo que la opinion necesita: firmar con solo el nombre de pila no
+# vale para un medio.
+_NOMBRE = (r"[A-ZÁÉÍÓÚÑ][a-záéíóúñ'’-]+"
+           r"(?:\s+(?:de|del|la|las|los|van|von|da|di)\b)?"
+           r"(?:\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ'’-]+){1,3}")
+# Y HAY DOS CASOS, no uno, porque "de" no basta como señal. "una noticia de
+# Nicolás Maduro" habria firmado la pieza como Maduro: en español "de"
+# introduce igual al autor que al tema, y con un nombre propio detras el
+# sentido lo decide QUE TIPO DE PIEZA es, no la gramatica.
+#
+#   "una columna de Óscar Doval"  -> la escribe Óscar Doval
+#   "una noticia de Óscar Doval"  -> habla de Óscar Doval
+#
+# El "de" suelto solo cuenta en los tipos que van firmados; para el resto hay
+# que decirlo: "firma: X", "firmada por X".
+AUTORIA_EXPLICITA = re.compile(
+    r"\b(?:firmad[ao]\s+por|firma\s*:\s*|firma\s+|escrit[ao]\s+por)\s+("
+    + _NOMBRE + r")", re.UNICODE)
+AUTORIA_IMPLICITA = re.compile(r"\b(?:de|por)\s+(" + _NOMBRE + r")", re.UNICODE)
+
+# Los que no se publican sin nombre y apellido. El editorial no entra: lo firma
+# la redaccion por definicion, que es lo que lo separa de una columna.
+TIPOS_FIRMADOS = ("Opinión", "Investigación")
+
+
+def leer_autor(texto, tipo="Noticia"):
+    """Devuelve (autor, texto_sin_esa_parte). Si no hay nombre, (None, texto).
+
+    Se quita del texto porque lo que queda se usa como tema de busqueda o como
+    instruccion de edicion, y "Óscar Doval" dentro de la consulta busca notas
+    SOBRE Óscar Doval, que es justo lo contrario de lo que se pidio.
+    """
+    texto = texto or ""
+    m = AUTORIA_EXPLICITA.search(texto)
+    if not m and tipo in TIPOS_FIRMADOS:
+        m = AUTORIA_IMPLICITA.search(texto)
+    if not m:
+        return None, texto
+    resto = (texto[:m.start()] + " " + texto[m.end():])
+    return m.group(1).strip(), re.sub(r"\s{2,}", " ", resto).strip()
+
+
 ES_TUIT = re.compile(r"^https?://(www\.)?(x|twitter)\.com/[^/]+/status/(\d+)", re.I)
 
 
@@ -477,6 +529,12 @@ def main():
     ap.add_argument("--tipo", default="Noticia")
     ap.add_argument("--correo", default="saul@rendigroup.com")
     ap.add_argument("--quien", default="", help="quien la pidio, para el correo")
+    # OJO: --autor y --quien no son lo mismo y confundirlos publica mal. --quien
+    # es quien hizo el encargo, y solo sale en el correo interno; --autor es
+    # quien FIRMA la pieza en el sitio. Un jefe puede encargar una columna que
+    # firma otra persona.
+    ap.add_argument("--autor", default="",
+                    help="quien firma la pieza. Obligatorio en Opinión")
     ap.add_argument("--chat", default="", help="chat de Telegram al que devolverla")
     ap.add_argument("--sin-subir", action="store_true",
                     help="escribe y entrega, pero no toca el panel")
@@ -494,14 +552,40 @@ def main():
     # El pie de foto manda sobre el --tipo del workflow: lo escribio una persona
     # ahora mismo, y el otro es el valor por defecto del formulario.
     tipo, encargo, aviso_tipo = leer_encargo(args.encargo, args.tipo)
+    # El Worker ya suele mandarlo aparte; esto cubre el otro camino, cuando se
+    # escribe a mano "/nota <enlace> firma: Óscar Doval".
+    autor = args.autor.strip()
+    if not autor:
+        autor, encargo = leer_autor(encargo, tipo)
     print("NOTA A PETICION%s" % (" · pedida por " + args.quien if args.quien else ""))
     if encargo:
         print("pie de foto: %s" % encargo[:110])
         print("se escribe como: %s" % tipo)
+    if autor:
+        print("firma: %s" % autor)
     if aviso_tipo:
         print("[aviso] %s" % aviso_tipo)
     print(peticion[:100] if peticion else "(captura de pantalla)")
     print("=" * 70)
+
+    # SE AVISA ANTES DE GASTAR LA CORRIDA. Opinión e Investigación devuelven
+    # faltantes:["autor"] y no entregan pieza si nadie firma, y eso desde
+    # Telegram se ve como que el bot no hizo nada: veinte minutos de corrida en
+    # verde y ningun borrador. Vale mas decirlo aqui, en dos segundos.
+    #
+    # El editorial NO entra: lo firma la redaccion por definicion, que es
+    # justamente lo que lo distingue de una columna.
+    if tipo in ("Opinión", "Investigación") and not autor:
+        print("  %s necesita firma con nombre y apellido, y no llego ninguna."
+              % tipo)
+        if args.chat:
+            _mensaje_telegram(
+                args.chat,
+                "✍️ <b>Falta quién firma.</b>\n\nUna %s va con nombre y "
+                "apellido: sin firma sería un editorial anónimo, que es otra "
+                "cosa.\n\nVuelve a pedírmela añadiendo quién la firma, por "
+                "ejemplo:\n<code>firma: Óscar Doval</code>" % tipo.lower())
+        return 0
 
     # UNA CAPTURA ES UNA PISTA, NO UNA FUENTE. Se lee para saber QUE buscar y se
     # escribe desde el articulo original. Si no aparece en la lista blanca, no
@@ -669,8 +753,13 @@ def main():
             titulo_previo = (texto_tuit or "")[:200]
         else:
             titulo_previo, _, _ = leer_enlace(peticion)
+        # Se compara contra las piezas DE SU MISMO FORMATO: una columna sobre lo
+        # que ya se reporto no es un duplicado. Ver memoria.ya_cubierto().
+        from armar_carga import FORMATOS
+        formato = FORMATOS.get(_plano(tipo), "noticia")
         ya = (None if forzar else
-              (memoria.ya_cubierto(titulo_previo) if titulo_previo else None))
+              (memoria.ya_cubierto(titulo_previo, formato=formato)
+               if titulo_previo else None))
         if ya:
             print("  SI. Coincide con: %s" % ya["titulo"])
             print("  https://www.sureconomics.com/%s" % ya["slug"])
@@ -850,7 +939,8 @@ def main():
     print("\n--- 3. ESCRIBIR Y AUDITAR ---")
     r = subprocess.run(
         [sys.executable, str(AQUI / "motor" / "producir.py"),
-         "--tipo", tipo, "--manual", nombre, "--encargo", encargo],
+         "--tipo", tipo, "--manual", nombre, "--encargo", encargo]
+        + (["--autor", autor] if autor else []),
         capture_output=True, text=True, encoding="utf-8", errors="replace",
         timeout=25 * 60)
     print((r.stdout or "")[-1500:])
@@ -859,9 +949,22 @@ def main():
         for l in (r.stderr or "").strip().splitlines()[-6:]:
             print("    " + l[:150])
 
-    borrador = AQUI / "borradores" / ("%s_%s.txt" % (nombre, args.tipo.lower()))
+    # EL NOMBRE SE CALCULA EN DOS SITIOS Y HABIA QUE MIRAR EL OTRO. producir.py
+    # bautiza el borrador con la PRIMERA fuente (`args.manual.split(",")[0]`),
+    # pero aqui se pasaba la lista entera: desde que /nota lee varias fuentes,
+    # `nombre` es "n1,n2,n3" y este exists() daba False SIEMPRE. La pieza se
+    # escribia, pasaba el auditor y se quedaba en el disco del runner: no
+    # llegaba a Telegram ni subia al panel, y la corrida terminaba diciendo que
+    # no se habia generado. Estuvo asi desde que se añadio el multi-fuente.
+    #
+    # Y el tipo tiene que ser el RESUELTO, no args.tipo: con "hazla editorial"
+    # en el encargo, producir.py escribe `_editorial.txt` y aqui se buscaba
+    # `_noticia.txt`.
+    base = nombre.split(",")[0].strip()
+    borrador = AQUI / "borradores" / ("%s_%s.txt" % (base, tipo.lower()))
     if not borrador.exists():
         print("\nNo se genero el borrador. Revisa el fallo de arriba.")
+        print("  buscaba: %s" % borrador.name)
         _avisar_fallo(args.chat, "No pude escribirla",
                       "La fuente se leyó bien, pero la redacción falló. "
                       "Vuelve a pedírmela; si insiste, hay que mirar el log.")

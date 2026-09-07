@@ -21,8 +21,14 @@ on:
         description: "Quien la pidio (para el correo)"
         default: ""
       tipo:
-        description: "Noticia, Opinión, Editorial, Investigación, Educación"
+        description: "Noticia, Análisis, Opinión, Editorial, Investigación, Educación"
         default: "Noticia"
+      autor:
+        # No es lo mismo que 'quien': quien encarga la pieza y quien la FIRMA
+        # pueden ser personas distintas, y 'quien' solo sale en el correo
+        # interno. Opinión e Investigación no se escriben sin esto.
+        description: "Quien firma la pieza (obligatorio en Opinión)"
+        default: ""
       chat:
         description: "Chat de Telegram al que devolver el borrador"
         default: ""
@@ -76,8 +82,9 @@ jobs:
           QUIEN: ${{ github.event.inputs.quien }}
           CHAT: ${{ github.event.inputs.chat }}
           ENCARGO: ${{ github.event.inputs.encargo }}
+          AUTOR: ${{ github.event.inputs.autor }}
         run: |
-          python nota.py "$ENLACE" --foto "$FOTO" --tipo "$TIPO" --quien "$QUIEN" --chat "$CHAT" --encargo "$ENCARGO"
+          python nota.py "$ENLACE" --foto "$FOTO" --tipo "$TIPO" --quien "$QUIEN" --chat "$CHAT" --encargo "$ENCARGO" --autor "$AUTOR"
 
       - name: Guardar lo producido
         if: always()

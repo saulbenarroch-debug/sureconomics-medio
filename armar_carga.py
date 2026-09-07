@@ -79,10 +79,20 @@ from motor import clasificar, foto as buscador, memoria  # noqa: E402
 # Nuestro formato -> el del sitio. No son equivalentes uno a uno: nuestra
 # 'Investigacion' entra como 'informe', que no lleva bloque de opinion al pie
 # porque un informe lleva su posicion dentro del texto.
+# El sitio tiene CINCO formatos y ninguno se llama "opinión": comprobado contra
+# /admin/formats el 05/09/2026. Son noticia, articulo, editorial, entrevista e
+# informe. Una columna va como 'articulo', que es el que muestra firma.
+#
+# Faltaban 'opinión' y 'educación', y el .get() de abajo las mandaba a 'noticia':
+# una columna con postura y firma personal se publicaba como si fuera una
+# noticia del medio. No es un detalle de catalogo, es atribuirle al medio la
+# opinion de una persona.
 FORMATOS = {"noticia": "noticia", "investigación": "informe",
             "investigacion": "informe", "análisis": "articulo",
             "analisis": "articulo", "editorial": "editorial",
-            "entrevista": "entrevista"}
+            "entrevista": "entrevista",
+            "opinión": "articulo", "opinion": "articulo",
+            "educación": "articulo", "educacion": "articulo"}
 
 
 def es_intertitulo(linea):
@@ -209,7 +219,8 @@ def main():
         #
         # La comprobacion de antes se queda: ahorra escribir lo que ya se sabe
         # repetido. Esta es la que ve lo que la otra no puede ver.
-        repetida = memoria.ya_cubierto(titulo, catalogo, peso=peso)
+        repetida = memoria.ya_cubierto(titulo, catalogo, peso=peso,
+                                       formato=formato)
         if repetida:
             print("  %s: YA PUBLICADA como «%s». No se sube."
                   % (ruta.name[:28], repetida["titulo"][:56]))
