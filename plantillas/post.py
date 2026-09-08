@@ -66,18 +66,32 @@ def _incrustar(ruta):
 
 
 def _fuentes():
-    """Las @font-face de las tipografias que haya en assets/fuentes/."""
+    """Las @font-face de Host Grotesk, incrustadas.
+
+    SE INCRUSTAN Y NO SE ENLAZAN A GOOGLE a proposito. Si la fuente se pide por
+    red y la red falla, Chrome dibuja con la de reserva y la lamina sale con otra
+    tipografia sin que nada avise: se publica y se ve. Incrustada, o esta o no
+    esta, y aqui esta.
+    """
     carpeta = ASSETS / "fuentes"
-    if not carpeta.exists():
+    ficha = carpeta / "hostgrotesk.json"
+    if not ficha.exists():
         return ""
+    import json
+
     reglas = []
-    for f in sorted(carpeta.glob("*.woff2")):
-        # Nombre del archivo: Titulo-800.woff2 -> familia "Titulo", peso 800.
-        familia, _, peso = f.stem.partition("-")
+    for r in json.loads(ficha.read_text(encoding="utf-8")):
+        archivo = carpeta / r["archivo"]
+        if not archivo.exists():
+            continue
+        # El unicode-range se conserva tal cual lo sirve Google: son dos
+        # archivos, latin y latin-ext, y sin el rango el navegador baja los dos
+        # y usa el que no toca para las tildes.
+        rango = ("unicode-range:%s;" % r["rango"]) if r.get("rango") else ""
         reglas.append(
-            "@font-face{font-family:'%s';font-weight:%s;font-style:normal;"
-            "src:url('%s') format('woff2');}"
-            % (familia, peso or "400", _incrustar(f)))
+            "@font-face{font-family:'Host Grotesk';font-weight:%s;"
+            "font-style:normal;src:url('%s') format('woff2');%s}"
+            % (r["peso"], _incrustar(archivo), rango))
     return "\n".join(reglas)
 
 
@@ -104,13 +118,13 @@ PAGINA = """<!doctype html><html><head><meta charset="utf-8"><style>
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{width:%(ancho)spx;height:%(alto)spx;background:#000;}
 .hoja{position:relative;width:%(ancho)spx;height:%(alto)spx;overflow:hidden;
-  font-family:'Titulo','Segoe UI',Arial,sans-serif;color:#fff;}
+  font-family:'Host Grotesk','Segoe UI',Arial,sans-serif;color:#fff;}
 .fondo{position:absolute;inset:0;width:100%%;height:100%%;object-fit:cover;}
 /* El degradado hace legible el texto pase lo que pase en la foto. Sin el, una
    foto clara deja el titular ilegible y eso solo se ve al publicar. */
 .velo{position:absolute;inset:0;background:
-  linear-gradient(180deg,rgba(0,0,0,.55) 0%%,rgba(0,0,0,.15) 28%%,
-                  rgba(0,0,0,.45) 55%%,rgba(0,0,0,.78) 100%%);}
+  linear-gradient(180deg,rgba(0,0,0,.62) 0%%,rgba(0,0,0,.34) 26%%,
+                  rgba(0,0,0,.55) 55%%,rgba(0,0,0,.85) 100%%);}
 .logo{position:absolute;top:96px;left:50%%;transform:translateX(-50%%);
   height:78px;z-index:3;}
 .logo.falta{display:flex;align-items:center;justify-content:center;
@@ -123,8 +137,8 @@ html,body{width:%(ancho)spx;height:%(alto)spx;background:#000;}
 .etiqueta{position:absolute;top:-24px;left:50%%;transform:translateX(-50%%);
   background:%(rojo)s;color:#fff;border-radius:999px;padding:11px 30px;
   font-size:23px;font-weight:800;letter-spacing:2px;white-space:nowrap;}
-h1{font-size:86px;font-weight:800;line-height:.94;letter-spacing:-2px;}
-.bajada{margin-top:20px;font-size:41px;font-weight:400;line-height:1.16;}
+h1{font-size:100px;font-weight:800;line-height:.92;letter-spacing:-3px;}
+.bajada{margin-top:22px;font-size:47px;font-weight:400;line-height:1.12;}
 .bio{margin:38px auto 4px;width:max-content;border:2px solid #fff;
   border-radius:999px;padding:13px 46px;font-size:28px;font-weight:500;}
 </style></head><body><div class="hoja">

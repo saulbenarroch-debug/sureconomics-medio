@@ -1,22 +1,28 @@
 # Plantillas de redes
 
-## Qué falta para que esto sirva
+## Los recursos de marca
 
-Dos archivos de marca que no se pueden deducir ni inventar:
+    plantillas/assets/logo.png              el logo de SurE, blanco con transparencia
+    plantillas/assets/fuentes/*.woff2       Host Grotesk
+    plantillas/assets/fuentes/hostgrotesk.json  qué peso y qué rango cubre cada archivo
 
-    plantillas/assets/logo.png          el logo blanco de SurE, con transparencia
-    plantillas/assets/fuentes/Titulo-800.woff2   la tipografía de los titulares
+**Host Grotesk es una fuente VARIABLE.** Google la sirve como dos archivos —uno
+para `latin` y otro para `latin-ext`— y cada uno cubre todos los pesos. Por eso
+no hay un archivo por peso: bajarlos «uno por peso» devuelve tres copias
+idénticas del mismo fichero. El `hostgrotesk.json` guarda el `unicode-range` de
+cada uno tal como lo declara Google; sin él, el navegador usa el archivo que no
+toca para las tildes.
 
-Sin el logo, la lámina sale con un hueco marcado y el script avisa. Es a
+Se incrustan en el HTML y **no se enlazan a Google**: si la fuente se pide por
+red y la red falla, Chrome dibuja con la de reserva y la lámina sale con otra
+tipografía sin que nada avise. Se publica y se ve.
+
+El logo lleva su transparencia en un trozo `tRNS` (es PNG de paleta, no RGBA).
+Se ve en blanco sobre fondo blanco, que es lo correcto: va sobre foto.
+
+Si falta el logo, la lámina sale con un hueco marcado y el script avisa. Es a
 propósito: mejor una lámina que dice «aquí va el logo» que una publicada con el
 logo equivocado.
-
-**La tipografía no es Poppins.** En las láminas que ya publica el medio la «a»
-es de dos pisos y la Poppins la tiene de uno. Si sale de Canva, hay que exportar
-el archivo; si es de Google Fonts, basta el nombre.
-
-El nombre del archivo manda: `Familia-peso.woff2`. `Titulo-800.woff2` se
-registra como familia `Titulo` en peso 800, que es lo que pide el CSS.
 
 ## Uso
 
