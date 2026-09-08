@@ -66,14 +66,22 @@ def textos_para(titulo, resumen=""):
         "entradilla de una pieza YA PUBLICADA, y tienes que convertirlos en el "
         "texto de una lámina de Instagram.\n\n"
         "Devuelve dos cosas:\n"
-        "- 'titular': máximo 9 palabras, en caja mixta (no mayúsculas), directo "
-        "y con gancho. Es lo que se lee de lejos.\n"
-        "- 'bajada': una línea corta que complete al titular, en minúscula "
-        "inicial, máximo 12 palabras.\n\n"
+        "- 'titular': máximo 9 palabras, directo y con gancho. Es lo que se lee "
+        "de lejos.\n"
+        "- 'bajada': una línea corta que complete al titular, máximo 12 "
+        "palabras.\n\n"
         "Reglas:\n"
         "- NO inventes ni una cifra ni un hecho: solo puedes usar lo que está "
         "en el titular y la entradilla que te doy.\n"
-        "- Nada de signos de exclamación ni de mayúsculas de más.\n"
+        # SE DICE ASI DE EXPLICITO PORQUE YA SE FUE AL OTRO EXTREMO. El prompt
+        # decia "en caja mixta (no mayúsculas)" queriendo decir "no todo en
+        # mayúsculas", y el modelo devolvio TODO en minúscula: "clave minera
+        # para atraer inversiones a venezuela", con el pais en minúscula.
+        "- ORTOGRAFÍA NORMAL DE UNA FRASE: mayúscula en la primera letra de "
+        "cada uno de los dos textos, y los nombres propios con su mayúscula "
+        "(Venezuela, Apple, Estados Unidos). Lo que NO se quiere es el texto "
+        "entero en mayúsculas.\n"
+        "- Nada de signos de exclamación.\n"
         "- Si hay una cifra que sea el gancho, va en la bajada.\n\n"
         'Devuelve solo JSON: {"titular": "...", "bajada": "..."}\n\n'
         "Titular: %s\nEntradilla: %s" % (titulo, (resumen or "")[:300]))
@@ -81,8 +89,33 @@ def textos_para(titulo, resumen=""):
     r = pedir_json(prompt, etiqueta="lámina", temperatura=0.4)
     if not isinstance(r, dict) or not r.get("titular"):
         print("  [lámina] el modelo no contestó; recorto el titular por código")
-        return _recortar(titulo), ""
-    return str(r["titular"]).strip(), str(r.get("bajada") or "").strip()
+        return _mayuscula_inicial(_recortar(titulo)), ""
+    # Sin punto final: ninguna de las laminas que publica el medio lo lleva. Se
+    # quita solo el ultimo, para no destrozar un "EE. UU." ni un "US$2.000".
+    bajada = _mayuscula_inicial(str(r.get("bajada") or "").strip()).rstrip(".")
+    return _mayuscula_inicial(str(r["titular"]).strip()).rstrip("."), bajada
+
+
+def _mayuscula_inicial(texto):
+    """La primera letra en mayúscula, y el resto intacto.
+
+    RED DEBAJO DEL PROMPT, no en vez de el. Al modelo se le pide la ortografía
+    correcta, pero esto es mecánico y comprobable, así que no se deja a su
+    criterio: la primera lámina que se pidió de verdad salió con los dos textos
+    enteros en minúscula. Un prompt se puede desobedecer; esto no.
+
+    NO se usa capitalize(): eso pondría en minúscula todo lo demás y se llevaría
+    por delante los nombres propios («Apple va por su iPhone» -> «Apple va por
+    su iphone»).
+    """
+    texto = (texto or "").strip()
+    if not texto:
+        return texto
+    # Los signos de apertura no son letra: «¿Nueva carrera...» empieza en la N.
+    for i, c in enumerate(texto):
+        if c.isalpha():
+            return texto[:i] + c.upper() + texto[i + 1:]
+    return texto
 
 
 def _plano(s):
