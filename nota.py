@@ -441,6 +441,45 @@ def _fecha_en_ingles(texto):
     return "%s-%02d-%02d" % (m.group(3), mes, int(m.group(2))) if mes else ""
 
 
+def _foto_telegram(chat, ruta, pie=""):
+    """Manda una imagen al chat. Devuelve True si Telegram la acepto.
+
+    Va por multipart y no por URL: la lamina se acaba de dibujar en el disco del
+    runner y no esta publicada en ninguna parte. Publicarla solo para poder
+    mandarla seria dejar un archivo tirado en el repositorio por cada peticion.
+    """
+    import mimetypes
+    import uuid
+
+    ficha = os.environ.get("TELEGRAM_TOKEN", "").strip()
+    if not ficha or not chat or not pathlib.Path(ruta).exists():
+        return False
+    limite = "----" + uuid.uuid4().hex
+    datos = pathlib.Path(ruta).read_bytes()
+    mime = mimetypes.guess_type(str(ruta))[0] or "image/png"
+
+    def campo(nombre, valor):
+        return ('--%s\r\nContent-Disposition: form-data; name="%s"\r\n\r\n%s\r\n'
+                % (limite, nombre, valor)).encode()
+
+    cuerpo = campo("chat_id", str(chat)) + campo("caption", pie[:1000])
+    cuerpo += campo("parse_mode", "HTML")
+    cuerpo += ('--%s\r\nContent-Disposition: form-data; name="photo"; '
+               'filename="%s"\r\nContent-Type: %s\r\n\r\n'
+               % (limite, pathlib.Path(ruta).name, mime)).encode()
+    cuerpo += datos + ("\r\n--%s--\r\n" % limite).encode()
+
+    pet = urllib.request.Request(
+        "https://api.telegram.org/bot%s/sendPhoto" % ficha, data=cuerpo,
+        headers={"Content-Type": "multipart/form-data; boundary=%s" % limite})
+    try:
+        with urllib.request.urlopen(pet, timeout=60):
+            return True
+    except Exception as exc:  # noqa: BLE001
+        print("  [lámina] no pude mandarla al chat (%s)" % str(exc)[:70])
+        return False
+
+
 def leer_publicacion(url):
     """Una publicacion de red social, o None si no lo es o no se pudo leer.
 
@@ -780,7 +819,8 @@ def mandar_al_chat(borrador, chat, quien=""):
 
 
 def producir_y_entregar(nombre, tipo, encargo, autor, args,
-                        portada_url="", declarar_ia=False):
+                        portada_url="", declarar_ia=False,
+                        foto_local=None, lamina_pedida=False):
     """Escribe desde una fuente ya registrada, audita y entrega.
 
     UNA SOLA VIA DE ENTREGA. Aqui llegan los dos caminos: el normal,
@@ -894,6 +934,37 @@ def producir_y_entregar(nombre, tipo, encargo, autor, args,
                 print("  portada puesta en la carga%s"
                       % (" y declarada como IA" if declarar_ia else ""))
 
+            # LA LAMINA DE INSTAGRAM, si se pidio en el pie de foto.
+            #
+            # Se dibuja DESPUES de armar la carga y no antes, porque de ahi
+            # salen el titular ya auditado, la entradilla y el pais clasificado,
+            # que es lo que la lamina necesita. Hacerla antes obligaria a
+            # repetir esa clasificacion, que es como se llega a que la lamina
+            # diga un pais y el sitio diga otro.
+            if carga.exists() and foto_local and lamina_pedida:
+                import json as _json
+
+                from motor import lamina as _lamina
+                d = _json.loads(carga.read_text(encoding="utf-8"))
+                piezas = d if isinstance(d, list) else d.get("piezas", [])
+                if piezas:
+                    p0 = piezas[0]
+                    destino = carpeta / "lamina-instagram.png"
+                    try:
+                        hecha = _lamina.hacer(
+                            foto_local, p0.get("titulo", ""),
+                            p0.get("resumen", ""), p0.get("lugares") or [],
+                            str(destino),
+                            categoria=_lamina.categoria_pedida(encargo))
+                    except Exception as exc:  # noqa: BLE001
+                        hecha = None
+                        print("  [lámina] no se pudo dibujar (%s)" % str(exc)[:80])
+                    if hecha and args.chat:
+                        _foto_telegram(args.chat, hecha,
+                                       "🖼️ <b>Lámina para Instagram</b>\n"
+                                       "1080×1350. Revisa el titular antes de "
+                                       "publicar.")
+
             if carga.exists():
                 # Se suben tambien las bloqueadas, marcadas con el aviso. Es lo
                 # que pidio el dueño: mejor tenerla en el panel y arreglarla ahi.
@@ -991,7 +1062,13 @@ def main():
     # LA MISMA FOTO PUEDE SER DOS COSAS OPUESTAS y solo el pie lo dice: material
     # para leer, o la portada de la pieza. Si es portada, la noticia tiene que
     # venir del texto del pie, porque una imagen no es una fuente.
-    portada_url, declarar_ia = None, False
+    portada_url, declarar_ia, foto_local = None, False, None
+    # ¿Se pidió además la lámina de Instagram? Va aparte de lo demás porque no
+    # cambia lo que se escribe, sino lo que se entrega. Ver motor/lamina.py.
+    from motor import lamina as _lam
+    lamina_pedida = _lam.la_piden(encargo)
+    if lamina_pedida:
+        print("se pidió también la lámina de Instagram")
     if args.foto and papel_de_la_foto(encargo) == "portada":
         print("\n--- 0. LA FOTO ES LA PORTADA ---")
         enlace_pie = (re.search(r"https?://\S+", encargo or "") or [None])
@@ -1016,6 +1093,13 @@ def main():
         try:
             datos, _mime = captura.bajar_de_telegram(args.foto)
             portada_url = imagen_publica.publicar(datos, "portada")
+            # SE GUARDA TAMBIEN EN EL DISCO. La portada se publica para que el
+            # panel pueda enlazarla, pero la lamina de Instagram se dibuja aqui
+            # y necesita el archivo: bajarlo dos veces seria pedirle a Telegram
+            # lo mismo por segunda vez.
+            foto_local = AQUI / ("portada-recibida" +
+                                 (".jpg" if "jpeg" in (_mime or "") else ".png"))
+            foto_local.write_bytes(datos)
         except Exception as exc:  # noqa: BLE001
             print("  [imagen] no pude traerla (%s). Sigo sin portada." % str(exc)[:70])
         # Por defecto se declara generada con IA: el dueño confirmo el
@@ -1252,7 +1336,8 @@ def main():
         print("  registrada como '%s'" % nombre_manual)
         # portada_url y declarar_ia van por defecto: una publicación de red
         # social no trae portada adjunta, y de la portada se ocupa armar_carga.
-        return producir_y_entregar(nombre_manual, tipo, encargo, autor, args)
+        return producir_y_entregar(nombre_manual, tipo, encargo, autor, args,
+                                   "", False, foto_local, lamina_pedida)
 
     print("\n--- 2. LEER LA FUENTE ---")
 
@@ -1369,7 +1454,8 @@ def main():
     print("  fuente registrada como '%s'" % nombre)
 
     return producir_y_entregar(nombre, tipo, encargo, autor, args,
-                               portada_url, declarar_ia)
+                               portada_url, declarar_ia, foto_local,
+                               lamina_pedida)
 
 
 if __name__ == "__main__":

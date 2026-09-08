@@ -90,6 +90,30 @@ sería el peor fallo posible del motor. Comprobado que `realdonaldtrump`,
 `delcyrodriguezven` y `nicolasmaduro` resuelven a su persona, y que
 `beycocapital`, `espacio.media` y `bloomberglinea` no resuelven a nadie.
 
+## La lámina de Instagram
+
+Se pide en el **pie de foto**, junto con la imagen y el enlace:
+
+    haz esta noticia con esta imagen y hazme el post
+
+Detecta «post», «instagram», «lámina», «placa», «plantilla» o «para redes»
+(`motor/lamina.la_piden`). Sin esa palabra, la imagen se usa solo como portada
+del sitio, que es como funcionaba antes.
+
+**El titular del panel NO sirve para la lámina.** En el sitio va en mayúsculas y
+largo; en la lámina caben ocho o nueve palabras en caja mixta. Así que la lámina
+lleva su propio par —titular corto y bajada— que escribe el modelo a partir del
+titular y la entradilla **ya auditados**: acorta, no inventa. Si no responde, se
+recorta por código y la lámina sale igual.
+
+**La categoría** (la etiqueta roja) sale del país que el motor ya clasificó:
+`VENEZUELA`, `ESTADOS UNIDOS`, `LATINOAMÉRICA` si son varios, `MUNDO` si no hay
+ninguno. Se puede imponer escribiendo `categoría: LO QUE SEA` en el pie.
+
+Dos archivos, dos trabajos: `plantillas/post.py` **dibuja** y `motor/lamina.py`
+**decide**. Mezclarlos es como se llega a que la lámina diga un país y el sitio
+diga otro.
+
 ## Tipos de pieza
 
 Seis, cada uno con su prompt en `prompts/`. `armar_carga.FORMATOS` los traduce a
