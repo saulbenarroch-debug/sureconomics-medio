@@ -83,15 +83,51 @@ MACRO_FUERTE = re.compile(
     r"arancel|reservas|barril|opep|producci[oó]n petrolera|recorte|"
     r"alza de tasas|calificaci[oó]n)", re.IGNORECASE)
 
+# LOS MEDIOS QUE SUMAN PUNTOS, uno por linea y sin regex a mano.
+#
+# EL PATRON SE COMPARA CONTRA EL TITULAR **Y LA URL**, y ahi vivia un fallo que
+# torcia las tandas enteras: "el pa[íi]s" lleva un espacio y NO casa con
+# "elpais.com". Los medios de UNA palabra cobraban sus tres puntos por el
+# dominio -clarin, folha, infobae, semana- y los de dos NO: ni El País, ni El
+# Nacional, ni La República, ni Efecto Cocuyo.
+#
+# O sea que el +3 se repartia por la longitud del nombre. Y como casi toda la
+# prensa venezolana tiene nombre de dos palabras, el pais del medio competia con
+# tres puntos de desventaja: el 08/09/2026 el pozo traia 67 candidatos
+# venezolanos y no entro ninguno en las seis piezas.
+#
+# Ahora el separador entre palabras es opcional, asi que cada nombre casa igual
+# escrito ("El País") que en dominio ("elpais.com").
+#
+# ESTA LISTA YA NO ES LA MISMA QUE criterio.js DEL BOT, y es deliberado: los
+# ocho ultimos son medios del MEDIO, no del boletin de Telegram, que cubre otra
+# cosa. Se deja escrito para que la divergencia no parezca un olvido, que es lo
+# que pide la cabecera de este archivo.
+_MEDIOS_OK = [
+    "reuters", "bloomberg", "financial times", "wall street journal",
+    "el pa[íi]s", "expansi[oó]n", "banca y negocios", "finanzas digital",
+    "efecto cocuyo", "descifrado", "el nacional", "el est[íi]mulo", "talcual",
+    "infobae", "el cronista", "la naci[oó]n", "clar[íi]n", "folha",
+    "valor econ", "estad[aã]o", "semana", "la rep[uú]blica", "portafolio",
+    "el mercurio", "diario financiero", "el economista", "el financiero",
+    "forbes", "am[eé]rica econom[íi]a", "latamlist", "iupana", "world oil",
+    "argus", "platts", "s&p global", "cepal", "mercopress", "oncuba",
+    "el pitazo", "runrun", "cr[oó]nica uno",
+    r"gob\.mx", "dane", "banrep", "banxico", r"imf\.org", "worldbank",
+    # Los ocho que entraron el 08/09/2026.
+    "gesti[oó]n", "rpp", "el observador", "[áa]mbito",
+    "valora analitik", "el comercio",
+    # Estos dos van por su DOMINIO y no por su nombre. "Diario Expreso" publica
+    # en expreso.ec y "Montevideo Portal" en montevideo.com.uy: ni con el
+    # separador opcional casa el nombre completo. Y no vale poner "expreso" ni
+    # "montevideo" a secas, que son palabras corrientes y premiarian cualquier
+    # titular que las lleve.
+    r"expreso\.ec", r"montevideo\.com\.uy",
+]
+
 MEDIOS_OK = re.compile(
-    r"(reuters|bloomberg|financial times|wall street journal|el pa[íi]s|"
-    r"expansi[oó]n|banca y negocios|finanzas ?digital|efecto cocuyo|descifrado|"
-    r"el nacional|el est[íi]mulo|talcual|infobae|el cronista|la naci[oó]n|"
-    r"clar[íi]n|folha|valor econ|estad[aã]o|semana|la rep[uú]blica|portafolio|"
-    r"el mercurio|diario financiero|el economista|el financiero|forbes|"
-    r"am[eé]rica econom[íi]a|latamlist|iupana|world oil|argus|platts|"
-    r"s&p global|cepal|mercopress|oncuba|el pitazo|runrun|cr[oó]nica uno|"
-    r"gob\.mx|dane|banrep|banxico|imf\.org|worldbank)", re.IGNORECASE)
+    "(" + "|".join(n.replace(" ", r"[\s.-]?") for n in _MEDIOS_OK) + ")",
+    re.IGNORECASE)
 
 CLICKBAIT = re.compile(
     r"(esto es lo que|todo lo que|as[íi] es como|mira c[oó]mo|no vas a creer|"

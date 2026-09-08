@@ -138,6 +138,30 @@ Nadie escribe el nombre interno del tipo: se pide "un artículo", "una columna",
 "un reportaje". `nota.SINONIMOS` los traduce. **Artículo = Análisis**, porque en
 el sitio ese formato se llama `articulo`.
 
+## Quién gana una tanda
+
+`criterio.puntuar()` ordena los candidatos. Suma por vocabulario macro, por
+cifras, por frescura, y **+3 si el medio está en `_MEDIOS_OK`**.
+
+**Ese +3 se comparaba contra el titular Y LA URL, y ahí vivió mucho tiempo un
+fallo que torcía tandas enteras:** los nombres con espacio no casan con su
+dominio. «el país» no encuentra `elpais.com`. Así que los medios de UNA palabra
+cobraban —clarin, folha, infobae, semana— y los de dos no: ni El País, ni El
+Nacional, ni La República, ni Efecto Cocuyo.
+
+El +3 se repartía por la longitud del nombre. Y como casi toda la prensa
+venezolana tiene nombre de dos palabras, **el país del medio competía con tres
+puntos de desventaja**: el 08/09/2026 el pozo traía 67 candidatos venezolanos y
+no entró ninguno en las seis piezas.
+
+Ahora el separador entre palabras es opcional y la lista se escribe como lista,
+no como regex a mano. Cobran 43 de los 59 medios; los 16 que no, es porque nunca
+estuvieron en la lista de prestigio (BBC Mundo, DW, NYT, El Tiempo…) y eso es
+una decisión editorial, no un fallo.
+
+**Meter un medio en `MEDIOS` y no en `_MEDIOS_OK` es meterlo a medias:** puede
+ser fuente cuando alguien la pide, pero no compite por entrar en la tanda.
+
 ## El tope por país
 
 `orquestar.TOPE_POR_PAIS` limita cuántas piezas de un mismo país entran en una
