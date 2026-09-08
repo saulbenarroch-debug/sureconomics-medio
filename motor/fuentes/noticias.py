@@ -210,6 +210,43 @@ MEDIOS = {
                             "category/politica/?outputType=xml"),
     "elnacmundo":  dict(nombre="El Nacional", pais="Venezuela", economia=False,
                         url="https://www.elnacional.com/mundo/feed/"),
+
+    # PAISES QUE NO TENIAN NINGUNO, añadidos el 08/09/2026. Ecuador, Paraguay y
+    # Uruguay estaban a cero y Peru tenia uno solo, en un medio que se llama
+    # latinoamericano.
+    #
+    # TODOS PROBADOS EN LAS DOS MITADES, que es la leccion de bancaynegocios: el
+    # feed responde Y el articulo se deja leer. De 26 direcciones probadas
+    # entraron 8. Las que no responden NO se apuntan aqui ni comentadas, porque
+    # una URL muerta en la lista es una invitacion a volver a probarla.
+    #
+    # PARAGUAY SIGUE SIN NINGUNO. Se probaron ABC Color (cuatro direcciones),
+    # Ultima Hora (dos) y La Nación PY (dos): todas devuelven vacio. Hace falta
+    # buscar por otra via, no insistir con estas.
+    "elcomercioec": dict(nombre="El Comercio (Ecuador)", pais="Ecuador",
+                         # El nombre lleva el pais A PROPOSITO: ya hay un
+                         # "El Comercio" peruano en esta lista, y el nombre es
+                         # lo que compara buscador.dominios_de() cuando una
+                         # captura dice de que medio es. Dos medios con el mismo
+                         # nombre mandarian la busqueda al pais equivocado.
+                         economia=False,
+                         url="https://www.elcomercio.com/feed/"),
+    "expresoec":   dict(nombre="Diario Expreso", pais="Ecuador", economia=False,
+                        url="https://www.expreso.ec/rss.xml"),
+    "gestionpe":   dict(nombre="Gestión", pais="Perú", economia=True,
+                        url="https://gestion.pe/arcio/rss/?outputType=xml"),
+    "rpp":         dict(nombre="RPP Noticias", pais="Perú", economia=False,
+                        url="https://rpp.pe/feed/"),
+    "observador":  dict(nombre="El Observador", pais="Uruguay", economia=True,
+                        url="https://www.elobservador.com.uy/rss/pages/"
+                            "economia.xml"),
+    "mvdportal":   dict(nombre="Montevideo Portal", pais="Uruguay",
+                        economia=False,
+                        url="https://www.montevideo.com.uy/anxml.aspx?59"),
+    "ambito":      dict(nombre="Ámbito", pais="Argentina", economia=True,
+                        url="https://www.ambito.com/rss/economia.xml"),
+    "valora":      dict(nombre="Valora Analitik", pais="Colombia", economia=True,
+                        url="https://www.valoraanalitik.com/feed/"),
     # Nicho latinoamericano que ya usaba el bot: negocios, M&A, capital de riesgo
     # y fintech. Utiles para la linea de Conocimiento.
     # Publica POCO: suele haber varios dias entre notas. Consultarla con ventana

@@ -138,6 +138,26 @@ Nadie escribe el nombre interno del tipo: se pide "un artículo", "una columna",
 "un reportaje". `nota.SINONIMOS` los traduce. **Artículo = Análisis**, porque en
 el sitio ese formato se llama `articulo`.
 
+## El tope por país
+
+`orquestar.TOPE_POR_PAIS` limita cuántas piezas de un mismo país entran en una
+tanda. Hoy solo hay una entrada: **Brasil, 1**.
+
+Sale de una tanda real: el 08/09/2026 tres de cinco piezas fueron de Brasil. No
+es que Brasil fuera más noticia ese día; es que Folha publica mucho y muy
+seguido, y el recolector ordena por calidad sin mirar de dónde viene cada una.
+Un medio latinoamericano que abre tres de cinco con Brasil deja de parecerlo.
+
+**Lo que no está en la tabla no tiene tope, y eso también es deliberado.**
+Venezuela es el país del medio y una tanda entera de Venezuela es una decisión
+editorial legítima, no un accidente del recolector. Un tope general habría
+cambiado eso de paso, sin que nadie lo pidiera.
+
+El tope se aplica sobre la lista **entera** y antes de cortar a `--piezas`, así
+que lo que se descarta se reemplaza solo por el siguiente candidato. Va después
+del filtro de duplicados: al revés, una pieza de Brasil podría gastar el cupo y
+caerse luego por repetida.
+
 ## Umbrales, y de dónde sale cada número
 
 Ninguno se elige a ojo. Todos salen de medir contra casos reales y todos tienen
@@ -331,6 +351,9 @@ Sin Python global en Windows: hay un runtime portátil en
 - No hay endpoint de subida de imágenes en el panel (`POST /admin/media` da 405):
   solo se puede adjuntar por dirección web. `motor/imagen_publica.py` es un apaño
   hasta que los desarrolladores lo añadan con la migración a R2.
+- **Paraguay sigue sin ningún medio.** Se probaron ABC Color (cuatro
+  direcciones), Última Hora (dos) y La Nación PY (dos): todas devuelven vacío.
+  Hace falta buscar por otra vía, no insistir con esas.
 - Ampliar la lista blanca con macro de EE. UU. **Ojo:** hay que probar por
   separado el host del RSS y el del artículo; `bancaynegocios.com` tiene el feed
   muerto y los artículos legibles, y por eso está en `REFERENCIA` y no en

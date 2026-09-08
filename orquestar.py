@@ -53,6 +53,61 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 PYTHON = sys.executable
 
 
+# CUANTAS PIEZAS COMO MUCHO POR PAIS EN UNA MISMA TANDA.
+#
+# Nace de una tanda real: el 08/09/2026, tres de cinco piezas fueron de Brasil.
+# No es que Brasil sea mas noticia ese dia, es que Folha de S.Paulo publica mucho
+# y muy seguido, y el recolector ordena por calidad sin mirar de donde viene cada
+# una. Un medio latinoamericano que abre tres de cinco con Brasil deja de
+# parecer latinoamericano.
+#
+# LO QUE NO ESTA AQUI NO TIENE TOPE, y eso tambien es deliberado: Venezuela es el
+# pais del medio y una tanda entera de Venezuela es una decision editorial
+# legitima, no un accidente del recolector. Poner un tope general habria
+# cambiado eso de paso, sin que nadie lo pidiera.
+TOPE_POR_PAIS = {"Brasil": 1}
+
+
+def _pais_de(candidato):
+    """De que pais es un candidato, segun el medio de su primera fuente."""
+    from urllib.parse import urlparse
+
+    from motor.fuentes.noticias import MEDIOS
+
+    fuentes = candidato.get("fuentes") or []
+    url = (fuentes[0].get("url") if fuentes and isinstance(fuentes[0], dict)
+           else "") or ""
+    dominio = urlparse(url).netloc.replace("www.", "")
+    if not dominio:
+        return ""
+    for m in MEDIOS.values():
+        suyo = urlparse(m["url"]).netloc.replace("www.", "")
+        # El feed puede vivir en otro subdominio que el articulo:
+        # feeds.elpais.com sirve los RSS y los articulos estan en elpais.com.
+        # Se quita ese prefijo y se comparan los dominios de verdad.
+        for prefijo in ("feeds.", "rss.", "feed."):
+            if suyo.startswith(prefijo):
+                suyo = suyo[len(prefijo):]
+        if suyo and (suyo == dominio or dominio.endswith("." + suyo)):
+            return m.get("pais", "")
+    return ""
+
+
+def con_tope_por_pais(temas):
+    """Deja fuera lo que pase del tope de su pais, conservando el orden."""
+    cuenta, salida = {}, []
+    for t in temas:
+        pais = _pais_de(t)
+        tope = TOPE_POR_PAIS.get(pais)
+        if tope is not None and cuenta.get(pais, 0) >= tope:
+            print("   fuera por tope de %s (%d por tanda): %s"
+                  % (pais, tope, str(t.get("hecho", ""))[:56]))
+            continue
+        cuenta[pais] = cuenta.get(pais, 0) + 1
+        salida.append(t)
+    return salida
+
+
 def correr(argumentos, minutos=25):
     print("  $ " + " ".join(str(a) for a in argumentos[1:]))
     r = subprocess.run([str(a) for a in argumentos], capture_output=True,
@@ -145,7 +200,7 @@ def main():
               % str(exc)[:70])
         temas = crudos
 
-    temas = temas[:args.piezas]
+    temas = con_tope_por_pais(temas)[:args.piezas]
     if not temas:
         print("\nTodo lo que hay hoy ya se publico. No se escribe nada.")
         # Se manda el correo igual, aunque vaya vacio: es el unico aviso de que
