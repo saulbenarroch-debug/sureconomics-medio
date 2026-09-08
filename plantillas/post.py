@@ -29,6 +29,7 @@ import argparse
 import base64
 import html
 import mimetypes
+import os
 import pathlib
 import shutil
 import subprocess
@@ -40,10 +41,23 @@ ASSETS = AQUI / "assets"
 
 ANCHO, ALTO = 1080, 1350
 
-CHROME = next((p for p in (
-    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
-    if pathlib.Path(p).exists()), None)
+# DONDE ESTA CHROME, Y HAY QUE MIRAR EN LINUX PRIMERO. Esto solo miraba rutas de
+# Windows y en el runner de Actions -que es Ubuntu- decia "No encuentro Chrome ni
+# Edge": la lamina se decidia entera y moria en el ultimo paso. Paso el
+# 08/09/2026, la primera vez que Edicion la pidio de verdad.
+#
+# El runner de ubuntu YA trae google-chrome; no hay que instalar nada, solo
+# buscarlo en el PATH. Es lo que hace entorno/render.py desde siempre.
+CHROME = (
+    os.environ.get("CHROME_BIN")
+    or shutil.which("google-chrome")
+    or shutil.which("google-chrome-stable")
+    or shutil.which("chromium-browser")
+    or shutil.which("chromium")
+    or next((p for p in (
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
+        if pathlib.Path(p).exists()), None))
 
 # El rojo de la etiqueta de seccion. Se saca de las laminas que ya publica el
 # medio; si Edicion lo cambia, se cambia aqui y en ningun otro sitio.

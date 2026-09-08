@@ -36,6 +36,12 @@ on:
         description: "Instruccion de edicion (en Telegram, el pie de foto)"
         default: ""
 
+# Para que el token automatico pueda subir a imagenes/ la portada que llega por
+# el chat. Por omision GitHub lo da de solo lectura y la subida fallaba en
+# silencio, con el aviso perdido en el log.
+permissions:
+  contents: write
+
 jobs:
   escribir:
     runs-on: ubuntu-latest
@@ -83,6 +89,20 @@ jobs:
           CHAT: ${{ github.event.inputs.chat }}
           ENCARGO: ${{ github.event.inputs.encargo }}
           AUTOR: ${{ github.event.inputs.autor }}
+          # PARA PODER PUBLICAR LA IMAGEN QUE LLEGA POR EL CHAT. El panel no
+          # tiene endpoint de subida de archivos (POST /admin/media da 405):
+          # solo acepta imagenes POR DIRECCION WEB. Asi que la foto se sube a
+          # este mismo repositorio y se enlaza desde ahi, y eso necesita un
+          # token con permiso de escritura.
+          #
+          # Sin esto, motor/imagen_publica.py decia "sin GITHUB_TOKEN ni
+          # GITHUB_PAT: no puedo publicarla" y la pieza subia SIN la portada que
+          # habia mandado la redaccion. Se veia solo en el log. Paso el
+          # 08/09/2026 y estuvo asi desde que existe el envio de portadas.
+          #
+          # Es el token automatico de Actions, no un secreto nuevo: la imagen va
+          # a este mismo repo y con 'permissions: contents: write' basta.
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           python nota.py "$ENLACE" --foto "$FOTO" --tipo "$TIPO" --quien "$QUIEN" --chat "$CHAT" --encargo "$ENCARGO" --autor "$AUTOR"
 
