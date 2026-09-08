@@ -35,6 +35,11 @@ on:
       sin_subir:
         description: "true = solo correo, no toca el panel"
         default: "false"
+      origen:
+        # Lo pone el cron del Worker para identificarse. Una persona lo deja
+        # vacio y su disparo corre siempre. Ver la guardia.
+        description: "'reloj' si lo dispara el cron del Worker; vacío si es una persona"
+        default: ""
   schedule:
     - cron: "0 12 * * 1-5"   # 8:00 am Venezuela
     - cron: "0 18 * * 1-5"   # 2:00 pm Venezuela
@@ -92,11 +97,25 @@ jobs:
           # camino y una barra mal escapada no la ve ningun comprobador.
           MARCA='"'$TANDA'": "'$HOY'"'
 
-          if [ "${{ github.event_name }}" != "schedule" ]; then
-            echo "Disparo pedido. Corre igual."
+          # QUIEN DISPARA: EL RELOJ O UNA PERSONA.
+          #
+          # La regla siempre fue "un disparo pedido es una decision, un disparo
+          # del reloj es rutina", y se implementaba mirando si el evento era un
+          # 'schedule'. Eso dejo de valer cuando el reloj paso a ser el cron del
+          # Worker, que dispara por workflow_dispatch igual que una persona: la
+          # guardia lo dejaba pasar SIEMPRE y una tanda lanzada a mano mas la
+          # del reloj daban doce borradores.
+          #
+          # Ahora el Worker se identifica con origen=reloj y se le trata como al
+          # schedule. Lo que escribe una persona -desde la web de Actions o a
+          # mano- llega sin ese campo y sigue corriendo pase lo que pase, que es
+          # justo lo que se quiere de una decision.
+          ORIGEN="${{ github.event.inputs.origen }}"
+          if [ "${{ github.event_name }}" != "schedule" ] && [ "$ORIGEN" != "reloj" ]; then
+            echo "Disparo pedido por una persona. Corre igual."
             echo "seguir=si" >> $GITHUB_OUTPUT
           elif [ -f ultima_corrida.json ] && grep -qF "$MARCA" ultima_corrida.json; then
-            echo "La tanda '$TANDA' de hoy ya salio. El schedule no la repite."
+            echo "La tanda '$TANDA' de hoy ya salio. El reloj no la repite."
             echo "seguir=no" >> $GITHUB_OUTPUT
           else
             echo "La tanda '$TANDA' de hoy no ha salido."
@@ -123,7 +142,13 @@ jobs:
       # minutos y el schedule puede llegar con media hora de retraso: si se
       # apuntara al final, el duplicado arrancaria mientras esta corriendo la
       # primera y la guardia no habria servido de nada.
+      # UNA CORRIDA EN SECO NO ES LA TANDA Y NO GASTA EL CUPO DEL DIA. Con
+      # sin_subir no se sube nada al panel: sirve para mirar como quedaria la
+      # seleccion. Apuntarla hacia que el reloj se saltara la tanda de verdad y
+      # ese dia no saliera ninguna pieza. Se vio el 08/09/2026, probando los
+      # medios nuevos: la prueba marco la tarde como hecha.
       - name: Apuntar la tanda
+        if: github.event.inputs.sin_subir != 'true'
         run: |
           python -c "
           import json, pathlib, sys
