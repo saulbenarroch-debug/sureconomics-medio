@@ -61,6 +61,12 @@ CHROME = (
 
 # El rojo de la etiqueta de seccion. Se saca de las laminas que ya publica el
 # medio; si Edicion lo cambia, se cambia aqui y en ningun otro sitio.
+#
+# NO LO CAMBIES POR EL COBRE DE LA WEB. sureconomics.com usa otra paleta
+# -cobre #B9532A, verde #003318, hueso #F7F7F5- y parece que este rojo sea un
+# resto del branding viejo. No lo es: las laminas de Instagram van con este
+# rojo por decision de Edicion, y la web y el Instagram no comparten paleta.
+# Yo lo "corregi" al cobre el 08/09/2026 y hubo que revertirlo.
 ROJO = "#F5333F"
 
 
