@@ -182,6 +182,13 @@ def main():
     ap.add_argument("--con-foto", action="store_true",
                     help="busca imagen automaticamente. Ver el comentario de "
                          "arriba antes de usarlo en produccion")
+    # LA MISMA SALIDA QUE YA TENIA LA COMPROBACION DE ANTES DE ESCRIBIR. Ahi,
+    # cuando la memoria dice que algo ya esta publicado, la persona puede
+    # contestar "igual" y se escribe de todos modos. Aqui no habia forma de
+    # decir que no, y esta comprobacion se hace DESPUES de escribir la pieza:
+    # la unica manera de rescatarla era ir a Actions.
+    ap.add_argument("--forzar", action="store_true",
+                    help="sube aunque la memoria la dé por publicada")
     args = ap.parse_args()
 
     carpeta = pathlib.Path(args.carpeta)
@@ -195,7 +202,7 @@ def main():
     catalogo = memoria.publicadas()
     peso = memoria.pesos(catalogo)
 
-    carga = []
+    carga, descartadas = [], []
     for ruta in rutas:
         formato = formato_de(ruta.read_text(encoding="utf-8").split("\n", 1)[0])
         cabecera, titulo, resumen, partes, fuentes, firma = desmontar(
@@ -219,12 +226,35 @@ def main():
         #
         # La comprobacion de antes se queda: ahorra escribir lo que ya se sabe
         # repetido. Esta es la que ve lo que la otra no puede ver.
-        repetida = memoria.ya_cubierto(titulo, catalogo, peso=peso,
-                                       formato=formato)
+        repetida = (None if args.forzar else
+                    memoria.ya_cubierto(titulo, catalogo, peso=peso,
+                                        formato=formato))
         if repetida:
             print("  %s: YA PUBLICADA como «%s». No se sube."
                   % (ruta.name[:28], repetida["titulo"][:56]))
-            continue
+            # SE APUNTA PARA PODER AVISAR A QUIEN LA PIDIO. Esto solo se
+            # imprimia, y el log de Actions no lo lee nadie desde Telegram: la
+            # pieza se escribia, se entregaba por chat y por correo, y luego
+            # desaparecia sin explicacion. El 09/09/2026 le paso dos veces
+            # seguidas a la misma persona, que lo describio como que el bot se
+            # habia vuelto loco. Quien llama lee este archivo y avisa.
+            descartadas.append({
+                "archivo": ruta.name,
+                "titulo": titulo,
+                "motivo": "ya_publicada",
+                "choca_con": repetida["titulo"],
+                "slug": repetida.get("slug", ""),
+            })
+            # NO SE HACE 'continue'. La pieza sigue armandose entera y entra en
+            # carga.json marcada: subir.py no la sube sin --subir-duplicadas,
+            # asi que el comportamiento no cambia, pero el texto QUEDA ahi. Es
+            # lo que hace posible el boton "Subirla igual": recuperar el
+            # borrador exacto que la persona ya leyo, sin volver a redactarlo y
+            # sin que le salga un texto distinto del que aprobo.
+            #
+            # Es el mismo trato que las bloqueadas por el auditor, y a
+            # proposito: una via aparte para las repetidas es como se llega a
+            # que una se arregle y la otra no.
 
         cuerpo_plano = " ".join(s for _, s in partes)
         temas = clasificar.temas(titulo, cuerpo_plano)
@@ -260,9 +290,11 @@ def main():
             "foto": elegida["url"] if elegida else "",
             "credito": elegida["credito"] if elegida else "",
             "bloqueada": bloqueada,
+            "duplicada": bool(repetida),
+            "choca_con": repetida["titulo"] if repetida else "",
         })
 
-        marca = "BLOQUEADA" if bloqueada else "ok"
+        marca = "REPETIDA" if repetida else ("BLOQUEADA" if bloqueada else "ok")
         print("%-30s %-9s %-9s  %s" % (ruta.name[:30], formato, marca,
                                        " · ".join(temas)))
         print("     %s" % titulo[:86])
@@ -277,10 +309,19 @@ def main():
     destino = carpeta / "carga.json"
     destino.write_text(json.dumps(carga, ensure_ascii=False, indent=1),
                        encoding="utf-8")
+
+    # Lo descartado va a SU PROPIO archivo y no dentro de carga.json: ese lo lee
+    # subir.py y meterle una clave nueva es pedir que algo se suba por error.
+    # Se escribe siempre, aunque este vacio, para que quien llama distinga
+    # "no descarte nada" de "esta version no sabe escribirlo".
+    (carpeta / "descartadas.json").write_text(
+        json.dumps(descartadas, ensure_ascii=False, indent=1), encoding="utf-8")
     con_foto = sum(1 for p in carga if p["foto"])
     bloqueadas = sum(1 for p in carga if p["bloqueada"])
-    print("\n%s: %d piezas, %d con foto, %d bloqueadas (no se subiran)" % (
-        destino.name, len(carga), con_foto, bloqueadas))
+    duplicadas = sum(1 for p in carga if p.get("duplicada"))
+    print("\n%s: %d piezas, %d con foto, %d bloqueadas, %d repetidas "
+          "(esas dos no se suben salvo que se pidan)" % (
+              destino.name, len(carga), con_foto, bloqueadas, duplicadas))
     return 0
 
 

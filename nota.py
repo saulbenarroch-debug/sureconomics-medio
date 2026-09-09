@@ -818,9 +818,85 @@ def mandar_al_chat(borrador, chat, quien=""):
     return enviados > 0
 
 
+def _avisar_descartadas(chat, carpeta, peticion=""):
+    """Avisa de lo que armar_carga.py dejo fuera por repetido.
+
+    LA PIEZA YA SE ESCRIBIO Y YA SE ENTREGO cuando esto corre: la comprobacion
+    de duplicados con el titular final es la ultima puerta antes del panel. Si
+    cierra sin decir nada, la persona se queda con un borrador en el chat que no
+    existe en ninguna otra parte y sin saber por que.
+
+    Se ofrece el mismo "escribirla igual" que la comprobacion de antes de
+    escribir: el Worker saca la direccion de la linea /nota del propio mensaje
+    (no cabe en callback_data, que son 64 bytes) y vuelve a lanzarla con
+    encargo "igual".
+    """
+    if not chat:
+        return False
+    ficha = carpeta / "descartadas.json"
+    if not ficha.exists():
+        # Version anterior de armar_carga.py, que no lo escribia. Se calla en
+        # vez de inventarse un motivo.
+        return False
+    try:
+        import json as _json
+        fuera = _json.loads(ficha.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return False
+    if not fuera:
+        return False
+
+    # DE QUE CORRIDA ES ESTE BORRADOR. El boton "Subirla igual" no reescribe
+    # nada: lanza subir_borrador.yml, que se baja el artefacto de ESTA corrida y
+    # sube el texto tal cual. Por eso hace falta el numero, y por eso cabe: son
+    # once digitos y callback_data admite 64 bytes.
+    corrida = (os.environ.get("GITHUB_RUN_ID") or "").strip()
+
+    for d in fuera:
+        partes = [
+            "📌 <b>Escrita, pero no la subí al panel.</b>", "",
+            "La memoria dice que esto ya lo publicamos:",
+            "<i>%s</i>" % _escapar(d.get("choca_con", "")[:180]),
+        ]
+        if d.get("slug"):
+            partes.append("https://www.sureconomics.com/%s" % d["slug"])
+        partes += ["", "Si no es la misma, decide tú:"]
+
+        # LA DIRECCION VIAJA COMO ENLACE, NO COMO TEXTO, y eso es lo que permite
+        # que los dos botones basten. En callback_data caben 64 bytes y una URL
+        # de noticia no cabe, asi que el Worker la sacaba de una linea
+        # "/nota <url> igual" a la vista. Funcionaba, pero obligaba a enseñar un
+        # comando en un mensaje que ya trae botones, y quien lo lee no sabe si
+        # tiene que copiarlo o tocar el boton.
+        #
+        # El truco es que Telegram manda la URL de un <a href> en
+        # message.entities[].url y NO dentro de message.text. O sea que el
+        # Worker la tiene igual, y la persona solo ve dos botones.
+        if peticion.strip().lower().startswith(("http://", "https://")):
+            partes.append('<a href="%s">la fuente que me pasaste</a>'
+                          % _escapar(peticion))
+        elif peticion:
+            # Un tema escrito a mano no es un enlace y no hay entity donde
+            # meterlo. Ahi si se enseña el comando, que es la unica salida.
+            partes.append("<code>/nota %s igual</code>" % _escapar(peticion))
+        print("  [chat] aviso de descartada: %s" % d.get("titulo", "")[:60])
+
+        botones = []
+        # "Subirla igual" sube EL TEXTO QUE YA LEYO. Va primera porque es lo que
+        # se quiere casi siempre: la persona acaba de leer el borrador entero en
+        # el chat y lo unico que discute es el veredicto de repetida.
+        if corrida:
+            botones.append(("✅ Subirla igual", "subir:%s" % corrida))
+        if peticion.strip().lower().startswith(("http://", "https://")):
+            botones.append(("🔁 Escribirla otra vez", "forzar:1"))
+        _mensaje_telegram(chat, "\n".join(partes), botones or None)
+    return True
+
+
 def producir_y_entregar(nombre, tipo, encargo, autor, args,
                         portada_url="", declarar_ia=False,
-                        foto_local=None, lamina_pedida=False):
+                        foto_local=None, lamina_pedida=False,
+                        forzar=False):
     """Escribe desde una fuente ya registrada, audita y entrega.
 
     UNA SOLA VIA DE ENTREGA. Aqui llegan los dos caminos: el normal,
@@ -911,11 +987,25 @@ def producir_y_entregar(nombre, tipo, encargo, autor, args,
     if not args.sin_subir and os.environ.get("SURECONOMICS_USUARIO", "").strip():
         print("\n--- 5. AL PANEL ---")
         try:
-            r = subprocess.run([sys.executable, str(AQUI / "armar_carga.py"), str(carpeta)],
+            orden = [sys.executable, str(AQUI / "armar_carga.py"), str(carpeta)]
+            if forzar:
+                orden.append("--forzar")
+            r = subprocess.run(orden,
                                capture_output=True, text=True, encoding="utf-8",
                                errors="replace", timeout=20 * 60)
             print((r.stdout or "")[-400:])
             carga = carpeta / "carga.json"
+
+            # SI SE DESCARTO POR REPETIDA, SE DICE. Antes esto solo se imprimia
+            # en el log de Actions: la pieza se anunciaba como "Borrador listo",
+            # se mandaba entera por el chat y por correo, y despues no aparecia
+            # en el panel sin que nada lo explicara. El 09/09/2026 le paso dos
+            # veces seguidas a la misma persona en media hora.
+            #
+            # Y se ofrece la MISMA salida que la comprobacion de antes de
+            # escribir: el boton de escribirla igual. Que el motor se equivoque
+            # es inevitable; que no haya forma de contradecirlo, no.
+            _avisar_descartadas(args.chat, carpeta, args.peticion)
 
             # La portada que llego por el chat se mete AQUI, pisando lo que
             # hubiera decidido armar_carga.py. Si una persona se molesto en
@@ -1255,11 +1345,14 @@ def main():
                         args.chat,
                         "📌 <b>Esa ya está publicada.</b>\n\n"
                         "<i>%s</i>\nhttps://www.sureconomics.com/%s\n\n"
-                        "Si aun así la quieres, la escribo otra vez:\n"
-                        "<code>/nota %s igual</code>"
+                        "Si aun así la quieres:\n"
+                        # Como enlace y no como comando: la direccion viaja en
+                        # entities[].url y el boton la recupera de ahi. Ver
+                        # _avisar_descartadas() y la rama del Worker.
+                        '<a href="%s">la que me pediste</a>'
                         % (_escapar(ya["titulo"]), ya["slug"],
                            _escapar(peticion)),
-                        [("Escribirla igual", "forzar:1")])
+                        [("🔁 Escribirla igual", "forzar:1")])
                 except Exception as exc:  # noqa: BLE001
                     print("  [chat] no pude avisar (%s)" % str(exc)[:70])
             return 0
@@ -1337,7 +1430,8 @@ def main():
         # portada_url y declarar_ia van por defecto: una publicación de red
         # social no trae portada adjunta, y de la portada se ocupa armar_carga.
         return producir_y_entregar(nombre_manual, tipo, encargo, autor, args,
-                                   "", False, foto_local, lamina_pedida)
+                                   "", False, foto_local, lamina_pedida,
+                                   forzar)
 
     print("\n--- 2. LEER LA FUENTE ---")
 
@@ -1455,7 +1549,7 @@ def main():
 
     return producir_y_entregar(nombre, tipo, encargo, autor, args,
                                portada_url, declarar_ia, foto_local,
-                               lamina_pedida)
+                               lamina_pedida, forzar)
 
 
 if __name__ == "__main__":

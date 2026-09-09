@@ -41,6 +41,33 @@ EL HUECO SE ESTA CERRANDO Y CONVIENE SABERLO. Empezo siendo de 0.144 (0.240 a
 de economia comparten vocabulario, y contar palabras tiene un limite. Cuando el
 hueco se cierre del todo habra que cambiar de metodo, no de numero.
 
+  09/09/2026, con el catalogo entero (270 piezas, antes se miraban 60):
+  el duplicado mas flojo puntua 0.398 y la noticia nueva mas alta 0.394.
+  HUECO: +0.004. Practicamente cerrado.
+
+  Barrido sobre los 16 casos de pruebas_memoria.py:
+      0.36 (el de hoy) -> 0 se escapan, 2 bloquea de mas
+      0.40             -> 1 se escapa,  0 bloquea de mas
+
+  SE QUEDA EN 0.36 A PROPOSITO, y el motivo cambio el 09/09/2026. Antes aqui
+  decia que ante la duda el sesgo iba a NO bloquear, porque un falso positivo
+  no lo echaba nadie de menos: la pieza desaparecia en silencio. YA NO
+  DESAPARECE. Toda pieza que se de por repetida se avisa al chat con dos
+  botones -subirla igual o escribirla otra vez-, asi que bloquear de mas cuesta
+  un toque y dejar pasar un duplicado cuesta una noticia repetida en el sitio.
+  Con eso, mas vale pasarse que quedarse corto.
+
+  Y NO SE MUEVE POR ESTOS 16 CASOS. La diferencia entre 0.36 y 0.40 es un caso
+  en cada direccion: ajustar el numero a una muestra de dieciseis es ajustarlo
+  a la muestra. Si algun dia hay cincuenta, se vuelve a medir.
+
+CUIDADO AL TOCAR publicadas(): CUANTO MAS CATALOGO, MAS FALSOS POSITIVOS. Al
+pasar de 60 piezas a 270 dejaron de escaparse duplicados -los nueve reales se
+detectan- pero aparecieron dos choques que antes no existian: el Banco Central
+de Chile con la Fed, y una de Wall Street con otra de Wall Street. Es aritmetica,
+no un fallo: mas titulares publicados es mas superficie contra la que chocar. Se
+acepta porque las nueve deteciones valen mas que los dos toques.
+
 Cada duplicado nuevo que aparezca va a pruebas_memoria.py y se vuelve a mirar el
 hueco. No se ajusta a ojo.
 
@@ -86,25 +113,47 @@ def _palabras(titular):
             if p not in VACIAS}
 
 
-def publicadas(limite=60, tiempo_espera=40):
-    """Titulos ya publicados en el sitio, del mas reciente al mas antiguo."""
-    url = "%s/posts?limit=%d" % (API, limite)
-    peticion = urllib.request.Request(url, headers={"User-Agent": AGENTE})
-    try:
-        with urllib.request.urlopen(peticion, timeout=tiempo_espera) as r:
-            datos = json.loads(r.read().decode())
-    except Exception as exc:  # noqa: BLE001
-        # Si el sitio no responde NO se bloquea la corrida: se avisa y se sigue.
-        # Quedarse sin publicar por no poder comprobar duplicados seria cambiar
-        # un problema pequeño por uno grande.
-        print("[aviso] no pude consultar lo ya publicado: %s" % str(exc)[:80])
-        return []
-    lista = datos.get("data") or datos.get("items") or datos
-    if not isinstance(lista, list):
-        return []
-    return [{"titulo": p.get("title") or "", "slug": p.get("slug") or "",
-             "formato": p.get("format") or "", "fecha": p.get("published_at") or ""}
-            for p in lista]
+def publicadas(limite=None, tiempo_espera=40):
+    """Titulos ya publicados en el sitio, del mas reciente al mas antiguo.
+
+    SE TRAE EL CATALOGO ENTERO, PAGINANDO. Esto pedia limit=60 y ahi se quedaba,
+    y el 09/09/2026 el sitio tenia 270 piezas: la memoria estaba ciega al 78 %
+    de lo que el medio habia publicado. Cualquier cosa de mas de cinco dias
+    atras -doce piezas al dia entre las dos tandas- se podia volver a publicar
+    sin que nada lo notara.
+
+    La API tope las respuestas en 100 aunque se le pida mas, asi que hay que
+    recorrer las paginas; 'meta.pages' dice cuantas hay. 'limite' se conserva
+    para poder acotarlo en pruebas.
+    """
+    fuera, pagina, paginas = [], 1, 1
+    while pagina <= paginas:
+        url = "%s/posts?limit=100&page=%d" % (API, pagina)
+        peticion = urllib.request.Request(url, headers={"User-Agent": AGENTE})
+        try:
+            with urllib.request.urlopen(peticion, timeout=tiempo_espera) as r:
+                datos = json.loads(r.read().decode())
+        except Exception as exc:  # noqa: BLE001
+            # Si el sitio no responde NO se bloquea la corrida: se avisa y se
+            # sigue. Quedarse sin publicar por no poder comprobar duplicados
+            # seria cambiar un problema pequeño por uno grande. Si ya se habian
+            # traido paginas, se trabaja con lo que haya: media memoria es
+            # mejor que ninguna.
+            print("[aviso] no pude consultar lo ya publicado: %s" % str(exc)[:80])
+            break
+        lista = datos.get("data") or datos.get("items") or datos
+        if not isinstance(lista, list):
+            break
+        fuera += [{"titulo": p.get("title") or "", "slug": p.get("slug") or "",
+                   "formato": p.get("format") or "",
+                   "fecha": p.get("published_at") or ""}
+                  for p in lista]
+        if limite and len(fuera) >= limite:
+            return fuera[:limite]
+        meta = datos.get("meta") if isinstance(datos, dict) else None
+        paginas = (meta or {}).get("pages") or 1
+        pagina += 1
+    return fuera[:limite] if limite else fuera
 
 
 def pesos(catalogo):
@@ -159,7 +208,8 @@ def parecido(a, b, peso=None):
     return comun / base if base else 0.0
 
 
-def ya_cubierto(titular, catalogo=None, umbral=UMBRAL, peso=None, formato=None):
+def ya_cubierto(titular, catalogo=None, umbral=UMBRAL, peso=None,
+                formato=None):
     """Devuelve el titulo ya publicado que coincide, o None.
 
     'formato' ACOTA LA COMPARACION A LAS PIEZAS DE SU MISMA CLASE, y es lo que
@@ -182,6 +232,7 @@ def ya_cubierto(titular, catalogo=None, umbral=UMBRAL, peso=None, formato=None):
         peso = pesos(catalogo)
     if formato:
         catalogo = [c for c in catalogo if c.get("formato") == formato]
+
     mejor, puntos = None, 0.0
     for pieza in catalogo:
         p = parecido(titular, pieza["titulo"], peso)

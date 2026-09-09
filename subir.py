@@ -293,8 +293,33 @@ def main():
     # mete un aviso al principio del cuerpo, donde lo ve quien la abra.
     forzar = "--subir-bloqueadas" in sys.argv
 
+    # LO MISMO PARA LAS REPETIDAS, y por separado a proposito: una pieza
+    # bloqueada tiene una cifra sin rastrear y otra repetida no tiene ningun
+    # problema de contenido, solo se parece a algo ya publicado. Meterlas en la
+    # misma bandera obligaria a aceptar las dos cosas para conseguir una.
+    #
+    # Lo usa el boton "Subirla igual" del chat: la persona ya leyo el borrador,
+    # dice que no es la misma noticia, y sube ESE texto y no una reescritura.
+    duplicadas = "--subir-duplicadas" in sys.argv
+
     subidas, fallos = 0, []
     for pieza in carga:
+        if pieza.get("duplicada"):
+            if not duplicadas:
+                fallos.append((pieza["titulo"][:50],
+                               "la memoria la da por publicada, no se sube"))
+                continue
+            choca = pieza.get("choca_con") or ""
+            pieza = dict(pieza)
+            pieza["cuerpo_html"] = (
+                '<p><strong>⚠️ SE PARECE A UNA PIEZA YA PUBLICADA.</strong> '
+                "Sube al panel a petición de la redacción, que la revisó y dijo "
+                "que no es la misma noticia." +
+                ("<br><em>Se parecía a: " + choca[:200] + "</em>" if choca
+                 else "") +
+                "</p>" + pieza.get("cuerpo_html", ""))
+            print("  [aviso] %s va como REPETIDA y marcada"
+                  % pieza["titulo"][:44])
         if pieza.get("bloqueada"):
             if not forzar:
                 fallos.append((pieza["titulo"][:50],

@@ -1,0 +1,130 @@
+name: Subir un borrador ya escrito
+
+# SUBE AL PANEL UN BORRADOR QUE YA SE ESCRIBIO EN OTRA CORRIDA, SIN REDACTARLO
+# OTRA VEZ.
+#
+# Existe por el boton "Subirla igual" del chat. Cuando la memoria da una pieza
+# por repetida, nota.py la escribe, la entrega por Telegram y por correo, y no
+# la sube. Hasta el 09/09/2026 ahi se acababa: el texto solo quedaba en el
+# artefacto de esa corrida y la unica salida era volver a pedir la nota, que la
+# reescribe desde cero, tarda minutos y devuelve un texto PARECIDO pero no el
+# que la persona ya habia leido y aprobado.
+#
+# Esto se baja el artefacto de aquella corrida y sube ese mismo texto.
+#
+# POR QUE SE PASA EL NUMERO DE CORRIDA Y NO EL TEXTO: en callback_data de
+# Telegram caben 64 bytes. Un numero de corrida son once digitos; una noticia,
+# no. Y el artefacto ya existe, con retencion de 14 dias.
+on:
+  workflow_dispatch:
+    inputs:
+      corrida:
+        description: "Numero de la corrida de nota.yml que escribio el borrador"
+        required: true
+      chat:
+        description: "Chat de Telegram al que contestar"
+        default: ""
+
+permissions:
+  contents: read
+  # Hace falta para bajarse el artefacto de OTRA corrida.
+  actions: read
+
+jobs:
+  subir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # El artefacto se llama "peticion" y lo deja nota.yml. run-id apunta a la
+      # corrida de antes; sin github-token, download-artifact solo mira la suya.
+      - name: Bajar el borrador de aquella corrida
+        uses: actions/download-artifact@v4
+        with:
+          name: peticion
+          run-id: ${{ github.event.inputs.corrida }}
+          github-token: ${{ github.token }}
+          path: recuperado
+
+      - name: Subirlo tal cual
+        env:
+          SURECONOMICS_USUARIO: ${{ secrets.SURECONOMICS_USUARIO }}
+          SURECONOMICS_CLAVE: ${{ secrets.SURECONOMICS_CLAVE }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT: ${{ github.event.inputs.chat }}
+        # --subir-duplicadas es lo unico que se fuerza. Una pieza que ademas
+        # estuviera bloqueada por el auditor NO sube: que la memoria se
+        # equivoque no dice nada sobre si sus cifras cuadran, y son dos
+        # decisiones distintas que no se toman con el mismo boton.
+        run: |
+          python - <<'PY'
+          import glob, os, pathlib, subprocess, sys, urllib.request, json
+
+          # SE ELIGE POR CONTENIDO Y NO POR NOMBRE NI POR FECHA. El artefacto
+          # trae MAS de una carpeta peticion-*: hay una commiteada en el repo
+          # (peticion-2026-09-01-bank-of-america-vi) que el checkout deja en el
+          # workspace y que upload-artifact recoge con el patron peticion-*/.
+          # Coger la primera por orden alfabetico subia esa, o sea una pieza de
+          # otro dia que nadie pidio.
+          #
+          # La marca 'duplicada' solo la pone armar_carga.py en la pieza que la
+          # memoria acaba de frenar, asi que identifica sin ambiguedad la de
+          # esta corrida. Los carga.json viejos ni siquiera tienen la clave.
+          elegido, piezas = None, []
+          for ruta in sorted(glob.glob("recuperado/**/carga.json",
+                                       recursive=True)):
+              try:
+                  d = json.loads(pathlib.Path(ruta).read_text(encoding="utf-8"))
+              except Exception as exc:
+                  print("  (ilegible, la salto: %s)" % ruta)
+                  continue
+              marcadas = [p for p in d if p.get("duplicada")]
+              print("  %s -> %d pieza(s), %d marcada(s) como repetida"
+                    % (ruta, len(d), len(marcadas)))
+              if marcadas:
+                  elegido, piezas = ruta, marcadas
+
+          if not elegido:
+              print("\nEn el artefacto de esa corrida no hay ninguna pieza "
+                    "marcada como repetida. No subo nada: prefiero no adivinar.")
+              sys.exit(1)
+          print("\nvoy con: %s (%d pieza[s])" % (elegido, len(piezas)))
+
+          # Se escribe una carga SOLO con las marcadas. Asi el boton no arrastra
+          # de paso otras piezas que estuvieran en la misma carpeta.
+          recorte = pathlib.Path("solo-repetidas.json")
+          recorte.write_text(json.dumps(piezas, ensure_ascii=False),
+                             encoding="utf-8")
+
+          r = subprocess.run([sys.executable, "subir.py", str(recorte),
+                              "--subir-duplicadas"],
+                             capture_output=True, text=True,
+                             encoding="utf-8", errors="replace")
+          salida = (r.stdout or "") + (r.stderr or "")
+          print(salida[-3000:])
+
+          # Se contesta al chat pase lo que pase. Un boton que no dice nada al
+          # tocarlo es justo el problema que este workflow vino a arreglar.
+          ficha = os.environ.get("TELEGRAM_TOKEN", "").strip()
+          chat = os.environ.get("CHAT", "").strip()
+          if ficha and chat:
+              ok = " OK   #" in salida
+              texto = ("✅ <b>Subida al panel</b>, marcada como parecida a otra."
+                       if ok else
+                       "⚠️ <b>No pude subirla.</b> El borrador sigue en el "
+                       "correo y aquí arriba en el chat.")
+              urllib.request.urlopen(urllib.request.Request(
+                  "https://api.telegram.org/bot%s/sendMessage" % ficha,
+                  data=json.dumps({"chat_id": chat, "text": texto,
+                                   "parse_mode": "HTML"}).encode(),
+                  headers={"Content-Type": "application/json"}), timeout=30)
+          sys.exit(r.returncode)
+          PY

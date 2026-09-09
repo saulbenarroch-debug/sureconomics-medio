@@ -34,12 +34,40 @@ REPETIDOS = [
     # De la ronda de vigilancia del 01/09: es el mismo hecho que publicamos
     # (Ormuz, el crudo por encima de 90) contado un dia despues y con otra
     # cifra. Tiene que seguir bloqueandose despues del arreglo de abajo.
+    #
+    # ES EL MAS JUSTO DE TODOS y por eso conviene vigilarlo: puntua 0.398 contra
+    # un umbral de 0.36, o sea que pasa por cuatro centesimas. Si alguien sube
+    # el umbral a 0.40 "porque bloquea de mas", este es el que se cae.
     "El petróleo sube un 4% y toca los 94 dólares tras los últimos ataques de EEUU a Irán",
+
+    # 09/09/2026, pedida por Edicion desde La Vanguardia. Es la misma historia
+    # que "EL PETRÓLEO SUPERA LOS 98 DÓLARES TRAS ATAQUES A PETROLEIROS" con el
+    # precio actualizado. Se bloqueo bien; lo que fallaba era que no se le decia
+    # a quien la pidio, que es lo que arreglo _avisar_descartadas en nota.py.
+    "El barril de crudo Brent supera los 100 dólares por la tensión en Oriente Medio",
+
+    # Estaba en la lista de NUEVOS desde el 02/09 y dejo de serlo: la publicamos
+    # como "VENEZUELA, ARGENTINA, ECUADOR Y BOLIVIA COMPARTEN EL PEOR RIESGO
+    # PAÍS DE LA REGIÓN". La prueba fallaba por la etiqueta, no por el codigo.
+    # Un caso caduca cuando el catalogo cambia: hay que moverlo, no relajar nada.
+    "¿Por qué Venezuela, Argentina, Ecuador y Bolivia tienen el peor riesgo país de Latinoamérica? Las razones",
 ]
 
 # Cosas que NO hemos publicado. Si alguna sale como repetida, la memoria estaria
 # tapando noticias nuevas, que es el error caro.
 NUEVOS = [
+    # ESTOS DOS FALLAN DESDE EL 09/09/2026 Y SE SABE POR QUE. Al pasar el
+    # catalogo de 60 piezas a 270 dejaron de escaparse duplicados, pero
+    # aparecieron choques que antes no existian por pura aritmetica: mas
+    # titulares publicados es mas superficie contra la que chocar. Chile se
+    # empareja con "LA FED, BANCO CENTRAL DE EE. UU." (0.394) y Wall Street con
+    # "WALL STREET DESENFRENADO Y LA DEUDA..." (0.391), las dos por debajo del
+    # duplicado mas flojo, que puntua 0.398. El hueco es de +0.004.
+    #
+    # NO SE ARREGLAN SUBIENDO EL UMBRAL: a 0.40 estos dos pasan pero se escapa
+    # el del petroleo a 94 dolares. Se aceptan porque desde ese mismo dia una
+    # pieza dada por repetida se avisa al chat con el boton de subirla igual:
+    # cuesta un toque, no una noticia.
     "El Banco Central de Chile recorta la tasa de interés en 25 puntos básicos",
     "Brasil anuncia un nuevo paquete de crédito para la agricultura familiar",
     "El desempleo en Perú cae al 6,2 % en el segundo trimestre",
@@ -54,11 +82,18 @@ NUEVOS = [
     # de un tercio del parecido. Si esto vuelve a salir como repetido, alguien
     # quito la regla de las dos palabras en memoria.parecido().
     "U.S.-Iran Strikes Put $100 Oil Back in Focus",
-    # El que obligo a subir el umbral de 0.31 a 0.36 el 02/09/2026. Se emparejo
-    # con "EL CHANTAJE DEL RIESGO PAIS Y EL SERVICIO DE LA DEUDA HONDUREÑA"
-    # compartiendo solo "riesgo" y "pais", que en un medio de economia son una
-    # coletilla y no identifican nada. Puntuaba 0.340.
-    "¿Por qué Venezuela, Argentina, Ecuador y Bolivia tienen el peor riesgo país de Latinoamérica? Las razones",
+    # EL CASO QUE DESTAPO TODO ESTO, del 09/09/2026. Escrita a peticion
+    # de Edicion desde un tuit de Banca y Negocios, se descarto contra "GRUPO
+    # GILINSKI Y GEOPARK FIRMAN ACUERDO POR 25 AÑOS...", que es un trato entre
+    # dos empresas privadas y no tiene nada que ver con un acuerdo entre dos
+    # estados. Compartian cuatro palabras -firman, acuerdo, petrolero,
+    # venezuela- y con el catalogo recortado a 60 las tres primeras pesaban el
+    # maximo, o sea que el sistema las tomaba por rarisimas. Puntuaba 0.492.
+    #
+    # Lo que lo arreglo NO fue afinar el parecido, sino mirar las 270 piezas
+    # publicadas en vez de 60: con el catalogo entero, "acuerdo" y "petrolero"
+    # dejan de parecer palabras raras y el choque baja de 0.492 a 0.000.
+    "Delcy Rodríguez: cada taladro activado en el sector petrolero generará 200 puestos de empleo",
 ]
 
 

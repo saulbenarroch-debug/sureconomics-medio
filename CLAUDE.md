@@ -21,10 +21,29 @@ desde ahí.
 
 > **El código trae las cifras y audita. La IA solo redacta prosa.**
 
-Todo lo verificable —cifras, fechas, atribuciones, duplicados, formato— lo decide
-código determinista. El modelo escribe el texto y propone; nunca decide si algo
-es cierto. Cuando algo de esto se relaja, se rompe en producción: está
-documentado más abajo, caso por caso.
+Todo lo verificable —cifras, fechas, atribuciones, formato— lo decide código
+determinista. El modelo escribe el texto y propone; nunca decide si algo es
+cierto. Cuando algo de esto se relaja, se rompe en producción: está documentado
+más abajo, caso por caso.
+
+**Los duplicados son la excepción que confirma la regla, y la solución no fue
+más inteligencia sino una salida.** Decidir si dos titulares cuentan el mismo
+hecho no es verificar un dato, es un juicio, y contar palabras no lo sabe hacer:
+medido el 09/09/2026 contra el catálogo real, un duplicado auténtico puntuaba
+0.238 y una noticia legítima 0.643 — **cruzados**, así que ningún umbral los
+separa.
+
+Se probó a que lo juzgara el modelo y acertaba (de 8 fallos a 2 en
+`pruebas_memoria.py`), pero **se descartó por decisión del dueño**: mete una
+llamada de IA y una dependencia de cuota en una decisión que no lo necesita. La
+salida elegida es más simple y más robusta: **el umbral se queda como está y
+todo veredicto de "repetida" es contradecible de un toque.** Si un falso
+positivo cuesta un botón en vez de una noticia perdida, la precisión del
+detector deja de ser crítica.
+
+La diferencia con las cifras sigue siendo la que manda: una cifra mal decidida
+se publica y es falsa; un duplicado mal decidido no publica nada, avisa a quien
+lo pidió y se deshace en un toque.
 
 ## Cómo va una pieza de la nada al panel
 
@@ -196,9 +215,20 @@ su historia escrita al lado del código.
 | `foto.ANCHO_MINIMO` | 1000 | `motor/foto.py` | portada demasiado pequeña |
 
 `memoria.UMBRAL` lleva su propia bitácora en el docstring (0.40 → 0.31 → 0.36) y
-un aviso que hay que respetar: **el hueco entre duplicados reales y falsos
-positivos se ha estrechado de 0.144 a 0.035.** Cuando se cierre habrá que cambiar
-de método, no de número.
+un aviso que decía: **el hueco entre duplicados reales y falsos positivos se ha
+estrechado de 0.144 a 0.035. Cuando se cierre habrá que cambiar de método, no de
+número.**
+
+**Se cerró el 09/09/2026, y del revés: el hueco es negativo.** Contra el
+catálogo real, un duplicado auténtico puntuaba 0.238 y una noticia legítima
+0.643. O sea que **mover el 0.36 ya no arregla nada**: subirlo deja pasar
+repetidos, bajarlo tapa noticias nuevas. Si vienes a ajustar ese número, ese es
+el motivo por el que no va a funcionar.
+
+Lo que se hizo en su lugar no fue afinar el detector sino **quitarle poder**:
+toda pieza que dé por repetida se avisa al chat con dos botones, «Subirla igual»
+y «Escribirla otra vez». El número se queda; lo que cambia es que ya no tiene la
+última palabra.
 
 ## Reglas de oro (no negociables)
 
@@ -249,42 +279,80 @@ Cada una costó al menos una tarde.
    la URL de x.com a `leer_enlace()` devuelve su muro de acceso, y se comparaba
    esa basura contra lo publicado: un bloqueo correcto señalando la pieza
    equivocada. Un motivo equivocado hace que una decisión buena parezca un fallo.
+8. **El catálogo se pedía con `limit=60` y el sitio tenía 270 piezas.** La
+   memoria estaba ciega al 78 % de lo publicado: a doce piezas diarias entre las
+   dos tandas, todo lo de más de cinco días atrás se podía republicar sin que
+   nada lo notara. Y de paso envenenaba los pesos, porque con 60 titulares
+   «acuerdo» y «petrolero» aparecen en uno solo y el sistema los tomaba por
+   rarísimos. **La API tope las respuestas en 100 aunque le pidas más**: hay que
+   paginar con `page` y mirar `meta.pages`.
+9. **El bloqueo por repetida ocurre DESPUÉS de escribir y entregar.** La pieza ya
+   se anunció como «Borrador listo», ya se mandó entera por el chat y ya salió
+   por correo. Si esa última puerta se cierra en silencio, la persona se queda
+   con un borrador que no existe en ninguna otra parte. Pasó dos veces en media
+   hora el 09/09/2026 y se describió como que el bot se había vuelto loco.
+   `armar_carga.py` deja `descartadas.json` y `nota._avisar_descartadas()` lo
+   cuenta con el botón de subirla igual. **Si añades otro motivo de descarte,
+   apúntalo ahí también**: el log de Actions no lo lee nadie desde Telegram.
+10. **Los dos botones hacen cosas distintas y no son intercambiables.**
+    «Subirla igual» (`subir:<corrida>`) lanza `subir_borrador.yml`, que se baja
+    el artefacto de aquella corrida y sube **el texto exacto** que la persona ya
+    leyó. «Escribirla otra vez» (`forzar:1`) redacta desde cero: tarda minutos y
+    devuelve un texto parecido pero distinto del que aprobó. Por eso el primero
+    va primero.
+    **Y solo el segundo necesita enlace:** el Worker lo recupera del texto del
+    mensaje con `/\/nota\s+(https?:\/\/\S+)/` porque no cabe en `callback_data`
+    (64 bytes), así que con un tema escrito a mano no aparece. El número de
+    corrida sí cabe —once dígitos— y por eso «Subirla igual» sale siempre.
+11. **El artefacto de una corrida trae MÁS carpetas `peticion-*` de las que esa
+    corrida escribió.** Hay una commiteada en el repo
+    (`peticion-2026-09-01-bank-of-america-vi/`) que el checkout deja en el
+    workspace y que `upload-artifact` recoge con el patrón `peticion-*/`. Elegir
+    «la primera» por orden alfabético subía **esa**, o sea una pieza de otro día
+    que nadie pidió. `subir_borrador.yml` elige por contenido: la única carpeta
+    cuyo `carga.json` tiene una pieza marcada `duplicada`. Si algún día borráis
+    esas carpetas del repo, la regla sigue siendo correcta; al revés no.
+12. **Una repetida y una bloqueada por el auditor son dos cosas distintas y
+    tienen banderas distintas** (`--subir-duplicadas` y `--subir-bloqueadas`).
+    Una repetida no tiene ningún problema de contenido, solo se parece a algo ya
+    publicado; una bloqueada tiene una cifra que no se pudo rastrear. Juntarlas
+    en una sola bandera obligaría a aceptar las dos cosas para conseguir una.
 
 ### De los archivos y los procesos
 
-8. **`producir.py` fija su salida a UTF-8, y no es cosmético.** Al llamarlo como
+13. **`producir.py` fija su salida a UTF-8, y no es cosmético.** Al llamarlo como
    subproceso, la tubería usa cp1252 y la «ó» de `opinión` se pierde: `nota.py`
    buscaba `opini?n-2.txt`, no existía, y daba por no generada una pieza escrita
    y auditada. Ni Telegram ni panel.
-9. **El nombre del borrador se calcula en UN sitio.** Lo calculaban los dos y
+14. **El nombre del borrador se calcula en UN sitio.** Lo calculaban los dos y
    falló dos veces en una semana. Ahora `producir.py` lo imprime y `nota.py` lo
    lee de ahí. Además se numera (`-2`, `-3`) si ya existe: dos columnas del mismo
    tema se pisaban en silencio.
 
 ### De la búsqueda
 
-10. **`topic:"news"` de Tavily excluye a los medios pequeños**, y además su
+15. **`topic:"news"` de Tavily excluye a los medios pequeños**, y además su
     relevancia es inestable: la misma consulta devolvió seis piezas correctas y,
     minutos después, resultados de otro tema. Por eso se consultan los dos modos
     y **se exige que el candidato NOMBRE el asunto**.
-11. **Las páginas de etiqueta ganan una búsqueda por texto.** «Nombre: Noticias,
+16. **Las páginas de etiqueta ganan una búsqueda por texto.** «Nombre: Noticias,
     Fotos y Videos», «Nombre - Diario.com», «Sección - Página 731 de 8174». Son
     donde ese nombre aparece más veces. `_es_indice()` las descarta, y se piden
     tres veces más resultados de los que se van a usar porque el filtro vacía la
     primera página.
-12. **Una ficha de podcast no es una nota.** «BBC Audio | Global News Podcast» se
+17. **Una ficha de podcast no es una nota.** «BBC Audio | Global News Podcast» se
     deja leer y devuelve el resumen del episodio; la pieza se escribió desde ahí.
-13. **El relleno de hablar arruina la consulta.** «lo que dijo X hoy» reparte el
+18. **El relleno de hablar arruina la consulta.** «lo que dijo X hoy» reparte el
     peso entre palabras vacías: el primer resultado era de otro tema. Se limpia
     antes de buscar (`nota._consulta_limpia`).
-14. **Si la captura dice de qué medio es, se va ahí primero** —y se leen sus
+19. **Si la captura dice de qué medio es, se va ahí primero** —y se leen sus
     feeds a fondo (21 días, 100 por feed) en vez de por encima como los 51. Leer
     hondo en uno cuesta lo mismo que leer por encima en cuarenta.
-15. **Los feeds de sección no son solo de economía.** De un medio aprobado, una
+20. **Los feeds de sección no son solo de economía.** De un medio aprobado, una
     nota fuera de su sección económica era invisible. Los feeds añadidos van con
     `economia=False`: `titulares()` (capturas) los ve enteros, `extraer()` (pozo
     de las tandas) les exige vocabulario económico.
-16. **Google News encuentra lo que el RSS no ve, pero su enlace no sirve.** Es un
+21. **Google News encuentra lo que el RSS no ve, pero su enlace no sirve.** Es un
     redirector cifrado que desde 2024 solo salta por JavaScript (comprobado
     decodificándolo: 437 bytes, sin URL dentro). `titulares_google()` **nunca
     devuelve enlaces** a propósito, para que ninguno pueda colar un redirector en
@@ -292,32 +360,32 @@ Cada una costó al menos una tarde.
 
 ### De las redes sociales
 
-17. **X e Instagram son aplicaciones de JavaScript**: `leer_enlace()` encuentra
+22. **X e Instagram son aplicaciones de JavaScript**: `leer_enlace()` encuentra
     cero párrafos. X se lee por su oEmbed. **Instagram se lee cambiando el
     User-Agent**: a un navegador le sirve la página vacía, a
     `facebookexternalhit` le sirve las etiquetas Open Graph con la cuenta, la
     fecha y el pie entero. Es la vía que Instagram publica para que se puedan
     previsualizar sus enlaces; su API oficial exige una app de Meta revisada.
-18. **Los dos se atienden por la misma puerta** (`leer_publicacion`). Tener dos
+23. **Los dos se atienden por la misma puerta** (`leer_publicacion`). Tener dos
     ramas paralelas es como se llega a que una se arregle y la otra no.
 
 ### De las portadas
 
-19. **La imagen ilustra el ASUNTO, no la sección.** Buscar en Commons palabras
+24. **La imagen ilustra el ASUNTO, no la sección.** Buscar en Commons palabras
     del titular daba el Museu do Ipiranga encabezando una nota de morosidad. Se
     le pregunta a **Wikidata cuál es la imagen de la entidad**: P18 imagen, P154
     logo, P41 bandera.
-20. **Si se sabe de quién habla y no hay imagen suya, no se pone ninguna.** Sin
+25. **Si se sabe de quién habla y no hay imagen suya, no se pone ninguna.** Sin
     esto, una nota sobre la salida a bolsa de Shein eligió el retrato de Ali
     Mohamed Shein, expresidente de Zanzíbar.
-21. **La bandera solo si el país es el ÚNICO asunto.** Si el titular nombra algo
+26. **La bandera solo si el país es el ÚNICO asunto.** Si el titular nombra algo
     más, o es la imagen de eso o ninguna. Y se descarta la entidad país entera,
     no solo su bandera: quitando solo P41, el hueco lo ocupaba el mapa del país.
-22. **Wikidata separa figura pública de particular sin que nadie mantenga una
+27. **Wikidata separa figura pública de particular sin que nadie mantenga una
     lista.** Un jefe de Estado tiene ficha y retrato libre; la víctima de un
     suceso, no. Cuando no hay ficha no hay foto, que es el resultado que se
     quería.
-23. **Un SVG no tiene medidas** y Commons fecha banderas y logos por cuando se
+28. **Un SVG no tiene medidas** y Commons fecha banderas y logos por cuando se
     adoptó el diseño (la del Reino Unido consta como de 1801). Las reglas de
     tamaño y antigüedad no se les aplican; a las fotografías sí, enteras.
 
@@ -371,7 +439,12 @@ Sin Python global en Windows: hay un runtime portátil en
 
 - **Rotar la clave de `sur@bot.com`** (se pegó en un chat) y bajarle el rol de
   `admin` a `editor`.
-- Recargar Tavily. Mientras tanto, capturas y temas sueltos van solo con feeds.
+- **Recargar Tavily: ya está bloqueando trabajo, no es un pendiente cómodo.** Se
+  agotó y devuelve 432. El 09/09/2026 una petición desde un tuit murió con «no
+  encuentro esta noticia en ninguna fuente verificable»: sin Tavily quedan los
+  feeds, y un tuit de un medio cuyo feed no cubre esa sección no se encuentra por
+  ningún otro camino. De 534 candidatos del respaldo, el más parecido puntuó
+  0.000 y era de otro tema.
 - No hay endpoint de subida de imágenes en el panel (`POST /admin/media` da 405):
   solo se puede adjuntar por dirección web. `motor/imagen_publica.py` es un apaño
   hasta que los desarrolladores lo añadan con la migración a R2.
