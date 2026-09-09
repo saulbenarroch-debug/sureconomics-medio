@@ -434,15 +434,74 @@ def titulares(medios=None, horas=24, por_medio=15):
     return salida
 
 
-def extraer(medios=None, horas=24, limite=6, tema=None):
+# CUANTAS NOTAS COMO MAXIMO SE COGEN DE UN MISMO MEDIO.
+#
+# Sin esto, un diario que publique mucho se lleva el pozo aunque haya cincuenta
+# medios mas en la lista: el 09/09/2026 El Pais aporto 21 de 50 candidatas. No
+# es que publicara mejor, es que publica mas y estaba el primero.
+#
+# Cuatro es suficiente para que un medio con un buen dia entre con varias y no
+# tanto como para que tape a los demas.
+POR_MEDIO = 4
+
+# EL ORDEN EN QUE SE LEEN LOS MEDIOS, POR PRIORIDAD EDITORIAL.
+#
+# Lo pidio el dueno el 09/09/2026: "que lea primero diarios venezolanos, luego
+# region, luego Espana, pero que igual catalogue por importancia". Esto es la
+# primera mitad -a quien se lee antes-; la importancia la sigue decidiendo
+# criterio.puntuar() sobre el pozo ya recogido, que es la segunda.
+#
+# Importa porque la recoleccion se corta al llegar al limite: lo que se lea
+# tarde puede no leerse. Con el orden de escritura del diccionario, Venezuela
+# quedaba fuera del pozo entera.
+PRIORIDAD = (
+    ("Venezuela",),                       # el pais del medio
+    ("Latam", "Colombia", "Argentina", "Perú", "Chile", "Ecuador", "Uruguay",
+     "Brasil", "México", "Paraguay", "Bolivia", "Cuba"),   # la region
+    (),                                   # el resto: Espana, EE. UU., Europa
+)
+
+
+def _en_orden_de_prioridad():
+    """Las claves de MEDIOS, primero Venezuela, luego la region, luego el resto."""
+    por_nivel = [[] for _ in PRIORIDAD]
+    for clave, medio in MEDIOS.items():
+        pais = medio.get("pais", "")
+        nivel = len(PRIORIDAD) - 1          # el resto, si no encaja en ninguno
+        for i, paises in enumerate(PRIORIDAD):
+            if pais in paises:
+                nivel = i
+                break
+        por_nivel[nivel].append(clave)
+    return [c for nivel in por_nivel for c in nivel]
+
+
+def extraer(medios=None, horas=24, limite=6, tema=None, por_medio=POR_MEDIO):
     """Lee la lista blanca y devuelve un paquete por noticia.
 
-    medios: claves de MEDIOS; por defecto, todas.
+    medios: claves de MEDIOS; por defecto, todas, EN ORDEN DE PRIORIDAD.
     tema:   filtra ademas por una palabra o expresion (ej. "inflaci|d[oó]lar").
 
     Una lista de paquetes, no uno: cada noticia se produce y falla por separado.
+
+    EL ORDEN Y EL TOPE POR MEDIO NO SON COSMETICA: SON LO QUE DECIDE LA TANDA.
+
+    Esta funcion recorre los medios y hace 'return' en cuanto junta 'limite'
+    candidatas. Con los medios en el orden en que estaban escritos en MEDIOS
+    -El Pais el primero, Clarin el segundo, los dos brasilenos tercero y
+    cuarto- eso significaba que los cuatro primeros llenaban el cupo y LOS
+    DEMAS NO SE LEIAN NUNCA.
+
+    Medido el 09/09/2026 sobre un pozo real de 50: El Pais aporto 21 candidatas
+    el solo, Folha y Estadao 27 entre los dos, Clarin 2. Total 50, corte, y los
+    trece medios venezolanos -del octavo en adelante- ni se abrieron. Cero
+    candidatas de Venezuela en el medio cuya tesis es Venezuela.
+
+    Y explica de paso lo de Brasil de la vispera, que se habia tapado con un
+    tope por pais en orquestar.py: no era que Folha publicara mejor, era que
+    publicaba ANTES en la lista.
     """
-    claves = medios or list(MEDIOS)
+    claves = medios or _en_orden_de_prioridad()
     filtro_tema = re.compile(tema, re.IGNORECASE) if tema else None
     corte = datetime.now(timezone.utc).timestamp() - horas * 3600
     paquetes, vistos = [], set()
@@ -452,6 +511,7 @@ def extraer(medios=None, horas=24, limite=6, tema=None):
             print(f"[aviso] '{clave}' no esta en la lista blanca; lo salto")
             continue
         medio = MEDIOS[clave]
+        del_medio = 0
         try:
             feed = feedparser.parse(medio["url"], agent=AGENTE)
             # SEGUNDO INTENTO SIN DISFRAZARSE. AGENTE imita a Chrome, que es lo
@@ -565,6 +625,10 @@ def extraer(medios=None, horas=24, limite=6, tema=None):
                     f"versión por contrastada."
                 )
             paquetes.append(paquete)
+            del_medio += 1
+            # UN MEDIO NO PUEDE LLEVARSE EL POZO ENTERO. Ver POR_MEDIO.
+            if del_medio >= por_medio:
+                break
             if len(paquetes) >= limite:
                 return paquetes
 

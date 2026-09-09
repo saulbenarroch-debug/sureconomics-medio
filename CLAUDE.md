@@ -157,6 +157,39 @@ Nadie escribe el nombre interno del tipo: se pide "un artículo", "una columna",
 "un reportaje". `nota.SINONIMOS` los traduce. **Artículo = Análisis**, porque en
 el sitio ese formato se llama `articulo`.
 
+## Quién entra en el pozo, que no es lo mismo que quién gana
+
+**Son dos preguntas distintas y durante semanas se confundieron.** Puntuar bien
+no sirve de nada si el candidato nunca llegó a la lista.
+
+`noticias.extraer()` recorre los medios y hace `return` en cuanto junta
+`limite` candidatas. Con los medios en el orden en que estaban escritos en
+`MEDIOS` —El País el 1º, Clarín el 2º, los brasileños 3º y 4º— **los cuatro
+primeros llenaban el cupo de 50 y los otros 55 no se abrían nunca.**
+
+Medido el 09/09/2026 sobre un pozo real de 50 candidatas: **27 de Brasil, 21 de
+España, 2 de Argentina y CERO de Venezuela**, con trece medios venezolanos en la
+lista. No era el huso horario ni la puntuación: era el orden de un diccionario.
+Y era también la causa de lo de Brasil de la víspera, que se había tapado con un
+tope por país.
+
+Tres cosas lo arreglan, y las tres hacen falta:
+
+| Qué | Dónde | Para qué |
+|---|---|---|
+| `_en_orden_de_prioridad()` | `motor/fuentes/noticias.py` | Venezuela primero, luego la región, luego el resto |
+| `POR_MEDIO = 4` | `motor/fuentes/noticias.py` | que un diario no se lleve el pozo (El País aportó 21 de 50) |
+| `limite=400` | `recolectar.py` | que dé tiempo a leer los 59 antes de cortar |
+
+Tras el cambio, el mismo día y a la misma hora: **183 candidatas de 18 países**,
+Venezuela la que más aporta con 31 y España en 8.
+
+**El orden decide quién ENTRA; la puntuación decide quién GANA.** No se le puso
+ninguna bonificación por país al puntuar: si el mejor titular del día es
+colombiano, gana el colombiano. Decisión del dueño el 09/09/2026, con la
+medición delante (Venezuela aportaba más candidatas que nadie y a la vez tenía
+la media más baja, 3.0, porque con trece medios entran también los flojos).
+
 ## Quién gana una tanda
 
 `criterio.puntuar()` ordena los candidatos. Suma por vocabulario macro, por
@@ -191,6 +224,14 @@ es que Brasil fuera más noticia ese día; es que Folha publica mucho y muy
 seguido, y el recolector ordena por calidad sin mirar de dónde viene cada una.
 Un medio latinoamericano que abre tres de cinco con Brasil deja de parecerlo.
 
+**OJO: ESTE TOPE ESTABA TAPANDO OTRA COSA.** Al día siguiente pasó lo mismo con
+España y, al medirlo, la causa no era que Brasil ni España publicaran mejor: era
+que estaban arriba en `MEDIOS` y `extraer()` cortaba antes de llegar a los
+demás. Ver «Quién entra en el pozo». Arreglado eso, Brasil aporta 8 candidatas
+de 183 en vez de 27 de 50, así que **el tope ya casi no debería morder**. Se
+deja puesto como red, pero si algún día vuelve a hacer falta de verdad, mira
+antes la composición del pozo: puede que el problema esté otra vez antes.
+
 **Lo que no está en la tabla no tiene tope, y eso también es deliberado.**
 Venezuela es el país del medio y una tanda entera de Venezuela es una decisión
 editorial legítima, no un accidente del recolector. Un tope general habría
@@ -209,6 +250,7 @@ su historia escrita al lado del código.
 | Constante | Valor | Dónde | Qué decide |
 |---|---|---|---|
 | `memoria.UMBRAL` | 0.36 | `motor/memoria.py` | si algo ya se publicó |
+| `noticias.POR_MEDIO` | 4 | `motor/fuentes/noticias.py` | cuántas aporta un mismo diario |
 | `captura.PARECIDO_MINIMO` | 0.45 | `motor/captura.py` | si un candidato es la nota |
 | `captura.PARECIDO_AUTOMATICO` | 0.75 | `motor/captura.py` | si lo es sin preguntar |
 | `nota.MAX_FUENTES` | 3 | `nota.py` | cuántos medios se cruzan |
@@ -318,41 +360,61 @@ Cada una costó al menos una tarde.
     publicado; una bloqueada tiene una cifra que no se pudo rastrear. Juntarlas
     en una sola bandera obligaría a aceptar las dos cosas para conseguir una.
 
+### De la recolección
+
+13. **`extraer()` corta al llegar al límite, y el orden de `MEDIOS` decidía la
+    tanda.** Ver «Quién entra en el pozo». Si vuelves a tocar `limite`, mira
+    antes cuántos medios da tiempo a leer: es un tope de composición, no de
+    seguridad.
+14. **Un medio que publica mucho se lleva el pozo si le dejas.** El País aportó
+    21 de 50 candidatas él solo. `POR_MEDIO` lo limita a cuatro.
+15. **España no estaba en `criterio.PAISES`**, así que `pais_de()` devolvía
+    `None` para toda noticia española y `diversificar()` las metía en el saco
+    «sin país» sin poder contarlas. Media tanda del 09/09/2026 fue española sin
+    que ninguna regla de reparto se enterara.
+16. **En `criterio.PAISES` había quince bytes 0x08 literales donde el código
+    debía decir `\b`.** Un límite de palabra que se perdió al escribir el
+    archivo con una herramienta que interpretó el escape: `\bbcv\b`,
+    `bolívar\b` y `\bfed\b` no podían casar nunca, porque exigirían un
+    retroceso de carro dentro del titular. **Y al arreglarlo con un heredoc
+    volvió a pasar lo mismo**, dejando la sustitución en un no-op. Para tocar
+    escapes, archivo aparte; nunca heredoc ni `sed`.
+
 ### De los archivos y los procesos
 
-13. **`producir.py` fija su salida a UTF-8, y no es cosmético.** Al llamarlo como
+17. **`producir.py` fija su salida a UTF-8, y no es cosmético.** Al llamarlo como
    subproceso, la tubería usa cp1252 y la «ó» de `opinión` se pierde: `nota.py`
    buscaba `opini?n-2.txt`, no existía, y daba por no generada una pieza escrita
    y auditada. Ni Telegram ni panel.
-14. **El nombre del borrador se calcula en UN sitio.** Lo calculaban los dos y
+18. **El nombre del borrador se calcula en UN sitio.** Lo calculaban los dos y
    falló dos veces en una semana. Ahora `producir.py` lo imprime y `nota.py` lo
    lee de ahí. Además se numera (`-2`, `-3`) si ya existe: dos columnas del mismo
    tema se pisaban en silencio.
 
 ### De la búsqueda
 
-15. **`topic:"news"` de Tavily excluye a los medios pequeños**, y además su
+19. **`topic:"news"` de Tavily excluye a los medios pequeños**, y además su
     relevancia es inestable: la misma consulta devolvió seis piezas correctas y,
     minutos después, resultados de otro tema. Por eso se consultan los dos modos
     y **se exige que el candidato NOMBRE el asunto**.
-16. **Las páginas de etiqueta ganan una búsqueda por texto.** «Nombre: Noticias,
+20. **Las páginas de etiqueta ganan una búsqueda por texto.** «Nombre: Noticias,
     Fotos y Videos», «Nombre - Diario.com», «Sección - Página 731 de 8174». Son
     donde ese nombre aparece más veces. `_es_indice()` las descarta, y se piden
     tres veces más resultados de los que se van a usar porque el filtro vacía la
     primera página.
-17. **Una ficha de podcast no es una nota.** «BBC Audio | Global News Podcast» se
+21. **Una ficha de podcast no es una nota.** «BBC Audio | Global News Podcast» se
     deja leer y devuelve el resumen del episodio; la pieza se escribió desde ahí.
-18. **El relleno de hablar arruina la consulta.** «lo que dijo X hoy» reparte el
+22. **El relleno de hablar arruina la consulta.** «lo que dijo X hoy» reparte el
     peso entre palabras vacías: el primer resultado era de otro tema. Se limpia
     antes de buscar (`nota._consulta_limpia`).
-19. **Si la captura dice de qué medio es, se va ahí primero** —y se leen sus
+23. **Si la captura dice de qué medio es, se va ahí primero** —y se leen sus
     feeds a fondo (21 días, 100 por feed) en vez de por encima como los 51. Leer
     hondo en uno cuesta lo mismo que leer por encima en cuarenta.
-20. **Los feeds de sección no son solo de economía.** De un medio aprobado, una
+24. **Los feeds de sección no son solo de economía.** De un medio aprobado, una
     nota fuera de su sección económica era invisible. Los feeds añadidos van con
     `economia=False`: `titulares()` (capturas) los ve enteros, `extraer()` (pozo
     de las tandas) les exige vocabulario económico.
-21. **Google News encuentra lo que el RSS no ve, pero su enlace no sirve.** Es un
+25. **Google News encuentra lo que el RSS no ve, pero su enlace no sirve.** Es un
     redirector cifrado que desde 2024 solo salta por JavaScript (comprobado
     decodificándolo: 437 bytes, sin URL dentro). `titulares_google()` **nunca
     devuelve enlaces** a propósito, para que ninguno pueda colar un redirector en
@@ -360,32 +422,32 @@ Cada una costó al menos una tarde.
 
 ### De las redes sociales
 
-22. **X e Instagram son aplicaciones de JavaScript**: `leer_enlace()` encuentra
+26. **X e Instagram son aplicaciones de JavaScript**: `leer_enlace()` encuentra
     cero párrafos. X se lee por su oEmbed. **Instagram se lee cambiando el
     User-Agent**: a un navegador le sirve la página vacía, a
     `facebookexternalhit` le sirve las etiquetas Open Graph con la cuenta, la
     fecha y el pie entero. Es la vía que Instagram publica para que se puedan
     previsualizar sus enlaces; su API oficial exige una app de Meta revisada.
-23. **Los dos se atienden por la misma puerta** (`leer_publicacion`). Tener dos
+27. **Los dos se atienden por la misma puerta** (`leer_publicacion`). Tener dos
     ramas paralelas es como se llega a que una se arregle y la otra no.
 
 ### De las portadas
 
-24. **La imagen ilustra el ASUNTO, no la sección.** Buscar en Commons palabras
+28. **La imagen ilustra el ASUNTO, no la sección.** Buscar en Commons palabras
     del titular daba el Museu do Ipiranga encabezando una nota de morosidad. Se
     le pregunta a **Wikidata cuál es la imagen de la entidad**: P18 imagen, P154
     logo, P41 bandera.
-25. **Si se sabe de quién habla y no hay imagen suya, no se pone ninguna.** Sin
+29. **Si se sabe de quién habla y no hay imagen suya, no se pone ninguna.** Sin
     esto, una nota sobre la salida a bolsa de Shein eligió el retrato de Ali
     Mohamed Shein, expresidente de Zanzíbar.
-26. **La bandera solo si el país es el ÚNICO asunto.** Si el titular nombra algo
+30. **La bandera solo si el país es el ÚNICO asunto.** Si el titular nombra algo
     más, o es la imagen de eso o ninguna. Y se descarta la entidad país entera,
     no solo su bandera: quitando solo P41, el hueco lo ocupaba el mapa del país.
-27. **Wikidata separa figura pública de particular sin que nadie mantenga una
+31. **Wikidata separa figura pública de particular sin que nadie mantenga una
     lista.** Un jefe de Estado tiene ficha y retrato libre; la víctima de un
     suceso, no. Cuando no hay ficha no hay foto, que es el resultado que se
     quería.
-28. **Un SVG no tiene medidas** y Commons fecha banderas y logos por cuando se
+32. **Un SVG no tiene medidas** y Commons fecha banderas y logos por cuando se
     adoptó el diseño (la del Reino Unido consta como de 1801). Las reglas de
     tamaño y antigüedad no se les aplican; a las fotografías sí, enteras.
 

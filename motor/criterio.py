@@ -225,24 +225,35 @@ def ordenar(candidatos, clave_titular="titular", clave_resumen="extracto",
 # fino que buscar solo el nombre del pais: "Ecopetrol cae en bolsa" es Colombia
 # sin decir Colombia.
 PAISES = [
-    ("Argentina", r"argentin|milei|merval|buenos aires|afip|bcra"),
-    ("Brasil", r"brasil|brazil|lula|selic|ibovespa|petrobras|real brasile"),
-    ("México", r"m[eé]xico|mexican|banxico|sheinbaum|pemex|cemex|bmv"),
-    ("Colombia", r"colombia|petro|ecopetrol|colcap|bancolombia|cibest|dane"),
-    ("Chile", r"chile|codelco|ipsa|boric"),
-    ("Perú", r"per[uú]|lima|sunat|bcrp"),
+    ("Argentina", r"argentin|milei|merval|buenos aires|\bafip\b|bcra"),
+    ("Brasil", r"brasil|brazil|lula|selic|ibovespa|petrobras|\breal brasile"),
+    ("México", r"m[eé]xico|mexican|banxico|sheinbaum|pemex|cemex|\bbmv\b"),
+    ("Colombia", r"colombia|petro\b|ecopetrol|colcap|bancolombia|cibest|dane"),
+    ("Chile", r"chile|codelco|\bipsa\b|boric"),
+    ("Perú", r"per[uú]\b|lima|sunat|bcrp"),
     ("Ecuador", r"ecuador|noboa"),
     ("Uruguay", r"uruguay|montevideo"),
     ("Bolivia", r"bolivia"),
     ("Paraguay", r"paraguay"),
     ("Panamá", r"panam[aá]"),
     ("República Dominicana", r"dominican"),
-    ("Cuba", r"cuba|habana"),
+    ("Cuba", r"\bcuba|habana"),
     ("Haití", r"hait[ií]"),
-    ("Venezuela", r"venezue|caracas|maiquet|la guaira|pdvsa|bcv|bol[íi]var|"
+    ("Venezuela", r"venezue|caracas|maiquet|la guaira|pdvsa|\bbcv\b|bol[íi]var\b|"
                   r"maduro|delcy|zulia|maracaibo"),
     ("Centroamérica", r"costa rica|guatemala|honduras|salvador|nicaragua"),
-    ("EE. UU.", r"estados unidos|ee\.? ?uu|washington|trump|reserva federal|fed|"
+    # ESPAÑA FALTABA, y su ausencia no era neutral: pais_de() devolvia None para
+    # toda noticia española y caian al saco "sin país", donde diversificar() no
+    # las puede contar como lo que son. El 09/09/2026 media tanda fue de España
+    # sin que ninguna regla de reparto se enterara de que eran del mismo sitio.
+    #
+    # Va DESPUES de los americanos a proposito, porque el orden de esta lista es
+    # prioridad: "el Gobierno español y Argentina firman un acuerdo" es antes
+    # noticia de Argentina que de España para un medio del sur.
+    ("España", r"españa|español|madrid|\bibex\b|hacienda|la moncloa|"
+               r"banco de españa|eur[íi]bor|ayuntamiento|comunidades autónomas|"
+               r"\bsepe\b|bolsa de madrid"),
+    ("EE. UU.", r"estados unidos|ee\.? ?uu|washington|trump|reserva federal|\bfed\b|"
                 r"wall street|tesoro estadounidense"),
 ]
 _PAISES_RE = [(n, __import__("re").compile(p, __import__("re").IGNORECASE))

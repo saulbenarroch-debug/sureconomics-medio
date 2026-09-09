@@ -66,7 +66,14 @@ def recolectar(horas=24, limite=10):
     # 1. RSS Feeds
     print("\n[1/3] Extrayendo de feeds RSS (noticias.py)...")
     try:
-        rss_cands = noticias.extraer(medios=None, horas=horas, limite=50)
+        # 400 Y NO 50. Este numero no era un tope de seguridad, era QUIEN GANABA
+        # LA TANDA: extraer() hace 'return' al llegar y con 50 se llenaba con
+        # los cuatro primeros medios de la lista. Ahora, con el tope por medio
+        # (POR_MEDIO) ningun diario puede aportar mas de cuatro, asi que 400 da
+        # de sobra para leer los 59 y que decida la puntuacion, que es lo que
+        # tiene que decidir. Lo que sobre lo recorta criterio.ordenar() por
+        # importancia, y luego --limite.
+        rss_cands = noticias.extraer(medios=None, horas=horas, limite=400)
         print(f"      -> {len(rss_cands)} candidatos de RSS")
         paquetes_crudos.extend(rss_cands)
     except Exception as e:
