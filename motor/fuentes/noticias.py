@@ -76,7 +76,14 @@ MEDIOS = {
                         url="https://talcualdigital.com/category/economia/feed/"),
     "elestimulo":  dict(nombre="El Estímulo", pais="Venezuela", economia=False,
                         url="https://elestimulo.com/feed/"),
+    # 'dominio' ES DONDE VIVEN LOS ARTICULOS, que no siempre es donde vive el
+    # feed. Quien mira de que pais es una pieza lo hace por el dominio de su
+    # enlace (orquestar._pais_de), y aqui el feed esta en bbci.co.uk mientras
+    # que las notas salen en bbc.com: sin esto no se reconoce el medio y la
+    # pieza se escapa del tope por pais sin que nada avise. Solo hace falta en
+    # los dos medios que separan las dos cosas.
     "bbcmundo":    dict(nombre="BBC Mundo", pais="Reino Unido", economia=True,
+                        dominio="bbc.com",
                         url="https://feeds.bbci.co.uk/mundo/economia/rss.xml"),
     # Venezuela, ampliacion del 24/08/2026: con cinco medios venezolanos habia
     # temas -petroleo, reconstruccion- que no aparecian en ninguno.
@@ -112,7 +119,10 @@ MEDIOS = {
                              "rss/category/economia/?outputType=xml"),
     "expansionmx": dict(nombre="Expansión", pais="México", economia=True,
                         url="https://expansion.mx/rss/economia"),
+    # El feed va por el CDN (uecdn.es) y las notas por expansion.com. Ver el
+    # comentario de 'dominio' en BBC Mundo.
     "expansiones": dict(nombre="Expansión", pais="España", economia=True,
+                        dominio="expansion.com",
                         url="https://e00-expansion.uecdn.es/rss/economia.xml"),
     "oncuba":      dict(nombre="OnCuba", pais="Cuba", economia=False,
                         url="https://oncubanews.com/feed/"),

@@ -61,11 +61,27 @@ PYTHON = sys.executable
 # una. Un medio latinoamericano que abre tres de cinco con Brasil deja de
 # parecer latinoamericano.
 #
-# LO QUE NO ESTA AQUI NO TIENE TOPE, y eso tambien es deliberado: Venezuela es el
-# pais del medio y una tanda entera de Venezuela es una decision editorial
-# legitima, no un accidente del recolector. Poner un tope general habria
-# cambiado eso de paso, sin que nadie lo pidiera.
+# AHORA HAY UN TOPE GENERAL, Y LO PIDIO UNA SEGUNDA TANDA.
+#
+# Esto era {"Brasil": 1} y nada mas: lo que no estuviera en la tabla no tenia
+# tope. La idea era proteger a Venezuela, que es el pais del medio y puede
+# copar una tanda con todo derecho. El efecto real fue que CUALQUIER pais fuera
+# de la tabla podia hacer lo que hacia Brasil, y lo hicieron por turnos: Brasil
+# el 08/09, España el 09/09 por la mañana y Mexico el 09/09 por la tarde, con
+# tres piezas de seis. Ir añadiendo paises segun fallan es ir siempre un dia por
+# detras del problema.
+#
+# Venezuela sigue sin tope, que era lo unico que habia que proteger.
+TOPE_GENERAL = 2
+SIN_TOPE = ("Venezuela",)
 TOPE_POR_PAIS = {"Brasil": 1}
+
+
+def tope_de(pais):
+    """Cuantas piezas admite ese pais en una tanda. None = sin tope."""
+    if pais in SIN_TOPE:
+        return None
+    return TOPE_POR_PAIS.get(pais, TOPE_GENERAL)
 
 
 def _pais_de(candidato):
@@ -81,7 +97,12 @@ def _pais_de(candidato):
     if not dominio:
         return ""
     for m in MEDIOS.values():
-        suyo = urlparse(m["url"]).netloc.replace("www.", "")
+        # 'dominio' manda cuando esta: hay medios que sirven el feed desde un
+        # host que no se parece al de sus articulos y quitar prefijos no basta
+        # (BBC Mundo publica en bbc.com y sindica desde bbci.co.uk; el
+        # Expansion español sindica desde su CDN). Sin esto no se les reconoce
+        # el pais y sus piezas se saltan el tope sin que nada avise.
+        suyo = m.get("dominio") or urlparse(m["url"]).netloc.replace("www.", "")
         # El feed puede vivir en otro subdominio que el articulo:
         # feeds.elpais.com sirve los RSS y los articulos estan en elpais.com.
         # Se quita ese prefijo y se comparan los dominios de verdad.
@@ -93,12 +114,54 @@ def _pais_de(candidato):
     return ""
 
 
+def sin_repetirse_entre_si(temas):
+    """Quita las candidatas que cuentan lo mismo que otra ya elegida.
+
+    Se compara con la misma vara que la memoria (memoria.parecido y su umbral),
+    porque es el mismo juicio: si dos titulares puntuan por encima del umbral
+    contra lo publicado se consideran el mismo hecho, y entre ellos no hay
+    motivo para pensar distinto.
+
+    LOS PESOS SALEN DEL CATALOGO PUBLICADO, no de estas doce candidatas. Lo que
+    hace rara a una palabra es que aparezca poco en TODO lo que publica el
+    medio; medirlo sobre doce titulares del mismo dia daria pesos de casualidad.
+    Es la misma razon por la que memoria.ya_cubierto() calcula los pesos con el
+    catalogo entero y no con el formato filtrado.
+    """
+    try:
+        from motor import memoria
+        peso = memoria.pesos(memoria.publicadas())
+    except Exception as exc:  # noqa: BLE001
+        # Sin catalogo no se compara a ciegas: se deja pasar todo y se avisa.
+        # Colar una repetida es un incordio; tirar media tanda por unos pesos
+        # inventados es peor.
+        print("   [aviso] sin catálogo para comparar entre sí (%s). No filtro."
+              % str(exc)[:60])
+        return temas
+
+    salida = []
+    for t in temas:
+        titular = str(t.get("hecho", ""))
+        gemela = next((s for s in salida
+                       if memoria.parecido(titular, str(s.get("hecho", "")),
+                                           peso) >= memoria.UMBRAL), None)
+        if gemela:
+            print("   repetida dentro de la tanda: %s" % titular[:56])
+            print("       ya entra como: %s"
+                  % str(gemela.get("hecho", ""))[:56])
+            continue
+        salida.append(t)
+    return salida
+
+
 def con_tope_por_pais(temas):
     """Deja fuera lo que pase del tope de su pais, conservando el orden."""
     cuenta, salida = {}, []
     for t in temas:
         pais = _pais_de(t)
-        tope = TOPE_POR_PAIS.get(pais)
+        # Sin pais reconocido no se topa: seria meter en un mismo saco cosas que
+        # no tienen nada que ver solo porque no se supo de donde eran.
+        tope = tope_de(pais) if pais else None
         if tope is not None and cuenta.get(pais, 0) >= tope:
             print("   fuera por tope de %s (%d por tanda): %s"
                   % (pais, tope, str(t.get("hecho", ""))[:56]))
@@ -199,6 +262,15 @@ def main():
         print("   [aviso] la memoria fallo (%s). Se sigue SIN filtrar."
               % str(exc)[:70])
         temas = crudos
+
+    # 1c. Quitar lo que se repite DENTRO de esta misma tanda.
+    #
+    #     La memoria de arriba compara contra lo PUBLICADO, y dos candidatas del
+    #     mismo hecho llegadas el mismo dia estan las dos sin publicar: pasan las
+    #     dos. El 09/09/2026 la tanda de la tarde salio con tres piezas del mismo
+    #     Paquete Economico mexicano -Pemex, las claves, el ISR-, cada una de un
+    #     diario distinto. Ninguna era repetida de nada; se repetian entre ellas.
+    temas = sin_repetirse_entre_si(temas)
 
     temas = con_tope_por_pais(temas)[:args.piezas]
     if not temas:

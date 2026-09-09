@@ -250,9 +250,15 @@ PAISES = [
     # Va DESPUES de los americanos a proposito, porque el orden de esta lista es
     # prioridad: "el Gobierno español y Argentina firman un acuerdo" es antes
     # noticia de Argentina que de España para un medio del sur.
-    ("España", r"españa|español|madrid|\bibex\b|hacienda|la moncloa|"
+    # OJO CON LAS PALABRAS DEL FISCO: "Hacienda" NO identifica a España. Es
+    # tambien el ministerio de Mexico, Chile, Colombia y Costa Rica, y con ella
+    # dentro, "Sin impuestos nuevos para 2027, Hacienda apuesta por apretar el
+    # ISR" -del Financiero, mexicanisima- salio clasificada como española el
+    # 09/09/2026 y rompio el reparto de esa tanda. Aqui solo van terminos que
+    # no existen fuera de España.
+    ("España", r"españa|español|\bmadrid\b|\bibex\b|la moncloa|"
                r"banco de españa|eur[íi]bor|ayuntamiento|comunidades autónomas|"
-               r"\bsepe\b|bolsa de madrid"),
+               r"\bsepe\b|\bhacienda española\b"),
     ("EE. UU.", r"estados unidos|ee\.? ?uu|washington|trump|reserva federal|\bfed\b|"
                 r"wall street|tesoro estadounidense"),
 ]
@@ -275,7 +281,19 @@ MAX_POR_PAIS = 2
 
 
 def diversificar(candidatos, clave_titular="titular", maximo_por_pais=MAX_POR_PAIS):
-    """Limita cuantas notas entran por pais, conservando el orden de puntuacion."""
+    """Limita cuantas notas entran por pais, conservando el orden de puntuacion.
+
+    OJO: NADIE LA LLAMA. Comprobado el 09/09/2026 con un grep por todo el repo.
+    El tope por pais que SI corre es orquestar.con_tope_por_pais(), y son
+    distintos en algo que importa: aquel mira de que pais es EL MEDIO que
+    publica, y esta mira de que pais HABLA el titular. Lo segundo falla en
+    cuanto la noticia no nombra su pais: "las claves del Paquete Economico
+    2027" es de Mexico y aqui sale "sin pais".
+
+    Se deja por si algun dia hace falta la otra pregunta, pero que quede claro
+    que no es una red puesta: quien lea este archivo buscando por que no se
+    freno un pais, lo tiene que buscar en orquestar.py.
+    """
     cuenta, salida = {}, []
     for c in candidatos:
         pais = pais_de(c.get(clave_titular, "")) or "sin país"
