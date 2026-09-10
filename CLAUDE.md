@@ -180,6 +180,7 @@ Tres cosas lo arreglan, y las tres hacen falta:
 | `_en_orden_de_prioridad()` | `motor/fuentes/noticias.py` | Venezuela primero, luego la región, luego el resto |
 | `POR_MEDIO = 4` | `motor/fuentes/noticias.py` | que un diario no se lleve el pozo (El País aportó 21 de 50) |
 | `limite=400` | `recolectar.py` | que dé tiempo a leer los 59 antes de cortar |
+| `piezas × 10` | `orquestar.py` | que lleguen bastantes para poder repartir |
 
 Tras el cambio, el mismo día y a la misma hora: **183 candidatas de 18 países**,
 Venezuela la que más aporta con 31 y España en 8.
@@ -213,6 +214,32 @@ una decisión editorial, no un fallo.
 
 **Meter un medio en `MEDIOS` y no en `_MEDIOS_OK` es meterlo a medias:** puede
 ser fuente cuando alguien la pide, pero no compite por entrar en la tanda.
+
+## El piso de Venezuela
+
+`orquestar.PISO_VENEZUELA = 3` **reserva tres de las seis plazas de cada tanda**
+para Venezuela. Es lo contrario del tope de abajo y hace falta por separado: el
+medio se llama SurEconomics y su tesis es Venezuela, pero la puntuación no sabe
+eso. El 10/09/2026 la tanda salió con dos de Colombia, dos de Bloomberg Línea y
+una de México.
+
+**No es una bonificación al puntuar.** La puntuación sigue decidiendo *cuáles*
+son las tres venezolanas, y las otras tres plazas se compiten como siempre. Si
+un día no hay tres, entran las que haya y el resto se rellena: no se publica un
+hueco por cumplir una cuota.
+
+**«De Venezuela» es de lo que HABLA, no quién la publica** (`de_venezuela()`).
+Telesur está fichado como venezolano y cubre toda la región: la única pieza que
+el motor contaba como venezolana ese día era suya y hablaba de Argentina. Solo
+cuando el titular no nombra ningún país se cae al medio, que es la mejor pista
+que queda. Y dentro del piso van **primero las que nombran Venezuela**: con solo
+el respaldo por medio, las plazas se las llevaban «Quién es el líder político
+mejor pagado del mundo» y «El brent supera los 102 dólares» —una curiosidad y un
+precio global— publicadas por diarios de Caracas.
+
+**El recorte de candidatas es x10 por esto.** Ver «Quién entra en el pozo»: con
+x3 llegaban 18 y solo una era venezolana, así que reservar tres plazas sobre
+esas 18 no podía dar tres.
 
 ## El tope por país
 
@@ -260,6 +287,8 @@ su historia escrita al lado del código.
 |---|---|---|---|
 | `memoria.UMBRAL` | 0.36 | `motor/memoria.py` | si algo ya se publicó |
 | `noticias.POR_MEDIO` | 4 | `motor/fuentes/noticias.py` | cuántas aporta un mismo diario |
+| `orquestar.PISO_VENEZUELA` | 3 | `orquestar.py` | plazas reservadas para Venezuela |
+| `orquestar.TOPE_GENERAL` | 2 | `orquestar.py` | máximo por país (Venezuela exenta) |
 | `captura.PARECIDO_MINIMO` | 0.45 | `motor/captura.py` | si un candidato es la nota |
 | `captura.PARECIDO_AUTOMATICO` | 0.75 | `motor/captura.py` | si lo es sin preguntar |
 | `nota.MAX_FUENTES` | 3 | `nota.py` | cuántos medios se cruzan |
