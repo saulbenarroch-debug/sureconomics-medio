@@ -114,6 +114,79 @@ def _pais_de(candidato):
     return ""
 
 
+# CUANTAS PIEZAS DE VENEZUELA COMO MINIMO EN CADA TANDA.
+#
+# El tope de arriba impide que un pais acapare; esto es lo contrario, y hace
+# falta por separado: el medio se llama SurEconomics y su tesis es Venezuela,
+# pero la puntuacion no sabe eso. El 10/09/2026 la tanda salio con dos de
+# Colombia, dos de Bloomberg Linea y una de Mexico, y la unica que el motor
+# contaba como venezolana era de Telesur y hablaba de Argentina.
+#
+# Es una plaza reservada, no una bonificacion: la puntuacion sigue decidiendo
+# CUALES son las tres venezolanas, y las otras tres plazas se compiten como
+# siempre. Si un dia no hay tres, entran las que haya y el resto se rellena; no
+# se publica un hueco por cumplir una cuota.
+PISO_VENEZUELA = 3
+
+
+def de_venezuela(candidato):
+    """Si la pieza es de Venezuela, con la pregunta que importa.
+
+    MANDA DE QUE HABLA, NO QUIEN LA PUBLICA, y el orden no es un detalle.
+    Telesur esta fichado como venezolano y cubre toda la region: su nota
+    "Argentina: casi 6 millones de hogares en mora" es de un medio venezolano y
+    no es una noticia de Venezuela. Contarla llenaria la cuota sin publicar ni
+    una linea del pais del medio.
+
+    Cuando el titular no nombra ningun pais -que es lo mas comun, criterio.
+    pais_de() no acierta ni la mitad- se cae al medio, que es la mejor pista
+    que queda: un diario de Caracas escribiendo sobre "la inflacion" escribe
+    sobre Venezuela.
+    """
+    from motor import criterio
+
+    tema = criterio.pais_de(str(candidato.get("hecho", "")))
+    if tema:
+        return tema == "Venezuela"
+    return _pais_de(candidato) == "Venezuela"
+
+
+def con_piso_de_venezuela(temas, piezas, piso=PISO_VENEZUELA):
+    """Reserva las primeras plazas para Venezuela y compite el resto."""
+    # PRIMERO LAS QUE NOMBRAN VENEZUELA, y solo despues las que entran porque
+    # las publica un diario de alli. La diferencia se ve en la practica: el
+    # 10/09/2026 el respaldo por medio colaba "Quien es el lider politico mejor
+    # pagado del mundo" y "El brent supera los 102 dolares" -una curiosidad y un
+    # precio global- por delante de noticias que si eran del pais. Dentro de
+    # cada grupo manda la puntuacion, que es como llegan ordenadas.
+    from motor import criterio
+
+    def habla_de_venezuela(t):
+        return criterio.pais_de(str(t.get("hecho", ""))) == "Venezuela"
+
+    candidatas = ([t for t in temas if de_venezuela(t) and habla_de_venezuela(t)]
+                  + [t for t in temas
+                     if de_venezuela(t) and not habla_de_venezuela(t)])
+    elegidas = candidatas[:piso]
+    if len(elegidas) < piso:
+        print("   [aviso] solo hay %d de Venezuela para %d plazas reservadas; "
+              "el resto se rellena con lo demás" % (len(elegidas), piso))
+
+    # EL RESTO CONSERVA SU ORDEN DE PUNTUACION, incluidas las venezolanas que
+    # no cupieron en el piso: vuelven a la cola por donde les toca y compiten
+    # como una mas -Venezuela no tiene tope por arriba-. Sacarlas y volverlas a
+    # pegar al final las mandaba al fondo por haber sido venezolanas, que es
+    # justo lo contrario de lo que se quiere.
+    reservadas = {id(t) for t in elegidas}
+    resto = [t for t in temas if id(t) not in reservadas]
+
+    for t in con_tope_por_pais(resto):
+        if len(elegidas) >= piezas:
+            break
+        elegidas.append(t)
+    return elegidas[:piezas]
+
+
 def sin_repetirse_entre_si(temas):
     """Quita las candidatas que cuentan lo mismo que otra ya elegida.
 
@@ -226,17 +299,31 @@ def main():
     if not hay_con_que():
         return 1
 
-    # 1. Que hay hoy. El orden lo pone criterio.py, que ya puntua y diversifica
-    #    por pais para que un solo asunto no cope la jornada.
+    # 1. Que hay hoy. El orden lo pone criterio.py, que puntua por importancia.
     #
-    #    SE PIDEN MAS CANDIDATOS DE LOS QUE HACEN FALTA. Con dos tandas al dia,
-    #    buena parte de lo que trae la segunda ya se conto en la primera. Si se
-    #    pidieran seis justos y cuatro fueran repetidos, la tanda saldria con
-    #    dos piezas. Se pide el triple y se recorta despues de filtrar.
+    #    SE PIDEN MAS CANDIDATOS DE LOS QUE HACEN FALTA, por dos razones que se
+    #    suman. La primera es de siempre: con dos tandas al dia, buena parte de
+    #    lo que trae la segunda ya se conto en la primera, y si se pidieran seis
+    #    justos y cuatro fueran repetidos la tanda saldria con dos piezas.
+    #
+    #    LA SEGUNDA ES EL PISO DE VENEZUELA, Y ES POR LO QUE ESTO PASO DE x3 A
+    #    x10. Este recorte se hace ANTES de reservar plazas, asi que con x3 lo
+    #    que llegaba a orquestar ya venia decidido por pura puntuacion: el
+    #    10/09/2026, de las 18 candidatas que sobrevivian solo UNA era de
+    #    Venezuela -y no la nombraba-, de 33 que habia en el pozo. Reservar tres
+    #    plazas sobre esas 18 no podia dar tres. Medido con el pozo de ese dia,
+    #    tras descartar lo ya publicado:
+    #
+    #        corte 18 -> 1 de Venezuela (0 la nombran)
+    #        corte 30 -> 3 (1 la nombra)
+    #        corte 60 -> 8 (4 la nombran)   <- el que se usa
+    #
+    #    Es la misma leccion que el limite de extraer(): un recorte por delante
+    #    de una regla de reparto decide la tanda mas que la regla.
     print("\n--- 1. RECOLECTAR ---")
     candidatos = carpeta / "candidatos.json"
     r = correr([PYTHON, AQUI / "recolectar.py", "--horas", args.horas,
-                "--limite", args.piezas * 3, "--guardar", candidatos])
+                "--limite", args.piezas * 10, "--guardar", candidatos])
     print((r.stdout or "")[-900:])
     if not candidatos.exists():
         print("Sin candidatos. Nada que hacer hoy.")
@@ -272,7 +359,9 @@ def main():
     #     diario distinto. Ninguna era repetida de nada; se repetian entre ellas.
     temas = sin_repetirse_entre_si(temas)
 
-    temas = con_tope_por_pais(temas)[:args.piezas]
+    # El piso de Venezuela va DENTRO: reserva sus plazas y compite el resto con
+    # el tope por pais puesto. Ver con_piso_de_venezuela().
+    temas = con_piso_de_venezuela(temas, args.piezas)
     if not temas:
         print("\nTodo lo que hay hoy ya se publico. No se escribe nada.")
         # Se manda el correo igual, aunque vaya vacio: es el unico aviso de que
