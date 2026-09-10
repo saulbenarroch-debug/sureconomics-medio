@@ -22,9 +22,9 @@ titulares sobre el mismo hecho comparten los nombres propios y los sustantivos
 raros ("Datanalisis", "dolarizacion", "Malvinas") aunque esten redactados
 distinto. Las palabras vacias se descartan porque aparecen en todo.
 
-EL UMBRAL SALE DE MEDIRLO, NO DE ELEGIRLO A OJO. Contra titulares reales, los
-que ya estaban publicados puntuan entre 0.375 y 1.000, y el peor falso positivo
-puntua 0.340. El umbral va en 0.36, en medio de ese hueco.
+EL UMBRAL SALE DE MEDIRLO, NO DE ELEGIRLO A OJO. Se mide contra el banco de
+casos reales de pruebas_memoria.py y la medicion queda escrita aqui abajo, con
+su fecha y el tamano del catalogo, porque las dos cosas la mueven.
 
 HISTORIA DEL NUMERO, QUE ES LA ADVERTENCIA:
 
@@ -33,8 +33,12 @@ HISTORIA DEL NUMERO, QUE ES LA ADVERTENCIA:
   0.31  segunda. Aguanto hasta que una nota sobre el riesgo pais de cuatro
         paises se emparejo con un articulo sobre la deuda de Honduras: solo
         compartian "riesgo" y "pais", que en economia son una coletilla.
-  0.36  actual. Los duplicados reales puntuan de 0.375 a 1.000 y ese falso
+  0.36  tercera. Los duplicados reales puntuaban de 0.375 a 1.000 y ese falso
         positivo 0.340.
+  0.40  actual, desde el 10/09/2026. Se sube A SABIENDAS de que reabre el caso
+        que lo bajo la primera vez -el titular de Valora Analitik sobre la
+        cocaina, que hoy puntua 0.391 y volvera a colarse-, porque el error que
+        importa cambio de bando. Ver abajo.
 
 EL HUECO SE ESTA CERRANDO Y CONVIENE SABERLO. Empezo siendo de 0.144 (0.240 a
 0.384) y ahora es de 0.035. No es que el umbral este mal: es que dos titulares
@@ -46,20 +50,37 @@ hueco se cierre del todo habra que cambiar de metodo, no de numero.
   HUECO: +0.004. Practicamente cerrado.
 
   Barrido sobre los 16 casos de pruebas_memoria.py:
-      0.36 (el de hoy) -> 0 se escapan, 2 bloquea de mas
-      0.40             -> 1 se escapa,  0 bloquea de mas
+      0.36 -> 0 se escapan, 2 bloquea de mas
+      0.40 -> 1 se escapa,  0 bloquea de mas
 
-  SE QUEDA EN 0.36 A PROPOSITO, y el motivo cambio el 09/09/2026. Antes aqui
-  decia que ante la duda el sesgo iba a NO bloquear, porque un falso positivo
-  no lo echaba nadie de menos: la pieza desaparecia en silencio. YA NO
-  DESAPARECE. Toda pieza que se de por repetida se avisa al chat con dos
-  botones -subirla igual o escribirla otra vez-, asi que bloquear de mas cuesta
-  un toque y dejar pasar un duplicado cuesta una noticia repetida en el sitio.
-  Con eso, mas vale pasarse que quedarse corto.
+  10/09/2026, con el catalogo en 278 y el mismo banco de 16 casos:
 
-  Y NO SE MUEVE POR ESTOS 16 CASOS. La diferencia entre 0.36 y 0.40 es un caso
-  en cada direccion: ajustar el numero a una muestra de dieciseis es ajustarlo
-  a la muestra. Si algun dia hay cincuenta, se vuelve a medir.
+      umbral   se escapan   bloquean de mas   total
+      0.36         0              2             2
+      0.40         2              0             2
+
+  EL NUMERO DE FALLOS ES EL MISMO; LO QUE CAMBIA ES DE QUE TIPO SON, y por eso
+  se movio. Un duplicado que se cuela sale publicado dos veces: se ve en la
+  portada y alguien lo borra. Un bloqueo de mas tira una noticia buena EN
+  SILENCIO, y nadie echa de menos lo que no sabe que falta.
+
+  El 09/09 se dejo en 0.36 con el argumento de que bloquear de mas costaba un
+  toque, porque /nota avisa al chat con el boton de subirla igual. VALE PARA
+  /nota Y NO PARA LA TANDA AUTOMATICA, que no tiene a quien preguntar. Se vio
+  el 10/09: "UCAB proyecta 6,5% de crecimiento en Venezuela" -la mejor pieza
+  del pozo ese dia, y del pais del medio- se descarto contra "Datanalisis
+  proyecta un crecimiento de hasta 10% para Venezuela". Dos institutos, dos
+  previsiones, dos noticias. Puntuaba 0.374 y perdio por catorce milesimas.
+
+  LO QUE SE PAGA POR ELLO, y esta medido: se vuelven a colar el titular de la
+  cocaina de Valora Analitik (0.391) y el del petroleo a 94 dolares (0.397).
+  Los dos son duplicados de verdad y los dos se veran publicados dos veces. Es
+  el precio aceptado, no un descuido.
+
+  NO SE AFINA MAS. El hueco entre el peor duplicado y la mejor noticia nueva es
+  de 0.003 -0.388 contra 0.391-, asi que existe un umbral que acierta en los 16
+  y no significa nada: seria ajustar tres milesimas a una muestra de dieciseis.
+  Si algun dia hay cincuenta casos, se vuelve a medir.
 
 CUIDADO AL TOCAR publicadas(): CUANTO MAS CATALOGO, MAS FALSOS POSITIVOS. Al
 pasar de 60 piezas a 270 dejaron de escaparse duplicados -los nueve reales se
@@ -76,9 +97,12 @@ por rara que sea: los titulares en ingles aportan cuatro palabras utiles y una
 coincidencia como "iran" se llevaba mas de un tercio del parecido. Ver el
 comentario de parecido().
 
-Ante la duda, el sesgo va a NO bloquear. Un falso positivo significa no publicar
-una noticia que si era nueva, y eso no lo echa nadie de menos porque nadie sabe
-que falta. Una repetida, en cambio, se ve enseguida y se borra.
+ANTE LA DUDA, EL SESGO VA A NO BLOQUEAR, y el motivo es el reves del que estuvo
+escrito aqui hasta el 10/09/2026. Antes decia que un falso positivo "no lo echa
+nadie de menos porque nadie sabe que falta", como si eso lo hiciera barato. Es
+justo al reves: que nadie lo eche de menos es lo que lo hace CARO, porque no hay
+manera de enterarse. Una repetida se ve en la portada y alguien la borra en diez
+segundos.
 """
 
 import json
@@ -99,7 +123,7 @@ VACIAS = {
     "puede", "pueden", "hace", "hacen", "dice", "dicen", "ser", "haber",
 }
 
-UMBRAL = 0.36
+UMBRAL = 0.40
 
 
 def _plano(texto):

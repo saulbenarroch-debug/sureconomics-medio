@@ -26,18 +26,21 @@ REPETIDOS = [
     "Colombia ya exporta más cocaína que petróleo: ventas al exterior llegan a US$16.500 millones",
     "Steve Hanke entregó su proyecto de dolarización de Venezuela a la administración Trump",
     "Expertos y abogados, desconcertados por el acuerdo petrolero entre Estados Unidos y Venezuela",
-    # Los dos casos limite, los que casi se cuelan. El primero es el titular
-    # original de Valora Analitik: puntua 0.399 y con el umbral en 0.40 se
-    # escapaba por milesimas, y el motor iba a reescribir una nota publicada.
+    # EL CASO LIMITE DE LA CASA, y desde el 10/09/2026 FALLA A PROPOSITO.
+    # Es el titular original de Valora Analitik: puntua 0.391 y el umbral esta
+    # en 0.40, asi que se cuela y se publicara dos veces. Es el mismo caso que
+    # en su dia obligo a bajar el umbral DE 0.40, y se ha vuelto a subir
+    # sabiendo que lo reabre: el error que importa cambio de bando. Ver la
+    # bitacora del docstring de motor/memoria.py antes de "arreglarlo".
     "Colombia ya exporta más cocaína que petróleo y es el país que pone 70 % de esta droga a nivel mundial",
     "Venezuela reubicará a alumnos de 91 centros afectados por sismos",
     # De la ronda de vigilancia del 01/09: es el mismo hecho que publicamos
     # (Ormuz, el crudo por encima de 90) contado un dia despues y con otra
-    # cifra. Tiene que seguir bloqueandose despues del arreglo de abajo.
+    # cifra.
     #
-    # ES EL MAS JUSTO DE TODOS y por eso conviene vigilarlo: puntua 0.398 contra
-    # un umbral de 0.36, o sea que pasa por cuatro centesimas. Si alguien sube
-    # el umbral a 0.40 "porque bloquea de mas", este es el que se cae.
+    # TAMBIEN FALLA A PROPOSITO desde el 10/09/2026: puntua 0.397 contra un
+    # umbral de 0.40. Se aviso en su momento de que subir el umbral tiraria
+    # este, y se subio igual con la cuenta hecha. No es una sorpresa.
     "El petróleo sube un 4% y toca los 94 dólares tras los últimos ataques de EEUU a Irán",
 
     # 09/09/2026, pedida por Edicion desde La Vanguardia. Es la misma historia
@@ -56,18 +59,15 @@ REPETIDOS = [
 # Cosas que NO hemos publicado. Si alguna sale como repetida, la memoria estaria
 # tapando noticias nuevas, que es el error caro.
 NUEVOS = [
-    # ESTOS DOS FALLAN DESDE EL 09/09/2026 Y SE SABE POR QUE. Al pasar el
-    # catalogo de 60 piezas a 270 dejaron de escaparse duplicados, pero
-    # aparecieron choques que antes no existian por pura aritmetica: mas
-    # titulares publicados es mas superficie contra la que chocar. Chile se
-    # empareja con "LA FED, BANCO CENTRAL DE EE. UU." (0.394) y Wall Street con
-    # "WALL STREET DESENFRENADO Y LA DEUDA..." (0.391), las dos por debajo del
-    # duplicado mas flojo, que puntua 0.398. El hueco es de +0.004.
+    # ESTOS DOS FALLARON EL 09/09/2026 Y YA NO. Al pasar el catalogo de 60 a
+    # 270 piezas dejaron de escaparse duplicados, pero aparecieron choques que
+    # antes no existian por pura aritmetica: Chile se emparejaba con "LA FED,
+    # BANCO CENTRAL DE EE. UU." (0.388) y Wall Street con "WALL STREET
+    # DESENFRENADO Y LA DEUDA..." (0.381). Con el umbral en 0.40 los dos pasan.
     #
-    # NO SE ARREGLAN SUBIENDO EL UMBRAL: a 0.40 estos dos pasan pero se escapa
-    # el del petroleo a 94 dolares. Se aceptan porque desde ese mismo dia una
-    # pieza dada por repetida se avisa al chat con el boton de subirla igual:
-    # cuesta un toque, no una noticia.
+    # Se arreglaron subiendo el umbral, y no salio gratis: a cambio se cuelan
+    # dos duplicados de verdad, los dos marcados arriba. Fue una decision del
+    # dueño con la medicion delante.
     "El Banco Central de Chile recorta la tasa de interés en 25 puntos básicos",
     "Brasil anuncia un nuevo paquete de crédito para la agricultura familiar",
     "El desempleo en Perú cae al 6,2 % en el segundo trimestre",

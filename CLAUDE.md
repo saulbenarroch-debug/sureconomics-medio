@@ -285,7 +285,7 @@ su historia escrita al lado del código.
 
 | Constante | Valor | Dónde | Qué decide |
 |---|---|---|---|
-| `memoria.UMBRAL` | 0.36 | `motor/memoria.py` | si algo ya se publicó |
+| `memoria.UMBRAL` | 0.40 | `motor/memoria.py` | si algo ya se publicó |
 | `noticias.POR_MEDIO` | 4 | `motor/fuentes/noticias.py` | cuántas aporta un mismo diario |
 | `orquestar.PISO_VENEZUELA` | 3 | `orquestar.py` | plazas reservadas para Venezuela |
 | `orquestar.TOPE_GENERAL` | 2 | `orquestar.py` | máximo por país (Venezuela exenta) |
@@ -305,10 +305,22 @@ catálogo real, un duplicado auténtico puntuaba 0.238 y una noticia legítima
 repetidos, bajarlo tapa noticias nuevas. Si vienes a ajustar ese número, ese es
 el motivo por el que no va a funcionar.
 
-Lo que se hizo en su lugar no fue afinar el detector sino **quitarle poder**:
-toda pieza que dé por repetida se avisa al chat con dos botones, «Subirla igual»
-y «Escribirla otra vez». El número se queda; lo que cambia es que ya no tiene la
-última palabra.
+Lo primero que se hizo no fue afinar el detector sino **quitarle poder**: toda
+pieza que dé por repetida se avisa al chat con dos botones, «Subirla igual» y
+«Escribirla otra vez».
+
+**Pero eso solo vale para `/nota`, y el 10/09/2026 se vio el hueco.** La tanda
+automática no tiene a quien preguntar: ahí un bloqueo de más tira una noticia
+buena en silencio. Pasó con «UCAB proyecta 6,5 % de crecimiento en Venezuela»
+—la mejor pieza del pozo ese día y del país del medio—, descartada contra
+«Datanálisis proyecta hasta 10 %»: dos institutos, dos previsiones, dos
+noticias. Perdió por catorce milésimas.
+
+Así que **el umbral subió de 0.36 a 0.40**, decisión del dueño con la medición
+delante. Mismo número de fallos, distinto tipo: a 0.36 eran 2 bloqueos de más y
+0 escapes; a 0.40 son 0 y 2. Un duplicado que se cuela se ve en la portada y se
+borra; una noticia tirada en silencio no la echa nadie de menos, que es
+justamente lo que la hace cara.
 
 ## Reglas de oro (no negociables)
 
