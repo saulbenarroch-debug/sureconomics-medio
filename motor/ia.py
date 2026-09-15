@@ -83,9 +83,22 @@ def _groq(prompt, temperatura):
               "temperature": temperatura},
         timeout=90)
     if not r.ok:
-        # La clave va en la cabecera, no en la URL, pero el cuerpo del error
-        # puede reflejar la peticion: se recorta antes de imprimirlo.
-        raise RuntimeError(f"Groq respondio {r.status_code}")
+        # EL CODIGO SOLO NO DICE NADA, Y ESO COSTO UN DIA ENTERO. El 14/09/2026
+        # Gemini se quedo sin credito, Groq contesto 413 y en el log solo puso
+        # "Groq respondio 413": no se sabia si era el tamaño, la cuota por
+        # minuto o la clave, que son tres arreglos distintos. Medido despues
+        # desde Actions: 413 es "Request too large" -limite POR PETICION- y 429
+        # es la cuota por minuto. El mensaje de Groq lo dice con esas palabras,
+        # asi que se pasa tal cual.
+        #
+        # La clave va en la cabecera y no en la URL, pero el cuerpo puede
+        # reflejar parte de la peticion: se recorta antes de imprimirlo.
+        try:
+            detalle = (r.json().get("error") or {}).get("message", "")
+        except Exception:  # noqa: BLE001
+            detalle = r.text or ""
+        raise RuntimeError(
+            "Groq respondio %s: %s" % (r.status_code, str(detalle)[:200]))
     return r.json()["choices"][0]["message"]["content"], MODELO_GROQ
 
 
@@ -104,14 +117,14 @@ def pedir_json(prompt, etiqueta="ia", temperatura=0.4, imagen=None):
         crudo, modelo = _gemini(prompt, temperatura, imagen=imagen)
     except Exception as exc:  # noqa: BLE001
         if imagen:
-            print(f"[error] Gemini no disponible ({str(exc)[:70]}) y Groq no ve "
+            print(f"[error] Gemini no disponible ({str(exc)[:220]}) y Groq no ve "
                   "imagenes. Sin lectura de la captura.")
             return None
-        print(f"[aviso] Gemini no disponible ({str(exc)[:70]}); uso Groq")
+        print(f"[aviso] Gemini no disponible ({str(exc)[:220]}); uso Groq")
         try:
             crudo, modelo = _groq(prompt, temperatura)
         except Exception as exc2:  # noqa: BLE001
-            print(f"[error] tampoco Groq ({str(exc2)[:70]}).")
+            print(f"[error] tampoco Groq ({str(exc2)[:220]}).")
             return None
     print(f"[{etiqueta}] {modelo}")
 

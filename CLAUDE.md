@@ -330,8 +330,32 @@ justamente lo que la hace cara.
    fuentes del final no es una atribución.
 3. **Secretos solo en `.env` y en GitHub Secrets.** Nunca en el código ni pegados
    en un chat. Si uno se expone, se revoca antes de rotarlo.
-4. **Degradación suave.** Si Tavily cae, quedan los feeds. Si Gemini se agota,
-   está Groq. Si el panel falla, el correo sale igual. Mantener ese patrón.
+4. **Degradación suave.** Si Tavily cae, quedan los feeds. Si el panel falla, el
+   correo sale igual. Mantener ese patrón.
+
+   **PERO «si Gemini se agota, está Groq» ERA MENTIRA PARA EL REDACTOR, y
+   conviene saberlo antes de confiar en ello.** El 14/09/2026 se agotó el
+   crédito de Gemini, Groq devolvió 413 y el motor no escribió ni una pieza:
+   cinco peticiones perdidas y la tanda del día siguiente caída.
+
+   Medido después desde Actions, con el plan `on_demand` de Groq:
+
+   | prompt | respuesta |
+   |---|---|
+   | 1, 10, 20 KB | 200 |
+   | 30 KB | 429 · cuota por minuto |
+   | 45 KB | 413 · *Request too large* |
+
+   **El prompt del redactor son ~30 KB** (`00-base.md` 12,5 + el del tipo 5 + el
+   perfil 5,4 + el expediente), así que está en el filo y con un expediente de
+   tres fuentes se pasa. No es que el respaldo fallara ese día: es que **nunca
+   pudo escribir una pieza**. Para las llamadas pequeñas —la entidad de la
+   portada, los textos de la lámina— sí sirve.
+
+   Quien quiera que el respaldo sea real tiene dos caminos: **adelgazar el
+   prompt** (que además es donde se va el crédito de Gemini) o **pagar un plan
+   de Groq**. Mientras tanto, si Gemini se queda sin crédito el motor se para,
+   y eso hay que saberlo, no descubrirlo.
 5. **Nada se publica solo.** Todo entra como borrador.
 6. **El `schedule:` de GitHub no es el reloj.** Llega con horas de retraso
    (medido: 12:00 UTC → 16:22). Lo dispara el cron del Worker. El `schedule` de
