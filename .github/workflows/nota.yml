@@ -60,6 +60,10 @@ jobs:
       - name: Escribir la nota
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # La segunda cuenta. Si falta, motor/ia.py sigue con una
+          # sola: un secreto que no existe llega como cadena vacia y
+          # claves_gemini() lo descarta.
+          GEMINI_API_KEY_RESERVA: ${{ secrets.GEMINI_API_KEY_RESERVA }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           SMTP_USUARIO: ${{ secrets.SMTP_USUARIO }}

@@ -40,7 +40,12 @@ REPO = "saulbenarroch-debug/sureconomics-medio"
 
 ORIGENES = {
     r"C:\Users\saulb\telegram-finance-bot\.env":
-        ["GEMINI_API_KEY", "GROQ_API_KEY", "TAVILY_API_KEY",
+        # GEMINI_API_KEY_RESERVA es la SEGUNDA cuenta de Gemini, y es opcional:
+        # si no esta en el .env, este script la salta y el motor sigue con una
+        # sola (ver motor.claves_gemini). Tienen que ser de PROYECTOS distintos
+        # o comparten cuota y el embudo no sirve de nada.
+        ["GEMINI_API_KEY", "GEMINI_API_KEY_RESERVA",
+         "GROQ_API_KEY", "TAVILY_API_KEY",
          "TELEGRAM_TOKEN", "CHAT_ID",
          # Cuenta de servicio del panel. Sin esto, las tandas escriben y mandan
          # el correo pero no suben nada: subir.py corta con un mensaje claro.

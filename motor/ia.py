@@ -22,42 +22,87 @@ MODELOS_GEMINI = ["gemini-3.5-flash", "gemini-3.5-flash-lite"]
 MODELO_GROQ = "openai/gpt-oss-120b"
 
 
+# LAS CLAVES DE GEMINI, EN ORDEN DE USO. La cuota de Gemini va POR PROYECTO, no
+# por clave: dos claves del mismo proyecto comparten el mismo cubo y esto no
+# serviria de nada. Tienen que ser de proyectos distintos -en la practica, de
+# cuentas distintas- o el embudo es decorativo.
+#
+# LA PRINCIPAL ES LA INSTITUCIONAL, Y NO ES UN CAPRICHO. El medio es un producto
+# de la empresa: si la clave que lo sostiene cuelga de la cuenta personal de
+# alguien, el dia que esa cuenta cambie se cae la produccion con ella. La
+# personal va de reserva, que es el papel que aguanta un cambio sin avisar.
+CLAVES_GEMINI = (("principal", "GEMINI_API_KEY"),
+                 ("reserva", "GEMINI_API_KEY_RESERVA"))
+
+# Errores que dicen "esta clave no vale" y no "el modelo fallo". Con una sola
+# clave daba igual -se moria igual-, pero con dos hay que distinguirlos: si la
+# principal esta mal escrita, la reserva tiene que poder salvar la corrida en
+# vez de heredar el error.
+_CLAVE_MALA = ("API_KEY_INVALID", "API key not valid", "PERMISSION_DENIED",
+               "403", "400 INVALID_ARGUMENT")
+
+
+def claves_gemini():
+    """Las claves configuradas, en orden. Lista de (nombre, clave)."""
+    return [(nombre, os.environ.get(var, "").strip())
+            for nombre, var in CLAVES_GEMINI
+            if os.environ.get(var, "").strip()]
+
+
 def _gemini(prompt, temperatura, reintentos=2, imagen=None):
     """imagen: (bytes, mime) para leer una captura. Ver pedir_json()."""
     from google import genai
     from google.genai import types
 
-    clave = os.environ.get("GEMINI_API_KEY", "").strip()
-    if not clave:
+    claves = claves_gemini()
+    if not claves:
         raise RuntimeError("falta GEMINI_API_KEY")
-    cliente = genai.Client(api_key=clave)
     contenido = prompt
     if imagen:
         datos, mime = imagen
         contenido = [types.Part.from_bytes(data=datos, mime_type=mime), prompt]
+
     ultimo = None
-    for modelo in MODELOS_GEMINI:
-        espera = 5
-        for intento in range(1, reintentos + 1):
-            try:
-                r = cliente.models.generate_content(
-                    model=modelo, contents=contenido,
-                    config={"response_mime_type": "application/json",
-                            "temperature": temperatura})
-                return r.text, modelo
-            except Exception as exc:  # noqa: BLE001
-                msg, ultimo = str(exc), exc
-                if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                    print(f"[aviso] {modelo}: cuota agotada, paso al siguiente")
-                    break
-                if any(s in msg for s in ("503", "500", "UNAVAILABLE", "overloaded")):
-                    if intento < reintentos:
-                        print(f"[aviso] {modelo} caido, reintento en {espera}s")
-                        time.sleep(espera)
-                        espera *= 2
-                        continue
-                    break
-                raise
+    for nombre, clave in claves:
+        cliente = genai.Client(api_key=clave)
+        # El nombre de la clave solo se pone en la etiqueta cuando hay mas de
+        # una: con una sola, "gemini-3.5-flash (principal)" es ruido.
+        sello = ("%s (%s)" % ("%s", nombre)) if len(claves) > 1 else "%s"
+        clave_inservible = False
+        for modelo in MODELOS_GEMINI:
+            if clave_inservible:
+                break
+            espera = 5
+            for intento in range(1, reintentos + 1):
+                try:
+                    r = cliente.models.generate_content(
+                        model=modelo, contents=contenido,
+                        config={"response_mime_type": "application/json",
+                                "temperature": temperatura})
+                    return r.text, sello % modelo
+                except Exception as exc:  # noqa: BLE001
+                    msg, ultimo = str(exc), exc
+                    if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                        print("[aviso] %s: cuota agotada, paso al siguiente"
+                              % (sello % modelo))
+                        break
+                    if any(s in msg for s in _CLAVE_MALA):
+                        # No se prueban los demas modelos con una clave que no
+                        # sirve: fallarian todos igual y solo se gasta tiempo.
+                        print("[aviso] la clave '%s' no vale (%s); paso a la "
+                              "siguiente cuenta" % (nombre, msg[:60]))
+                        clave_inservible = True
+                        break
+                    if any(s in msg for s in ("503", "500", "UNAVAILABLE",
+                                              "overloaded")):
+                        if intento < reintentos:
+                            print("[aviso] %s caido, reintento en %ss"
+                                  % (sello % modelo, espera))
+                            time.sleep(espera)
+                            espera *= 2
+                            continue
+                        break
+                    raise
     raise ultimo
 
 

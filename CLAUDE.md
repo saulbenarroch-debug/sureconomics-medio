@@ -573,10 +573,39 @@ Sin Python global en Windows: hay un runtime portátil en
 - **Tavily** (`TAVILY_API_KEY`): plan gratuito de 1.000 créditos/mes. Cuando se
   agota devuelve **432** y la búsqueda desaparece en silencio salvo por el aviso.
   Sin ella quedan los feeds. Pago por uso a $0,008 el crédito.
-- **Gemini** con respaldo en **Groq**. Cada modelo tiene cuota diaria propia. Si
-  Gemini se agota, `comprobar.py` lo da por **fallo crítico y no arranca la
-  tanda**: es deliberado, pero conviene saberlo cuando una corrida falle en un
-  minuto sin escribir nada.
+- **Gemini, con DOS CUENTAS en embudo.** `motor.claves_gemini()` las lee en
+  orden y `_gemini()` las recorre: si la primera se queda sin cuota, la segunda
+  escribe la pieza. Cada modelo tiene además su cuota diaria propia, así que la
+  cadena real es cuatro combinaciones.
+
+  | variable | quién | papel |
+  |---|---|---|
+  | `GEMINI_API_KEY` | cuenta de **servicios** de la empresa | principal |
+  | `GEMINI_API_KEY_RESERVA` | cuenta de trabajo personal | desahogo |
+
+  **La institucional va primera a propósito.** El medio es un producto de la
+  empresa: si la clave que lo sostiene cuelga de la cuenta personal de alguien,
+  el día que esa cuenta cambie se cae la producción con ella.
+
+  **LAS DOS CLAVES TIENEN QUE SER DE PROYECTOS DISTINTOS.** La cuota de Gemini
+  va por proyecto, no por clave: dos claves del mismo proyecto comparten el
+  mismo cubo y el embudo es decorativo.
+
+  La reserva es **opcional**. Si no está, todo sigue igual con una sola: un
+  secreto que no existe llega como cadena vacía y `claves_gemini()` lo descarta.
+
+  `comprobar.py` prueba **todas** las cuentas y solo escribe `CUOTA AGOTADA`
+  —la frase que lee `orquestar.hay_con_que()` para no arrancar la tanda—
+  **cuando no queda ninguna**. Mirando solo la principal, el motor se quedaría
+  parado con la reserva intacta.
+
+  **El Worker NO tiene el embudo**: `worker.js` es otra implementación, en JS,
+  con su propio binding de una sola clave. El newsletter y el asistente del chat
+  gastan de la cuenta principal y, cuando se agota, ahí sí se caen.
+
+- **Groq sigue de respaldo, pero no para el redactor.** Ver la regla de oro #4:
+  su límite por petición no admite los ~30 KB del prompt. Sirve para las
+  llamadas pequeñas.
 
 ## Convenciones
 

@@ -62,31 +62,46 @@ def modelos_de_ia():
     print("\n--- MODELOS DE IA ---")
     import requests
 
-    clave = os.environ.get("GEMINI_API_KEY", "").strip()
-    if clave:
-        print(f"        huella de la clave en uso aquí: {huella(clave)}")
-    if not clave:
+    # SE COMPRUEBAN TODAS LAS CUENTAS, NO SOLO LA PRIMERA. orquestar.py no
+    # arranca la tanda si ve "CUOTA AGOTADA" en esta salida, asi que mirando
+    # solo la principal se quedaria el motor parado con la reserva intacta, que
+    # es justo lo contrario de para lo que se puso la reserva.
+    #
+    # Por eso esa frase solo se escribe cuando NO QUEDA NINGUNA. Si una tiene
+    # cuota, la corrida sale.
+    from motor.ia import MODELOS_GEMINI, claves_gemini
+
+    cuentas = claves_gemini()
+    if not cuentas:
         linea("mal", "Gemini", "no hay GEMINI_API_KEY", critico=True)
     else:
-        try:
-            from google import genai
-            # El cliente se guarda en una variable: creado en linea, se cierra
-            # antes de que termine la llamada y da "client has been closed",
-            # que parece una caida de Gemini y no lo es.
-            # El modelo se lee de motor/ia.py, no se escribe otra vez aqui: con
-            # el nombre duplicado, el centinela daba 404 mientras el motor ya
-            # estaba corregido, y parecia una caida de Gemini que no existia.
-            from motor.ia import MODELOS_GEMINI
-            modelo = MODELOS_GEMINI[-1]  # el mas barato de la cadena
-            cliente = genai.Client(api_key=clave)
-            cliente.models.generate_content(model=modelo, contents="di OK")
-            linea("ok", "Gemini (principal)", f"responde ({modelo})")
-        except Exception as exc:
-            msg = str(exc)
-            if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                linea("aviso", "Gemini (principal)", "CUOTA AGOTADA hoy")
-            else:
-                linea("mal", "Gemini (principal)", msg[:60], critico=True)
+        from google import genai
+        # El modelo se lee de motor/ia.py, no se escribe otra vez aqui: con el
+        # nombre duplicado, el centinela daba 404 mientras el motor ya estaba
+        # corregido, y parecia una caida de Gemini que no existia.
+        modelo = MODELOS_GEMINI[-1]  # el mas barato de la cadena
+        con_cuota, fallos = [], []
+        for nombre, clave in cuentas:
+            print(f"        huella de la clave '{nombre}': {huella(clave)}")
+            try:
+                # El cliente se guarda en una variable: creado en linea, se
+                # cierra antes de que termine la llamada y da "client has been
+                # closed", que parece una caida de Gemini y no lo es.
+                cliente = genai.Client(api_key=clave)
+                cliente.models.generate_content(model=modelo, contents="di OK")
+                linea("ok", f"Gemini ({nombre})", f"responde ({modelo})")
+                con_cuota.append(nombre)
+            except Exception as exc:
+                msg = str(exc)
+                if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                    linea("aviso", f"Gemini ({nombre})", "sin cuota")
+                else:
+                    linea("aviso", f"Gemini ({nombre})", msg[:60])
+                    fallos.append(nombre)
+        if not con_cuota:
+            # La frase que lee orquestar.py. Solo aqui, y solo si no queda nada.
+            linea("mal", "Gemini", "CUOTA AGOTADA hoy en todas las cuentas",
+                  critico=len(fallos) == len(cuentas))
 
     clave = os.environ.get("GROQ_API_KEY", "").strip()
     if not clave:
