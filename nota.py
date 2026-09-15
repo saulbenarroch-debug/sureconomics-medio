@@ -818,6 +818,37 @@ def mandar_al_chat(borrador, chat, quien=""):
     return enviados > 0
 
 
+def _por_que_fallo(salida):
+    """Traduce el fallo de producir.py a algo que sirva a quien lo pidió.
+
+    DECIRLE "VUELVE A PEDÍRMELA" A QUIEN SE QUEDÓ SIN CUOTA ES MANDARLA A
+    CHOCAR CONTRA LA MISMA PARED. Es la causa más común de que no haya pieza y
+    la única en la que reintentar no puede funcionar: hasta que no pase algo
+    fuera -que entre el día siguiente, o que alguien recargue- no hay nada que
+    hacer. El 14/09/2026 se perdieron cinco peticiones así, cada una
+    reintentando.
+
+    Se mira la salida del subproceso, que desde hoy trae el mensaje entero del
+    proveedor (ver motor/ia.py). Si no se reconoce nada, se dice lo de siempre:
+    inventar un motivo es peor que admitir que no se sabe.
+    """
+    texto = salida or ""
+    if "prepayment credits" in texto or "credits are depleted" in texto:
+        return ("Nos quedamos sin crédito de Gemini, así que no hay con qué "
+                "redactar. Reintentar no va a servir: hay que recargar. "
+                "Avísale a Saúl.")
+    if "cuota agotada" in texto or "RESOURCE_EXHAUSTED" in texto:
+        return ("Se agotó la cuota de IA del día. Reintentar ahora no sirve; "
+                "la cuota entra de nuevo mañana. Si hace falta hoy, avísale "
+                "a Saúl para que mire el plan.")
+    if "Request too large" in texto or "Rate limit reached" in texto:
+        return ("La IA principal falló y el respaldo rechazó el expediente por "
+                "tamaño. Reintentar no va a servir. Avísale a Saúl: está "
+                "apuntado en el CLAUDE.md del motor.")
+    return ("La fuente se leyó bien, pero la redacción falló. "
+            "Vuelve a pedírmela; si insiste, hay que mirar el log.")
+
+
 def _avisar_descartadas(chat, carpeta, peticion=""):
     """Avisa de lo que armar_carga.py dejo fuera por repetido.
 
@@ -948,9 +979,7 @@ def producir_y_entregar(nombre, tipo, encargo, autor, args,
     if not borrador.exists():
         print("\nNo se genero el borrador. Revisa el fallo de arriba.")
         print("  buscaba: %s" % borrador.name)
-        _avisar_fallo(args.chat, "No pude escribirla",
-                      "La fuente se leyó bien, pero la redacción falló. "
-                      "Vuelve a pedírmela; si insiste, hay que mirar el log.")
+        _avisar_fallo(args.chat, "No pude escribirla", _por_que_fallo(r.stdout))
         return 1
 
     print("\n--- 4. ENTREGA ---")
