@@ -392,6 +392,24 @@ def main():
         r = correr([PYTHON, AQUI / "motor" / "producir.py",
                     "--tipo", "Noticia",
                     "--paquete", candidatos, "--indice", i - 1])
+        # QUE MODELO Y QUE CUENTA ESCRIBIERON CADA PIEZA. Esto imprimia solo los
+        # ultimos 260 caracteres, y con eso el consumo de IA era INVISIBLE: una
+        # tanda de seis piezas mostraba dos llamadas, que son las de
+        # armar_carga.py -el unico que corre en este proceso-. Las del redactor,
+        # que son las gordas, no salian.
+        #
+        # Costo dos cosas reales. Una: no poder decir en que se fueron 20 $ de
+        # credito de Gemini, y tener que mandar a mirar la consola de Google.
+        # Dos: el 17/09/2026, no poder confirmar si el embudo habia llegado a
+        # usar la cuenta de reserva o se habia apañado con la principal.
+        #
+        # Las lineas de marca ([redactor] gemini-3.5-flash (reserva), [aviso]
+        # cuota agotada...) son cortas y van una por llamada: caben de sobra.
+        for linea in (r.stdout or "").splitlines():
+            s = linea.strip()
+            if s.startswith("[") and ("gemini" in s or "cuota" in s
+                                      or "Groq" in s or "previsto" in s):
+                print("     " + s[:150])
         cola = (r.stdout or "")[-260:]
         print("     " + cola.replace("\n", "\n     ")[:400])
         # STDERR SOLO CUANDO FALLA, PERO ENTONCES SIEMPRE. La corrida anterior
