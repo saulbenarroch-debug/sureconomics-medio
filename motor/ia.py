@@ -41,6 +41,14 @@ CLAVES_GEMINI = (("principal", "GEMINI_API_KEY"),
 _CLAVE_MALA = ("API_KEY_INVALID", "API key not valid", "PERMISSION_DENIED",
                "403", "400 INVALID_ARGUMENT")
 
+# Fallos pasajeros: merecen reintento en el MISMO modelo antes de pasar de largo.
+# Los de red entraron el 17/09/2026: "Server disconnected without sending a
+# response" tumbo una peticion que la reserva podria haber salvado, y encima
+# reintentar en el sitio suele bastar, que es mas barato que cambiar de cuenta.
+_TEMPORAL = ("503", "500", "UNAVAILABLE", "overloaded",
+             "Server disconnected", "Connection", "connection",
+             "timed out", "timeout", "RemoteProtocol", "Broken pipe")
+
 
 def claves_gemini():
     """Las claves configuradas, en orden. Lista de (nombre, clave)."""
@@ -93,8 +101,7 @@ def _gemini(prompt, temperatura, reintentos=2, imagen=None):
                               "siguiente cuenta" % (nombre, msg[:60]))
                         clave_inservible = True
                         break
-                    if any(s in msg for s in ("503", "500", "UNAVAILABLE",
-                                              "overloaded")):
+                    if any(s in msg for s in _TEMPORAL):
                         if intento < reintentos:
                             print("[aviso] %s caido, reintento en %ss"
                                   % (sello % modelo, espera))
@@ -102,7 +109,22 @@ def _gemini(prompt, temperatura, reintentos=2, imagen=None):
                             espera *= 2
                             continue
                         break
-                    raise
+                    # CUALQUIER OTRO ERROR TAMBIEN PASA AL SIGUIENTE, Y ESTO
+                    # ANTES ERA UN 'raise' QUE SE CARGABA EL EMBUDO ENTERO.
+                    #
+                    # El 17/09/2026 la principal contesto "Server disconnected
+                    # without sending a response", un corte de red que no es
+                    # ninguno de los casos de arriba. El raise aborto la cadena
+                    # antes de tocar la reserva, que estaba intacta: se perdio
+                    # la pieza teniendo una cuenta entera sin usar.
+                    #
+                    # El sentido de una cadena de respaldo es SOBREVIVIR a lo
+                    # que no se previo. Si se previera todo no haria falta
+                    # cadena. El error no se pierde: queda en 'ultimo' y se
+                    # lanza al final si no responde nadie.
+                    print("[aviso] %s fallo con algo no previsto (%s); sigo con "
+                          "el siguiente" % (sello % modelo, msg[:90]))
+                    break
     raise ultimo
 
 
