@@ -50,11 +50,27 @@ CONSULTAS_PREDETERMINADAS = [
 # Dominios que no estan en la lista blanca pero son referencia obligada para
 # comercio internacional y deuda soberana, que es donde nuestros feeds no llegan.
 # Van aqui y no en MEDIOS porque no tienen feed utilizable: solo se buscan.
-REFERENCIA = [
-    "reuters.com", "bloomberg.com", "ft.com", "wsj.com",
-    "eleconomista.com.mx", "lanacion.com.ar", "americaeconomia.com",
-    "bnamericas.com", "gob.mx", "dane.gov.co", "banrep.gov.co",
-    "banxico.org.mx", "imf.org", "worldbank.org", "cepal.org",
+# ES UN DICCIONARIO dominio -> NOMBRE, y el nombre no es decoracion: es lo que
+# permite reconocer a ese medio cuando lo nombra una captura o un post de
+# Instagram (ver dominios_de). Sin el, un post de Banca y Negocios se rechazaba
+# con "no encuentro esta noticia en ninguna fuente verificable" teniendo el
+# medio delante y en esta misma lista. Paso el 17/09/2026 con Noticiero Digital.
+#
+# Las instituciones van con nombre vacio a proposito: a un ministerio no se le
+# cita por un post de Instagram, y "gob.mx" casando con cualquier cosa que
+# suene parecido solo traeria ruido.
+REFERENCIA = {
+    "reuters.com": "Reuters",
+    "bloomberg.com": "Bloomberg",
+    "ft.com": "Financial Times",
+    "wsj.com": "The Wall Street Journal",
+    "eleconomista.com.mx": "El Economista",
+    "lanacion.com.ar": "La Nación",
+    "americaeconomia.com": "AméricaEconomía",
+    "bnamericas.com": "BNamericas",
+    "gob.mx": "", "dane.gov.co": "", "banrep.gov.co": "",
+    "banxico.org.mx": "", "imf.org": "", "worldbank.org": "",
+    "cepal.org": "",
     # Banca y Negocios cubre la economia venezolana con detalle y llega a cosas
     # que los grandes no tocan: entro el 02/09/2026 porque fue el unico medio con
     # las tres licencias de la OFAC sobre mineria, y el motor se nego a escribir
@@ -65,8 +81,18 @@ REFERENCIA = [
     # caracteres, comprobado). Son dos dominios distintos y hay que probar los
     # dos: darlo por bueno por la portada habria metido una fuente que el
     # recolector no puede usar.
-    "bancaynegocios.com",
-]
+    "bancaynegocios.com": "Banca y Negocios",
+
+    # Noticiero Digital, 17/09/2026. Pedido por Edicion tras rechazarse una nota
+    # suya que llego por Instagram.
+    #
+    # VA AQUI Y NO EN MEDIOS, y no por gusto: NO TIENE RSS. Probadas cinco
+    # direcciones -/feed/, /rss, /feed/rss2, la de la seccion de economia y la
+    # del dominio sin www- y las cinco redirigen a la portada con 301/302; el
+    # HTML tampoco declara ningun feed. Meterlo en MEDIOS habria hecho que cada
+    # tanda intentara leer un feed inexistente para nada.
+    "noticierodigital.com": "Noticiero Digital",
+}
 
 
 # DONDE VIVEN LOS ARTICULOS de los medios cuyo feed esta en otro dominio. No es
@@ -106,7 +132,28 @@ def dominios_de(nombre):
     lo escribe es un modelo leyendo un logo: dijo "bloomberglinea" y en la lista
     pone "Bloomberg Línea". Comparar las cadenas tal cual no casa nunca.
     """
-    return sorted({d for _, d, _ in _encajes(nombre)})
+    return sorted({d for _, d, _ in _encajes(nombre)} | _referencia_de(nombre))
+
+
+def _referencia_de(nombre):
+    """Dominios de REFERENCIA cuyo nombre casa. Solo coincidencia EXACTA.
+
+    POR QUE EXACTA Y NO PARCIAL, que es como casa MEDIOS: porque aqui esta
+    "Bloomberg" y en MEDIOS esta "Bloomberg Línea", que son dos medios distintos
+    y en direcciones contrarias -uno no se deja leer y el otro si-. Con
+    coincidencia parcial, "Bloomberg Línea" traeria tambien bloomberg.com y se
+    mandaria a buscar el original al diario equivocado. _encajes() ya tiene esa
+    cicatriz y su comentario; no hace falta repetirla aqui.
+
+    Con exacta basta para lo que hace falta: quien escribe el nombre es un
+    modelo leyendo el logo de una captura o el autor de un post, y escribe el
+    nombre entero.
+    """
+    buscado = _pelado(nombre)
+    if len(buscado) < 4:
+        return set()
+    return {dom for dom, propio in REFERENCIA.items()
+            if propio and _pelado(propio) == buscado}
 
 
 def claves_de(nombre):
