@@ -582,8 +582,13 @@ def extraer(medios=None, horas=24, limite=6, tema=None, por_medio=POR_MEDIO):
             publicado = entrada.get("published_parsed") or entrada.get("updated_parsed")
             if publicado and timegm(publicado) < corte:
                 continue
-            fecha = (datetime.fromtimestamp(timegm(publicado), tz=timezone.utc)
-                     .date().isoformat()) if publicado else ""
+            # LA FECHA PARA ESCRIBIR Y EL MOMENTO PARA ORDENAR. Ver el comentario
+            # de 'momento' en paquete.py: la hora venia en el feed y se tiraba
+            # aqui, y sin ella no hay forma de preferir lo recien publicado.
+            cuando = (datetime.fromtimestamp(timegm(publicado), tz=timezone.utc)
+                      if publicado else None)
+            fecha = cuando.date().isoformat() if cuando else ""
+            momento = cuando.isoformat(timespec="seconds") if cuando else ""
 
             firma = titular.lower()[:70]
             if firma in vistos:
@@ -599,6 +604,7 @@ def extraer(medios=None, horas=24, limite=6, tema=None, por_medio=POR_MEDIO):
             paquete = Paquete(
                 hecho=titular,
                 fecha_hecho=fecha,
+                momento=momento,
                 cifras=cifras_del_texto(texto, clave, medio["nombre"]),
                 citas=([{"texto": resumen, "autor": medio["nombre"],
                          "fuente_id": clave}] if resumen else []),

@@ -196,6 +196,36 @@ la media más baja, 3.0, porque con trece medios entran también los flojos).
 `criterio.puntuar()` ordena los candidatos. Suma por vocabulario macro, por
 cifras, por frescura, y **+3 si el medio está en `_MEDIOS_OK`**.
 
+**La frescura se mide en HORAS desde el 18/09/2026, y antes no.** Se medía en
+días, con la primera franja en «≤ 2 días → +3»: una noticia de hace diez minutos
+y otra de hace dos días valían lo mismo. Medido sobre 106 candidatas reales de
+22 medios, 18 tenían menos de una hora y 21 más de doce, **y las 106 puntuaban
+igual**.
+
+La hora venía en el feed —cero de las 106 sin ella— y `recolectar` la tiraba al
+quedarse con el día. Ahora viaja en `Paquete.momento`; `fecha_hecho` sigue
+siendo el día, que es lo que se escribe en la pieza y lo que mira el auditor.
+
+| antigüedad | puntos |
+|---|---|
+| ≤ 2 h | +5 |
+| ≤ 6 h | +4 |
+| ≤ 12 h | +3 |
+| ≤ 24 h | +2 |
+| ≤ 48 h | +1 |
+| ≤ 8 días | 0 |
+| más | −1 |
+
+**Llega a +5 a propósito.** Los otros premios son +3, +3 y +2: con la frescura
+también en 3 empataba con ellos. En 5 pesa más que cualquiera por separado y
+menos que dos juntos — una recién salida gana a una de ayer parecida, pero una
+floja de hace seis minutos no gana a una buena de hace seis horas (comprobado:
+9 contra 13).
+
+**Sin hora se puntúa por días, como siempre.** Una captura o un post sin fecha
+solo dan el día, y castigarlos por eso sería penalizar a la fuente por cómo
+llegó, no por cuándo ocurrió.
+
 **Ese +3 se comparaba contra el titular Y LA URL, y ahí vivió mucho tiempo un
 fallo que torcía tandas enteras:** los nombres con espacio no casan con su
 dominio. «el país» no encuentra `elpais.com`. Así que los medios de UNA palabra

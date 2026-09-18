@@ -171,18 +171,71 @@ def puntuar(titular, resumen="", url="", fecha=""):
     if resumen and resumen.strip()[:60].lower() != titular.strip()[:60].lower():
         p += 1
 
+    p += _por_frescura(fecha)
+    return p
+
+
+# CUANTO VALE LLEGAR PRONTO. Antes esto se medía en dias y la primera franja era
+# "dias <= 2 -> +3", o sea que una noticia de hace diez minutos y otra de hace
+# dos dias valian lo mismo. Medido el 18/09/2026 sobre 106 candidatas reales de
+# 22 medios: 18 tenian menos de una hora, 21 tenian mas de doce, y las 106
+# puntuaban IGUAL por frescura. Un medio no da inmediatez si no distingue eso.
+#
+# Los feeds traen la hora SIEMPRE -cero de las 106 venia sin ella- y el
+# recolector la tiraba al quedarse con el dia. Ver 'momento' en paquete.py.
+#
+# LA ESCALA LLEGA A +5 Y ES DELIBERADO. Los otros premios son +3 (medio de la
+# lista), +3 (vocabulario macro fuerte) y +2 (cifras). Con la frescura tambien
+# en 3 empataba con ellos; en 5 pesa mas que cualquiera por separado y menos
+# que dos juntos, que es lo que se queria: que una noticia recien salida gane a
+# una de ayer parecida, pero no que gane cualquier cosa recien salida a una
+# buena de hace seis horas.
+HORAS = ((2, 5), (6, 4), (12, 3), (24, 2), (48, 1))
+
+
+def _por_frescura(fecha):
+    """Puntos por lo reciente que sea. Por horas si se sabe la hora, si no por dias."""
+    horas = _horas_desde(fecha)
+    if horas is not None:
+        for tope, puntos in HORAS:
+            if horas <= tope:
+                return puntos
+        return 0 if horas <= 8 * 24 else -1
+
+    # SIN HORA SE PUNTUA COMO SIEMPRE, y no es un descuido: una captura o un
+    # post sin fecha solo dan el dia, y castigarlos por eso seria penalizar a la
+    # fuente por como llego, no por cuando ocurrio.
     dias = _dias_desde(fecha)
     if dias is None:
-        pass
-    elif dias <= 2:
-        p += 3
-    elif dias <= 5:
-        p += 2
-    elif dias <= 8:
-        p += 1
-    else:
-        p -= 1
-    return p
+        return 0
+    if dias <= 2:
+        return 3
+    if dias <= 5:
+        return 2
+    if dias <= 8:
+        return 1
+    return -1
+
+
+def _horas_desde(fecha):
+    """Antigüedad en horas, o None si la fecha no trae hora.
+
+    Devuelve None a proposito cuando solo hay dia: tomar la medianoche como
+    hora real haria que una nota de ayer a las 23:00 pareciera de hace una hora
+    o de hace veinticuatro segun cuando se mire, que es peor que no saberlo.
+    """
+    t = str(fecha or "")
+    if "T" not in t and " " not in t:
+        return None
+    for formato in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S",
+                    "%Y-%m-%dT%H:%M"):
+        try:
+            d = datetime.strptime(t[:len("2026-08-25T00:00:00")], formato)
+            fuera = datetime.now(timezone.utc) - d.replace(tzinfo=timezone.utc)
+            return fuera.total_seconds() / 3600.0
+        except ValueError:
+            continue
+    return None
 
 
 def sirve(titular, fecha="", exigir_economia=True, url=""):

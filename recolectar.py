@@ -135,7 +135,11 @@ def recolectar(horas=24, limite=10):
 
         # Calculamos la puntuación de calidad con criterio.py
         resumen = p.citas[0]["texto"] if p.citas else ""
-        puntos = criterio.puntuar(titular, resumen=resumen, url=url_primaria, fecha=p.fecha_hecho)
+        # EL MOMENTO MANDA SOBRE LA FECHA para puntuar: trae la hora y permite
+        # distinguir lo de hace diez minutos de lo de ayer. fecha_hecho es la
+        # reserva para las fuentes que solo dan el dia (capturas, posts).
+        cuando = getattr(p, "momento", "") or p.fecha_hecho
+        puntos = criterio.puntuar(titular, resumen=resumen, url=url_primaria, fecha=cuando)
 
         # Guardamos la puntuación en el paquete (usamos un atributo dinámico o nota)
         p.advertencias.append(f"CALIDAD CANDIDATO: {puntos} puntos de relevancia.")

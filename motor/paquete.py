@@ -100,6 +100,22 @@ class Paquete:
 
     hecho: str
     fecha_hecho: str
+    # LA HORA, APARTE DE LA FECHA, Y SOLO PARA ORDENAR POR FRESCURA.
+    #
+    # fecha_hecho se queda en AAAA-MM-DD porque es lo que se escribe en la pieza
+    # ("Sacado de: El Nacional, 2026-09-18") y lo que mira el auditor; meterle
+    # una hora cambiaria las dos cosas de paso.
+    #
+    # Pero la hora hace falta y se estaba tirando: los feeds la traen SIEMPRE
+    # -comprobado el 18/09/2026 sobre 106 candidatas de 22 medios, cero sin
+    # hora- y el recolector se quedaba solo con el dia. Con eso, una noticia de
+    # hace diez minutos y otra de hace veintitres horas puntuaban IGUAL, porque
+    # criterio.puntuar medía la frescura en dias. Un medio no puede dar
+    # inmediatez si descarta la hora antes de decidir.
+    #
+    # Va vacio cuando la fuente no la da (una captura, un post sin fecha): ahi
+    # se sigue puntuando por dias, como siempre.
+    momento: str = ""
     cifras: list = field(default_factory=list)
     citas: list = field(default_factory=list)
     entidades: list = field(default_factory=list)
