@@ -1,6 +1,6 @@
 name: Vigilancia
 
-# Cada hora en horario de redaccion. Mira si ha pasado algo gordo y AVISA por
+# Cada CUARTO DE HORA en horario de redaccion. Mira si ha pasado algo gordo y AVISA por
 # Telegram. NO escribe: la decision del 01/09/2026 fue que ninguna pieza se
 # produzca sin que una persona la haya pedido.
 #
@@ -12,6 +12,10 @@ name: Vigilancia
 # De 11:00 a 23:00 UTC, que son las 7 de la mañana a las 7 de la tarde en
 # Venezuela. Fuera de esa franja no hay nadie leyendo el grupo, y un aviso que
 # nadie ve solo sirve para que el siguiente se ignore tambien.
+#
+# EL RELOJ ES EL CRON DEL WORKER (VIGILANCIA_CRON en worker.js), no el schedule
+# de GitHub. Paso de una ronda por hora a una cada quince minutos el 18/09/2026,
+# cuando se midio que el schedule llegaba de 20 minutos a dos horas tarde.
 on:
   workflow_dispatch:
     inputs:
@@ -21,8 +25,18 @@ on:
       ensayo:
         description: "true = no manda el aviso, solo lo imprime"
         default: "false"
-  schedule:
-    - cron: "0 11-23 * * 1-5"
+  # AQUI NO SE DEJA EL schedule: DE RED, Y ES UNA EXCEPCION DELIBERADA.
+  #
+  # diario.yml si lo conserva -si Cloudflare falla, la tanda llega tarde pero
+  # llega- porque perder una tanda cuesta seis piezas. Aqui perder una ronda
+  # cuesta quince minutos: la siguiente la recoge.
+  #
+  # Y mantenerlo tenia un coste real. Medido del 16 al 18/09/2026, el schedule
+  # de las 23:00 aparecio a las 00:53 y a las 00:57: avisos de alto impacto
+  # llegando al grupo pasada la medianoche, cuando no hay nadie. Un aviso que
+  # nadie ve hace que el siguiente tambien se ignore.
+  #
+  # El reloj es VIGILANCIA_CRON en worker.js, que es puntual.
 
 # El estado de lo ya avisado se guarda en el repo. Sin esto, cada corrida
 # empieza en blanco y vuelve a avisar de lo mismo cada hora.
