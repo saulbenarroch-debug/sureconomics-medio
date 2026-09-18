@@ -298,6 +298,19 @@ def main():
         print("%-30s %-9s %-9s  %s" % (ruta.name[:30], formato, marca,
                                        " · ".join(temas)))
         print("     %s" % titulo[:86])
+        # EL LARGO DEL TITULAR SE MIDE, NO SE OPINA. Medido el 18/09/2026 sobre
+        # 40 titulares publicados: mediana de 85 caracteres y la mitad por
+        # encima de 80, casi siempre por colgarle al hecho su circunstancia
+        # ("...EN MEDIO DE CAMBIOS POLITICOS"). Un titular de portada se lee
+        # bien hasta unos 70, y eso es lo que pide ahora prompts/00-base.md.
+        #
+        # AVISA, NO BLOQUEA. Un titular largo es un titular mejorable, no una
+        # pieza falsa: bloquear por estilo seria darle al auditor un trabajo que
+        # no es el suyo. Se enseña para que Edicion lo vea al revisar y para que
+        # se pueda comprobar si el prompt nuevo funciona.
+        if len(titulo) > 70:
+            print("     [estilo] titular de %d caracteres (se pide <= 70); "
+                  "suele sobrar la circunstancia del final" % len(titulo))
         print("     lugares: %s" % (", ".join(lugares) or "(ninguno)"))
         if elegida:
             print("     foto: %s (%sx%s) [%s]" % (

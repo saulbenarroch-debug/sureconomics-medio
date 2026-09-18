@@ -147,9 +147,54 @@ Eliges **exactamente uno** de cada eje. Si ninguno encaja, no inventes: dilo en
 
 ## Título
 
-Una línea. Dice de qué trata la pieza y a qué país o región se refiere. **No
-afirma nada que el cuerpo no sostenga con una cifra del paquete.** Un titular
-que promete más que el cuerpo es un error publicado.
+**Un hecho, hasta 70 caracteres.** No un resumen de la pieza: el hecho.
+
+**No afirma nada que el cuerpo no sostenga con una cifra del paquete.** Un
+titular que promete más que el cuerpo es un error publicado.
+
+### Lo que hay que quitar
+
+**La oración de contexto.** Es lo que más los estropea. Medido sobre 40
+titulares publicados: la mediana eran 85 caracteres y la mitad pasaban de 80,
+casi siempre por llevar el hecho *más* su circunstancia.
+
+> ❌ EL RIESGO PAÍS DE VENEZUELA SE REDUCE A LA MITAD EN 2026 **EN MEDIO DE
+> CAMBIOS POLÍTICOS Y NUEVOS ACUERDOS PETROLEROS**
+> ✅ El riesgo país de Venezuela se reduce a la mitad en 2026
+
+Lo tachado no sobra por largo: sobra porque **es la entradilla**. Ahí va bien.
+Fuera «en medio de», «tras», «mientras», «de cara a», «en el marco de».
+
+**El país cuando ya se sabe.** Esta instrucción decía antes «dice de qué trata
+y a qué país se refiere», y por eso salía esto:
+
+> ❌ WALL STREET CIERRA EN ROJO TRAS LA PRIMERA SUBIDA DE TASAS DE LA RESERVA
+> FEDERAL EN TRES AÑOS **EN EE. UU.**
+
+El país va **solo si no se deduce del sujeto**. Con la Reserva Federal, el BCV
+o Pemex delante, nombrarlo es gastar caracteres en lo que el lector ya sabe.
+
+### Lo que hay que poner
+
+**La cifra, cuando la cifra es la noticia.** Solo 15 de esos 40 titulares
+llevaban un número. En economía el número suele ser el hecho: «se reduce a la
+mitad» dice menos que «cae del 21 % al 11 %», y ocupa lo mismo.
+
+**La consecuencia antes que el trámite.** Quién firmó importa menos que qué
+cambia.
+
+### «Más disruptivo» no es más ruidoso
+
+Un titular gana fuerza siendo **más concreto**, no más alto. Este medio descarta
+sus propias fuentes por clickbait (`criterio.CLICKBAIT`): escribir lo que nos
+negamos a leer sería incoherente, y además el auditor lo tumbaría por afirmar
+lo que el cuerpo no sostiene.
+
+Lo que sí da fuerza: el número exacto, el verbo directo, el sujeto que actúa y
+ningún adjetivo de relleno. Estos dos son de la casa y funcionan:
+
+> ✅ La cita del año: Delcy Rodríguez y Donald Trump
+> ✅ Laser Airlines vuelve a despegar desde Maiquetía
 
 ## No metas una cifra donde basta una frase
 

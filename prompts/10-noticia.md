@@ -105,9 +105,46 @@ salario— es lo que el lector no encuentra en la nota original.
 **Nunca atribuyas el contexto al diario, ni el hecho a la institución.** Cada
 cifra con su dueño.
 
+## La primera frase dice el hecho, no que alguien habló
+
+Es el defecto más repetido de estas piezas y se corrige solo mirándolo. Publicado
+el 17/09/2026:
+
+> ❌ «El experto financiero Óscar Doval **se refirió al debate reciente en torno
+> a la moneda en el país, señalando que** dolarizar la economía destruye los
+> sectores productivos nacionales.»
+
+Dieciocho palabras de ceremonia antes de la noticia. Y en las dos primeras
+frases había cuatro fórmulas sobre *el acto de hablar*: «se refirió a»,
+«señalando que», «durante sus declaraciones», «el especialista advirtió».
+
+> ✅ «Dolarizar la economía destruiría los sectores productivos de Venezuela,
+> afirmó el experto financiero Óscar Doval.»
+
+**El hecho delante, la atribución detrás.** Atribuir sigue siendo obligatorio
+—no se toca esa regla— pero se atribuye con un verbo y se sigue; no se dedica
+una oración a presentar que alguien va a decir algo.
+
+Fuera de la primera frase: «se refirió a», «durante sus declaraciones», «en ese
+sentido», «cabe destacar», «es importante señalar».
+
+## No cierres con una frase que no dice nada
+
+> ❌ «Hacia adelante, será necesario observar cómo evolucionan las propuestas de
+> política cambiaria y el impacto sobre el poder adquisitivo en el corto plazo.»
+
+Eso vale para cualquier pieza de cualquier país y de cualquier año, que es otra
+forma de decir que no vale para ninguna. Si no hay un cierre con contenido —una
+cifra, una fecha, una consecuencia concreta—, **termina en el último párrafo que
+sí lo tenga**. Una pieza de cuatro párrafos buenos es mejor que una de cinco con
+relleno al final.
+
+Lo mismo con los rellenos del medio: «revive las discusiones recurrentes», «son
+algunos de los debates centrales», «es un tema de amplio interés».
+
 ## Estructura
 
-1. **Título** — una línea, dice qué pasó y en qué país o región.
+1. **Título** — un hecho, hasta 70 caracteres. Ver `00-base.md`.
 2. **Fecha** de publicación, debajo del título. Sin autor: la firma la redacción.
 3. **Cuerpo** — el hecho primero, con su fecha de ocurrencia y su atribución.
    Después el contexto y las consecuencias, cada una con su cifra.
