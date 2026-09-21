@@ -1078,7 +1078,7 @@ def producir_y_entregar(nombre, tipo, encargo, autor, args,
             # que es lo que la lamina necesita. Hacerla antes obligaria a
             # repetir esa clasificacion, que es como se llega a que la lamina
             # diga un pais y el sitio diga otro.
-            if carga.exists() and foto_local and lamina_pedida:
+            if carga.exists() and lamina_pedida:
                 import json as _json
 
                 from motor import lamina as _lamina
@@ -1086,21 +1086,68 @@ def producir_y_entregar(nombre, tipo, encargo, autor, args,
                 piezas = d if isinstance(d, list) else d.get("piezas", [])
                 if piezas:
                     p0 = piezas[0]
+                    # DE DONDE SALE EL FONDO, Y EL ORDEN IMPORTA. Si alguien se
+                    # molesto en adjuntar una imagen, manda ella: es la misma
+                    # regla que ya se aplica a la portada del sitio unas lineas
+                    # mas arriba. Si no la hay, se usa la portada que el motor
+                    # eligio para la pieza, y eso es lo que permite pedir la
+                    # lamina desde un enlace suelto, sin adjuntar nada.
+                    #
+                    # HASTA EL 21/09/2026 ESTO EXIGIA LA IMAGEN ADJUNTA Y NO LO
+                    # DECIA: con "/nota <enlace> hazme el post" el motor
+                    # anunciaba «se pidio tambien la lamina», redactaba, subia
+                    # el borrador y no dibujaba nada. Desde el chat parecia roto.
+                    fondo, credito = foto_local, ""
+                    if not fondo:
+                        fondo = _lamina.bajar(p0.get("foto") or "",
+                                              carpeta / "portada-lamina")
+                        # El credito solo viaja con la foto del buscador. La que
+                        # manda Edicion por el chat va con credito vacio (se le
+                        # pone asi en la carga) porque es generada con IA y no
+                        # hay autor a quien citar.
+                        credito = p0.get("credito") or ""
                     destino = carpeta / "lamina-instagram.png"
-                    try:
-                        hecha = _lamina.hacer(
-                            foto_local, p0.get("titulo", ""),
-                            p0.get("resumen", ""), p0.get("lugares") or [],
-                            str(destino),
-                            categoria=_lamina.categoria_pedida(encargo))
-                    except Exception as exc:  # noqa: BLE001
-                        hecha = None
-                        print("  [lámina] no se pudo dibujar (%s)" % str(exc)[:80])
+                    hecha = None
+                    if fondo:
+                        try:
+                            hecha = _lamina.hacer(
+                                fondo, p0.get("titulo", ""),
+                                p0.get("resumen", ""), p0.get("lugares") or [],
+                                str(destino),
+                                categoria=_lamina.categoria_pedida(encargo),
+                                credito=credito)
+                        except Exception as exc:  # noqa: BLE001
+                            hecha = None
+                            print("  [lámina] no se pudo dibujar (%s)"
+                                  % str(exc)[:80])
+                    else:
+                        print("  [lámina] la pieza salió sin portada: no hay "
+                              "fondo que dibujar")
                     if hecha and args.chat:
                         _foto_telegram(args.chat, hecha,
                                        "🖼️ <b>Lámina para Instagram</b>\n"
                                        "1080×1350. Revisa el titular antes de "
                                        "publicar.")
+                    elif args.chat:
+                        # SE CONTESTA SIEMPRE QUE SE HAYA PEDIDO. Prometer la
+                        # lamina y callarse es lo que hacia parecer roto al bot.
+                        # Y los dos motivos se dicen distintos: cuando falta la
+                        # portada hay algo que la persona puede hacer.
+                        if not fondo:
+                            aviso = (
+                                "🖼️ <b>La nota está arriba, la lámina no.</b>"
+                                "\n\nEsta pieza salió sin portada: no "
+                                "encontré ninguna imagen del asunto que "
+                                "cumpliera las reglas, y sin foto no hay lámina "
+                                "que dibujar.\n\nMándame la imagen en el "
+                                "mismo mensaje y te la hago.")
+                        else:
+                            aviso = ("🖼️ <b>No pude dibujar la lámina.</b> La "
+                                     "nota sí está en el panel.")
+                        try:
+                            _mensaje_telegram(args.chat, aviso)
+                        except Exception:  # noqa: BLE001
+                            pass
 
             if carga.exists():
                 # Se suben tambien las bloqueadas, marcadas con el aviso. Es lo

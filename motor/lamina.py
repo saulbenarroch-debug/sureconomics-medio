@@ -33,6 +33,9 @@ import unicodedata
 # dice MUNDO y la del petroleo dice ESTADOS UNIDOS. La regla es la misma.
 SIN_PAIS = "MUNDO"
 
+# Wikimedia exige un User-Agent propio y devuelve 403 sin el. Ver bajar().
+AGENTE = "SurEconomics/1.0 (motor editorial)"
+
 
 def categoria_de(lugares, region=""):
     """La etiqueta roja: el pais en mayusculas, o MUNDO."""
@@ -141,7 +144,50 @@ def categoria_pedida(pie):
     return m.group(1).strip().upper() if m else ""
 
 
-def hacer(foto, titulo, resumen, lugares, salida, categoria="", region=""):
+
+def bajar(url, destino):
+    """Trae al disco la portada que eligio el motor. Devuelve la ruta o None.
+
+    HACE FALTA PORQUE LA LAMINA NECESITA EL ARCHIVO Y LA CARGA SOLO TIENE LA
+    DIRECCION. armar_carga.py guarda la foto como URL porque el panel se la
+    enlaza; Chrome, en cambio, dibuja el fondo desde un fichero incrustado en
+    base64 (ver plantillas/post._incrustar). Sin este paso, pedir la lamina
+    desde un enlace suelto -sin adjuntar imagen- no dibujaba nada.
+
+    EL USER-AGENT NO ES OPCIONAL: Wikimedia responde 403 a las peticiones sin
+    uno propio, y es de donde vienen casi todas estas portadas.
+    """
+    import pathlib
+    import urllib.request
+
+    if not url:
+        return None
+    try:
+        pedido = urllib.request.Request(url, headers={"User-Agent": AGENTE})
+        with urllib.request.urlopen(pedido, timeout=40) as r:
+            datos = r.read()
+            tipo = (r.headers.get("Content-Type") or "").lower()
+    except Exception as exc:  # noqa: BLE001
+        print("  [lámina] no pude bajar la portada (%s)" % str(exc)[:70])
+        return None
+    # WIKIMEDIA DEVUELVE 200 CON UNA PAGINA HTML si el thumb no existe, no un
+    # 404. Comprobado el 21/09/2026: 231 KB de HTML con Content-Type text/html.
+    # Sin esta guarda se guardaban esos bytes con nombre .jpg, Chrome no podia
+    # dibujarlos y la lamina salia con el fondo en negro sin que nada dijera por
+    # que. Un fallo que no se ve hasta que alguien mira la imagen publicada.
+    if not tipo.startswith("image/"):
+        print("  [lámina] la portada no es una imagen (%s); no la uso"
+              % (tipo.split(";")[0] or "sin tipo"))
+        return None
+    # La extension se saca del tipo que declara el servidor y no de la URL: las
+    # de Commons acaban en .jpg con mayusculas, en .JPG, o en nada.
+    ext = ".png" if "png" in tipo else (".webp" if "webp" in tipo else ".jpg")
+    ruta = pathlib.Path(str(destino)).with_suffix(ext)
+    ruta.write_bytes(datos)
+    return ruta
+
+def hacer(foto, titulo, resumen, lugares, salida, categoria="", region="",
+          credito=""):
     """Dibuja la lámina y devuelve la ruta, o None si no se pudo."""
     import pathlib
     import sys
@@ -154,5 +200,7 @@ def hacer(foto, titulo, resumen, lugares, salida, categoria="", region=""):
     print("  [lámina] %s · %s" % (etiqueta, corto))
     if bajada:
         print("  [lámina] bajada: %s" % bajada)
-    html = post.componer(foto, etiqueta, corto, bajada)
+    if credito:
+        print("  [lámina] crédito: %s" % credito)
+    html = post.componer(foto, etiqueta, corto, bajada, credito=credito)
     return salida if post.dibujar(html, salida) else None

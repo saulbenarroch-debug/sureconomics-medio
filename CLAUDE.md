@@ -133,6 +133,37 @@ Dos archivos, dos trabajos: `plantillas/post.py` **dibuja** y `motor/lamina.py`
 **decide**. Mezclarlos es como se llega a que la lámina diga un país y el sitio
 diga otro.
 
+**No hace falta adjuntar imagen, y hasta el 21/09/2026 sí hacía falta sin
+decirlo.** La condición que dibuja exigía `foto_local`, que solo se rellena con
+una foto mandada por Telegram. Con `/nota <enlace> hazme el post` el motor
+anunciaba «se pidió también la lámina», redactaba, subía el borrador **y no
+dibujaba nada**: desde el chat parecía roto estando bien.
+
+Ahora el fondo sale, por este orden, de:
+
+1. **la imagen que adjuntó la persona**, si la hay: si alguien se molestó en
+   mandar una foto concreta, manda ella;
+2. **la portada que el motor ya eligió** para la pieza, que se baja con
+   `lamina.bajar()` porque la carga solo guarda la dirección y Chrome necesita
+   el archivo.
+
+Y si no hay ninguna de las dos, **se dice por el chat** en vez de callar.
+
+**LA LÁMINA LLEVA CRÉDITO DESDE ENTONCES, Y NO ES DECORACIÓN.** Mientras el
+fondo solo podía ser una foto mandada por el chat —generadas con IA, sin autor
+a quien citar— no había nada que atribuir, y por eso `post.componer()` no tenía
+ranura para ello. Las portadas del buscador salen de Commons y muchas son CC BY
+o CC BY-SA, que exigen nombrar al autor **donde se ve la imagen**: el pie del
+sitio no sirve, porque la lámina viaja sola a Instagram. Va en la franja de
+56 px que la tarjeta deja libre abajo; si se mueve la tarjeta, hay que mirar
+`.credito`.
+
+**Y el techo de todo esto es el buscador de portadas, no la lámina.** Probado el
+21/09/2026 con una nota del BCV, la foto elegida fue el Tribunal Supremo de
+Guyana. En el sitio una portada floja se nota; en Instagram la imagen **es** la
+pieza. Antes de confiar en el camino 2 para publicar sin mirar, ver «De las
+portadas» en las trampas.
+
 ## Tipos de pieza
 
 Seis, cada uno con su prompt en `prompts/`. `armar_carga.FORMATOS` los traduce a
@@ -607,7 +638,12 @@ nadie (ver trampa 9), y para el bloqueo ya existe salida con
     lista.** Un jefe de Estado tiene ficha y retrato libre; la víctima de un
     suceso, no. Cuando no hay ficha no hay foto, que es el resultado que se
     quería.
-36. **Un SVG no tiene medidas** y Commons fecha banderas y logos por cuando se
+36. **Wikimedia contesta 200 con una PÁGINA HTML cuando el thumb no existe**,
+    no un 404 (comprobado el 21/09/2026: 231 KB con `Content-Type: text/html`).
+    Sin comprobar el tipo, esos bytes se guardaban con nombre `.jpg`, Chrome no
+    podía dibujarlos y la lámina salía con el fondo en negro **sin que nada
+    dijera por qué**. `lamina.bajar()` exige `image/`.
+37. **Un SVG no tiene medidas** y Commons fecha banderas y logos por cuando se
     adoptó el diseño (la del Reino Unido consta como de 1801). Las reglas de
     tamaño y antigüedad no se les aplican; a las fotografías sí, enteras.
 

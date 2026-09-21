@@ -115,7 +115,8 @@ def _fuentes():
     return "\n".join(reglas)
 
 
-def componer(foto, categoria, titular, bajada="", enlace_en_bio=False):
+def componer(foto, categoria, titular, bajada="", enlace_en_bio=False,
+             credito=""):
     """El HTML de la lamina. Sin efectos: devuelve una cadena."""
     logo = _incrustar(ASSETS / "logo.png")
     fondo = _incrustar(foto)
@@ -130,6 +131,8 @@ def componer(foto, categoria, titular, bajada="", enlace_en_bio=False):
         "bajada": ("<p class='bajada'>%s</p>" % html.escape(bajada)
                    if bajada else ""),
         "boton": ("<div class='bio'>link en bio</div>" if enlace_en_bio else ""),
+        "credito": ("<div class='credito'>%s</div>" % html.escape(credito)
+                    if credito else ""),
     }
 
 
@@ -161,6 +164,19 @@ h1{font-size:100px;font-weight:800;line-height:.92;letter-spacing:-3px;}
 .bajada{margin-top:22px;font-size:47px;font-weight:400;line-height:1.12;}
 .bio{margin:38px auto 4px;width:max-content;border:2px solid #fff;
   border-radius:999px;padding:13px 46px;font-size:28px;font-weight:500;}
+/* EL CREDITO NO ES DECORACION: es lo que hace publicable la lamina.
+   Hasta el 21/09/2026 la lamina solo se dibujaba con fotos que mandaba Edicion
+   por el chat -generadas con IA, sin autor a quien citar- y por eso no habia
+   sitio donde ponerlo. Desde que tambien puede usar la portada que busca el
+   motor, la foto sale de Commons y muchas son CC BY o CC BY-SA, que exigen
+   nombrar al autor DONDE SE VE LA IMAGEN: en el pie del sitio no vale, porque
+   la lamina viaja sola a Instagram.
+   Va en la franja de 56px que la tarjeta deja libre abajo, asi que no pisa
+   nada de lo que ya estaba. Si se mueve la tarjeta, mirar esto. */
+.credito{position:absolute;left:40px;right:40px;bottom:19px;z-index:3;
+  text-align:center;font-size:19px;font-weight:400;letter-spacing:.3px;
+  color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;}
 </style></head><body><div class="hoja">
   <img class="fondo" src="%(fondo)s">
   <div class="velo"></div>
@@ -171,6 +187,7 @@ h1{font-size:100px;font-weight:800;line-height:.92;letter-spacing:-3px;}
     %(bajada)s
     %(boton)s
   </div>
+  %(credito)s
 </div></body></html>"""
 
 
@@ -208,6 +225,8 @@ def main():
     ap.add_argument("--titular", required=True)
     ap.add_argument("--bajada", default="")
     ap.add_argument("--link-en-bio", action="store_true")
+    ap.add_argument("--credito", default="",
+                    help="autor y licencia de la foto")
     ap.add_argument("--salida", default="post.png")
     args = ap.parse_args()
 
@@ -215,7 +234,7 @@ def main():
         print("[aviso] falta plantillas/assets/logo.png: la lámina sale con el "
               "hueco marcado. No la publiques así.")
     html_texto = componer(args.foto, args.categoria, args.titular,
-                          args.bajada, args.link_en_bio)
+                          args.bajada, args.link_en_bio, args.credito)
     if not dibujar(html_texto, args.salida):
         print("No se generó la lámina.")
         return 1
