@@ -117,14 +117,42 @@ jobs:
           chat = os.environ.get("CHAT", "").strip()
           if ficha and chat:
               ok = " OK   #" in salida
-              texto = ("✅ <b>Subida al panel</b>, marcada como parecida a otra."
-                       if ok else
-                       "⚠️ <b>No pude subirla.</b> El borrador sigue en el "
-                       "correo y aquí arriba en el chat.")
+              # EL BOTON FUERZA UNA COSA Y SOLO UNA. "Subirla igual" discute el
+              # veredicto de la MEMORIA; no dice nada sobre si las cifras
+              # cuadran, que es lo que mira el auditor. Una pieza puede estar
+              # repetida Y bloqueada, y entonces esto no la sube.
+              #
+              # Pasó el 21/09/2026: Edicion toco el boton, el workflow salio en
+              # rojo y el aviso decia "no pude subirla" a secas. Desde el chat
+              # parecia que el boton estaba roto, cuando el motor estaba
+              # haciendo justo lo que debe.
+              if ok:
+                  texto = "✅ <b>Subida al panel</b>, marcada como parecida a otra."
+              elif "bloqueada por el auditor" in salida:
+                  texto = ("🔒 <b>No la subo, y no es por lo de repetida.</b>\n\n"
+                           "El auditor la bloqueó: alguna cifra del texto no se "
+                           "pudo rastrear hasta la fuente. Ese botón discute la "
+                           "memoria, no las cifras.\n\n"
+                           "Si el dato es bueno, hay que corregir la pieza a "
+                           "mano; si no, mejor que no salga.")
+              else:
+                  texto = ("⚠️ <b>No pude subirla.</b> El borrador sigue en el "
+                           "correo y aquí arriba en el chat.")
               urllib.request.urlopen(urllib.request.Request(
                   "https://api.telegram.org/bot%s/sendMessage" % ficha,
                   data=json.dumps({"chat_id": chat, "text": texto,
                                    "parse_mode": "HTML"}).encode(),
                   headers={"Content-Type": "application/json"}), timeout=30)
+          # QUE EL AUDITOR BLOQUEE NO ES UN FALLO DEL WORKFLOW. Es el sistema
+          # funcionando: la pieza tiene una cifra que no cuadra y por eso no
+          # sube. Marcarlo en rojo llena el correo de "all workflows failed" por
+          # algo que salio bien, y a la tercera nadie mira ningun aviso.
+          #
+          # Rojo se reserva para lo que si esta roto: el panel caido, la sesion
+          # rechazada, el artefacto que no se encuentra.
+          if not ok and "bloqueada por el auditor" in salida:
+              print("\nNo se subio porque el auditor la bloqueo. Es el resultado "
+                    "correcto, no un fallo: se sale en verde y se avisa al chat.")
+              sys.exit(0)
           sys.exit(r.returncode)
           PY

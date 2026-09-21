@@ -322,6 +322,15 @@ def main():
                   % pieza["titulo"][:44])
         if pieza.get("bloqueada"):
             if not forzar:
+                # SE DICE, NO SE CALLA. Este era el unico descarte que no
+                # imprimia nada: el log terminaba en "0 subidas, 1 con problema"
+                # sin decir cual ni por que. El 21/09/2026 Edicion toco "Subirla
+                # igual" en una pieza que estaba repetida Y bloqueada, el
+                # workflow salio en rojo y no habia forma de saber que el
+                # culpable era el auditor y no la memoria.
+                print("  SALTA %s :: bloqueada por el auditor. --subir-duplicadas "
+                      "no la desbloquea: son dos cosas distintas."
+                      % pieza["titulo"][:44])
                 fallos.append((pieza["titulo"][:50],
                                "bloqueada por el auditor, no se sube"))
                 continue
