@@ -124,6 +124,11 @@ INSTITUTOS = {
 }
 
 
+# Tildes por cada mil letras por debajo de las cuales la pieza no es publicable.
+# El numero sale de medir, y la medicion esta en el apartado 9 de auditar().
+TILDES_MINIMAS = 5.0
+
+
 @dataclass
 class Hallazgo:
     nivel: str      # 'bloqueo' o 'aviso'
@@ -678,6 +683,48 @@ def auditar(pieza, paquete, encargo=""):
         h.append(Hallazgo("aviso", "revision-humana",
                           "revisar a mano: que el cuerpo informe y no opine, y "
                           "que el titular no afirme mas que el cuerpo"))
+
+
+    # --- 9. Tildes: una pieza entera sin ellas no es publicable -------------
+    # MIDE DENSIDAD, NO ORTOGRAFIA, y esa distincion es el hallazgo. Ningun
+    # corrector automatico sirve para lo que se buscaba al principio: el error
+    # que reporta edicion es «segun informo» donde toca «informo» con tilde, y
+    # sin ella sigue siendo una palabra valida del español (yo informo), asi que
+    # solo el contexto lo distingue. Pero resulta que cuando esto falla no se
+    # pierde UNA tilde: se pierden TODAS, y eso si se cuenta sin entender nada.
+    #
+    # Medido el 21/09/2026 sobre las 290 piezas publicadas con cuerpo:
+    #
+    #   mediana del catalogo ................ 20,4 por mil
+    #   la mas baja de las sanas (#274) ..... 12,0
+    #   #427 presupuesto de Brasil (03/09) ... 0,8
+    #   #578 Trump y Mexico (17/09) .......... 0,0
+    #
+    # Dos de 290, con un hueco de 15x entre ellas y la siguiente. AL REVES QUE
+    # CON LOS DUPLICADOS, AQUI EL UMBRAL SI SEPARA: cualquier valor entre 2 y 10
+    # da exactamente el mismo resultado sobre el catalogo entero. Por eso esto
+    # se bloquea con un numero y aquello no pudo.
+    #
+    # La ñ NO entra en la cuenta, y no es un descuido: en las dos piezas rotas
+    # sobrevivio («brasileño», «señalo») mientras caian todas las vocales. Eso
+    # es lo que descarta un fallo de codificacion —cp1252 se habria llevado la ñ
+    # por delante— y prueba que el texto se redacto asi. Contarla taparia el
+    # sintoma justo en los casos que hay que cazar.
+    #
+    # Se bloquea y no se avisa porque las dos se publicaron: un aviso en el log
+    # de Actions no lo lee nadie, y aqui hay una salida (--subir-bloqueadas).
+    letras = sum(1 for ch in texto if ch.isalpha())
+    if letras >= 400:
+        # El minimo de letras es para no juzgar un texto demasiado corto, donde
+        # la proporcion es ruido: en 80 letras cabe una frase sin ninguna tilde.
+        tildadas = sum(1 for ch in texto if ch in "áéíóúÁÉÍÓÚ")
+        por_mil = tildadas * 1000.0 / letras
+        if por_mil < TILDES_MINIMAS:
+            h.append(Hallazgo(
+                "bloqueo", "sin-tildes",
+                "el texto esta escrito practicamente sin tildes (%.1f por cada "
+                "mil letras; el catalogo esta en 20). No es una errata suelta, "
+                "es la pieza entera: hay que pedirla otra vez" % por_mil))
 
     return h
 

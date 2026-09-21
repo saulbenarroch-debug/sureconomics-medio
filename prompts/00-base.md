@@ -122,6 +122,24 @@ Si aun así se te escapa uno, el código lo sustituye antes de publicar. Pero
 lo que sale de esa sustitución nunca queda tan bien como la frase que habrías
 escrito tú con la puntuación correcta desde el principio.
 
+## Tildes: la pieza va acentuada
+
+Se escribe en español con sus tildes, todas, también en el título y aunque el
+título vaya en mayúsculas: MÉXICO, CORRUPCIÓN, AUTONOMÍA.
+
+No copies la ortografía de la fuente. Hay medios que titulan sin acentos y hay
+teclados que no los ponen; eso es problema de quien lo escribió, no norma que
+se herede. El texto que devuelves se publica tal cual.
+
+Ojo con las que cambian el significado, que son las que de verdad hacen daño:
+
+- *"según informó el diario"* (pasado, alguien lo informó) no es *"según informo
+  el diario"* (presente, yo informo).
+- *"el banco aumentó la tasa"* no es *"el aumento de la tasa"*.
+
+Si dudas de una palabra, reescribe la frase. Una construcción distinta y
+correcta vale más que una tilde puesta a ojo.
+
 ## Cifras: formato
 
 - Decimales con **coma**: `25,8 %`. Miles con **punto**: `1.000.000`.

@@ -323,6 +323,7 @@ su historia escrita al lado del código.
 | `captura.PARECIDO_AUTOMATICO` | 0.75 | `motor/captura.py` | si lo es sin preguntar |
 | `nota.MAX_FUENTES` | 3 | `nota.py` | cuántos medios se cruzan |
 | `foto.ANCHO_MINIMO` | 1000 | `motor/foto.py` | portada demasiado pequeña |
+| `auditor.TILDES_MINIMAS` | 5,0 por mil | `motor/auditor.py` | si la pieza salió sin tildes |
 
 `memoria.UMBRAL` lleva su propia bitácora en el docstring (0.40 → 0.31 → 0.36) y
 un aviso que decía: **el hueco entre duplicados reales y falsos positivos se ha
@@ -463,6 +464,43 @@ Cada una costó al menos una tarde.
     Una repetida no tiene ningún problema de contenido, solo se parece a algo ya
     publicado; una bloqueada tiene una cifra que no se pudo rastrear. Juntarlas
     en una sola bandera obligaría a aceptar las dos cosas para conseguir una.
+
+### De la ortografía
+
+**Cuando una pieza sale sin tildes, no le falta una: le faltan todas, y eso es
+lo que la hace detectable.** Edición reportó «errores ortográficos» el
+21/09/2026 y lo primero que se buscó fue lo difícil: `«según informo»` por
+`«informó»`, que ningún corrector marca porque sin tilde sigue siendo una
+palabra válida (*yo informo*) y solo el contexto la distingue.
+
+Medida la densidad de tildes sobre las 290 piezas publicadas con cuerpo, el
+problema real era otro y era grueso:
+
+| | tildes por mil letras |
+|---|---|
+| mediana del catálogo | 20,4 |
+| la más baja de las sanas (#274) | 12,0 |
+| **#427**, presupuesto de Brasil (03/09) | **0,8** |
+| **#578**, Trump y México (17/09) | **0,0** |
+
+Dos de 290, con un hueco de 15x. **Al revés que con los duplicados, aquí el
+umbral sí separa**: cualquier valor entre 2 y 10 da el mismo resultado sobre el
+catálogo entero. Por eso esto sí se resuelve con un número y aquello no pudo.
+
+**La ñ sobrevive y las vocales no** (`brasileño`, `señalo`, y alrededor
+`Comite`, `aprobo`, `miercoles`, `oposicion`). Eso descarta un fallo de
+codificación —cp1252 se habría llevado la ñ por delante— y prueba que el texto
+se redactó así. Por eso la ñ **no** cuenta en la medida: contarla taparía el
+síntoma justo en los casos que hay que cazar. Y por eso no hay nada que
+"arreglar" en el camino del texto: se comprobó que ninguna de las
+normalizaciones del repo toca `title` ni `content`; todas van con `.lower()` y
+alimentan comparadores.
+
+Se ataca por los dos lados: `prompts/00-base.md` lo pide (**## Tildes**) y
+`auditor.TILDES_MINIMAS` lo bloquea cuando el prompt no basta. **Es bloqueo y no
+aviso porque las dos se publicaron**: un aviso en el log de Actions no lo lee
+nadie (ver trampa 9), y para el bloqueo ya existe salida con
+`--subir-bloqueadas`.
 
 ### De la recolección
 

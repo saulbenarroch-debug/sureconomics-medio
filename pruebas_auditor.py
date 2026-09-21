@@ -84,5 +84,49 @@ r = auditar(dict(buena, titulo="La inflación de Venezuela en 2016",
 caso("bloquea 200: no es un redondeo de 254,9, es otra cifra",
      any(x.codigo == "cifra-inventada" for x in r), informe(r))
 
+print("")
+print("-- 8. Una pieza entera sin tildes --")
+# Los dos parrafos son el arranque LITERAL de #578 y #427, las dos unicas piezas
+# del catalogo (de 290) que salieron asi. Se guardan aqui tal cual porque el
+# fallo no se deja reproducir a mano: escribirlo uno mismo da un texto
+# plausible, no el que el modelo produjo de verdad.
+#
+# Fijarse en «brasileño» y «señalo»: la ñ sobrevive y las vocales no. Esa es la
+# huella que descarta un problema de codificacion y por la que la ñ no se cuenta.
+sin_tildes = dict(base,
+    titulo="TRUMP EXIGE A MEXICO COMBATIR LA CORRUPCION LIGADA A LOS CARTELES",
+    cuerpo=("El presidente de Estados Unidos, Donald Trump, insto al Gobierno de "
+            "Mexico a arrestar y enjuiciar a los funcionarios publicos que "
+            "colaboren con los carteles de la droga, segun informo Aristegui "
+            "Noticias. En su determinacion anual sobre los principales paises de "
+            "transito o produccion de drogas, publicada este miercoles, el "
+            "mandatario estadounidense señalo que estas alianzas delictivas ponen "
+            "en riesgo la seguridad y la soberania de ambas naciones. El Comite "
+            "Gestor do IBS aprobo este miercoles su presupuesto con gastos "
+            "previstos para 2027, segun informo el diario Folha de S.Paulo. La "
+            "medida salio adelante pese a la oposicion de la mayoria de los "
+            "representantes de los estados y municipios que integran el "
+            "organismo, una entidad que surgio a raiz de la reciente reforma "
+            "tributaria en el pais brasileño. Este comite resulta clave para "
+            "coordinar la recaudacion y la distribucion de los tributos entre "
+            "los gobiernos locales y regionales. " + url))
+r = auditar(sin_tildes, paq)
+caso("bloquea una pieza redactada sin tildes",
+     any(x.codigo == "sin-tildes" for x in r), informe(r))
+
+# El control es lo que de verdad prueba que el umbral sirve: reproduce la
+# densidad de #274, la pieza SANA con menos tildes de todo el catalogo (12,0 por
+# mil). Si alguien sube TILDES_MINIMAS, esta es la prueba que se pone en rojo.
+r = auditar(dict(buena, cuerpo=(
+    "La concertación tripartita entre el Estado, los empleadores y los "
+    "sindicatos volvió a quedar en el centro del debate sobre el salario real. "
+    "En 2016 la inflación anual de Venezuela fue de 254,9 %, según el Banco "
+    "Mundial, y en 2015 había sido de 121,7 %. La discusión sobre el poder "
+    "adquisitivo no se resuelve solo con el indice general de precios, que "
+    "reparte el peso entre canastas que no todos los hogares consumen. " + url)), paq)
+caso("no toca una pieza sana aunque lleve pocas tildes",
+     not any(x.codigo == "sin-tildes" for x in r), informe(r))
+
+
 print(f"\n{'TODO EN VERDE' if not fallos else str(fallos) + ' FALLO(S)'}")
 sys.exit(1 if fallos else 0)
