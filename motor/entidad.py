@@ -108,7 +108,11 @@ def nombres_del_titular(titulo, resumen=""):
 
     r = pedir_json(prompt, etiqueta="entidad", temperatura=0.1)
     if not isinstance(r, dict):
-        return []
+        # NO ES LO MISMO «NO HAY ENTIDAD» QUE «NO PUDE PREGUNTAR», y hasta el
+        # 21/09/2026 las dos salian de aqui como lista vacia. Quien llama no
+        # podia distinguirlas y trataba la averia como una respuesta. Devolver
+        # None es lo que deja a foto.para() negarse a adivinar. Ver alli.
+        return None
     return [str(x).strip() for x in (r.get("entidades") or []) if str(x).strip()][:3]
 
 
@@ -121,6 +125,11 @@ def para(titulo, lugares=None, resumen="", explicar=False):
     from motor import foto
 
     nombres = nombres_del_titular(titulo, resumen)
+    if nombres is None:
+        # Sin IA no se ha podido preguntar de quien habla. Se devuelve None y
+        # no [] para que foto.para() sepa que esto es una averia y no un
+        # titular sin entidades.
+        return None, None
     if not nombres:
         return None, []
     print("   [entidad] de quien/que habla: %s" % ", ".join(nombres))

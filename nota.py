@@ -1037,6 +1037,34 @@ def producir_y_entregar(nombre, tipo, encargo, autor, args,
             orden = [sys.executable, str(AQUI / "armar_carga.py"), str(carpeta)]
             if forzar:
                 orden.append("--forzar")
+            # SE PIDE LA FOTO, Y ESTO REVIERTE UNA DECISION ANTERIOR: LEE EL
+            # PORQUE ANTES DE VOLVER A QUITARLO.
+            #
+            # armar_carga.py no busca foto por defecto, y su comentario explica
+            # la razon: las reglas saben comprobar el pais y la licencia, pero
+            # no si la foto ILUSTRA el asunto, y colaron cosas como el Museu do
+            # Ipiranga encabezando una nota de morosidad bancaria. El argumento
+            # que cerraba aquello era este: «una pieza sin foto la resuelve
+            # Edicion en un minuto; una con la foto equivocada la resuelve
+            # despues de que la lea alguien, y a veces despues de que la lea un
+            # lector».
+            #
+            # Eso era cierto mientras la foto no se viera hasta abrir el panel.
+            # Desde el 21/09/2026 la portada elegida se manda al chat en cuanto
+            # se arma la carga, asi que una foto equivocada se caza en segundos
+            # y no despues de que la lea nadie. Desaparecido el riesgo,
+            # desaparece el motivo de dejar las piezas sin portada.
+            #
+            # EN LAS TANDAS SIGUE HACIENDO FALTA PEDIRLA a mano (orquestar.py
+            # pasa --con-foto): alli no hay a quien enseñarsela, que es la
+            # misma razon por la que el bloqueo por repetida se trata distinto
+            # en la tanda y en /nota.
+            #
+            # Si la persona mando su propia portada, no se busca: unas lineas
+            # mas abajo se pisa igualmente, y seria gastar una consulta a
+            # Wikidata para tirarla.
+            if not portada_url:
+                orden.append("--con-foto")
             r = subprocess.run(orden,
                                capture_output=True, text=True, encoding="utf-8",
                                errors="replace", timeout=20 * 60)
@@ -1071,6 +1099,44 @@ def producir_y_entregar(nombre, tipo, encargo, autor, args,
                 print("  portada puesta en la carga%s"
                       % (" y declarada como IA" if declarar_ia else ""))
 
+            # LA PORTADA QUE ELIGE EL MOTOR SE ENSEÑA, NO SE PUBLICA A
+            # ESCONDIDAS. Es lo que permite que /nota pida foto (ver el
+            # comentario de --con-foto unas lineas arriba): el buscador
+            # comprueba pais y licencia, pero no sabe si la foto ilustra el
+            # asunto, y ese fallo solo lo ve una persona. Hasta que no se
+            # enseñaba, «verla» significaba abrir el panel, y por eso se
+            # prefiere que las piezas salieran sin portada.
+            #
+            # Se baja una sola vez: este mismo archivo lo reusa la lamina unas
+            # lineas mas abajo. Bajarlo dos veces es pedirle a Commons lo mismo
+            # otra vez por nada.
+            portada_elegida = None
+            if carga.exists() and not portada_url:
+                import json as _json
+
+                from motor import lamina as _lam2
+                d = _json.loads(carga.read_text(encoding="utf-8"))
+                piezas = d if isinstance(d, list) else d.get("piezas", [])
+                p_foto = piezas[0] if piezas else {}
+                if p_foto.get("foto"):
+                    portada_elegida = _lam2.bajar(p_foto["foto"],
+                                                  carpeta / "portada-elegida")
+                    if portada_elegida and args.chat:
+                        # EL CREDITO VA EN EL AVISO Y NO ES UN ADORNO: estas
+                        # fotos son de Commons y muchas son CC BY o CC BY-SA.
+                        # Quien apruebe la pieza tiene que ver con que licencia
+                        # carga antes de decir que si.
+                        _foto_telegram(
+                            args.chat, portada_elegida,
+                            "🖼️ <b>Esta portada la elegí yo</b>\n\n"
+                            "<i>%s</i>\n\n"
+                            "Va con la nota al panel. Compruebo el país y la "
+                            "licencia, pero <b>no sé si la foto ilustra el "
+                            "asunto</b>: si no pega, cámbiala en el panel "
+                            "antes de publicar."
+                            % (p_foto.get("credito") or "sin crédito"))
+                        print("  portada elegida enviada al chat")
+
             # LA LAMINA DE INSTAGRAM, si se pidio en el pie de foto.
             #
             # Se dibuja DESPUES de armar la carga y no antes, porque de ahi
@@ -1099,8 +1165,9 @@ def producir_y_entregar(nombre, tipo, encargo, autor, args,
                     # el borrador y no dibujaba nada. Desde el chat parecia roto.
                     fondo, credito = foto_local, ""
                     if not fondo:
-                        fondo = _lamina.bajar(p0.get("foto") or "",
-                                              carpeta / "portada-lamina")
+                        # Ya esta en el disco de haberla enseñado en el chat.
+                        fondo = portada_elegida or _lamina.bajar(
+                            p0.get("foto") or "", carpeta / "portada-lamina")
                         # El credito solo viaja con la foto del buscador. La que
                         # manda Edicion por el chat va con credito vacio (se le
                         # pone asi en la carga) porque es generada con IA y no

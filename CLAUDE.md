@@ -164,6 +164,27 @@ Guyana. En el sitio una portada floja se nota; en Instagram la imagen **es** la
 pieza. Antes de confiar en el camino 2 para publicar sin mirar, ver «De las
 portadas» en las trampas.
 
+## La portada de `/nota` se enseña antes de publicarse
+
+`armar_carga.py` **no busca foto por defecto**, y su comentario explica por qué:
+las reglas comprueban país y licencia, pero no si la foto *ilustra* el asunto.
+El argumento que cerró aquello fue: *«una pieza sin foto la resuelve Edición en
+un minuto; una con la foto equivocada la resuelve después de que la lea alguien,
+y a veces después de que la lea un lector»*.
+
+**Eso era cierto mientras la foto no se viera hasta abrir el panel.** Desde el
+21/09/2026 `/nota` pasa `--con-foto` y la portada elegida **se manda al chat**
+en cuanto se arma la carga, con su crédito y avisando de que la eligió el motor.
+Una foto equivocada se caza en segundos, así que desaparece el motivo de dejar
+las piezas sin portada.
+
+**En las tandas sigue haciendo falta pedirla a mano** (`orquestar.py` pasa
+`--con-foto`): allí no hay a quien enseñársela, que es la misma razón por la que
+un bloqueo por repetida se trata distinto en la tanda y en `/nota`.
+
+Si la persona mandó su propia portada, no se busca: se pisaría igualmente unas
+líneas más abajo.
+
 ## Tipos de pieza
 
 Seis, cada uno con su prompt en `prompts/`. `armar_carga.FORMATOS` los traduce a
@@ -638,12 +659,36 @@ nadie (ver trampa 9), y para el bloqueo ya existe salida con
     lista.** Un jefe de Estado tiene ficha y retrato libre; la víctima de un
     suceso, no. Cuando no hay ficha no hay foto, que es el resultado que se
     quería.
-36. **Wikimedia contesta 200 con una PÁGINA HTML cuando el thumb no existe**,
+36. **Sin IA, el buscador de portadas se degradaba a elegir cualquier cosa, y
+    en silencio.** El camino bueno —preguntarle a Wikidata por la entidad—
+    necesita al modelo para saber de quién habla el titular
+    (`entidad.nombres_del_titular`). Cuando Gemini se queda sin cuota ese paso
+    no falla con estrépito: devolvía lista vacía, **indistinguible de «este
+    titular no nombra a nadie»**, y la nota caía a la búsqueda por texto en
+    Commons.
+
+    Medido el 21/09/2026 con la IA apagada, sobre las diez peticiones guardadas
+    en el repo: **siete recibieron portada y las siete estaban mal.** El bitcoin
+    con servidores de la Fuerza Aérea; la deuda de EE. UU. con un gráfico de la
+    deuda **húngara**; el acuerdo energético EE. UU.-Venezuela con **un derrame
+    petrolero en Morrocoy**. Y repetidas: el mismo derrame en tres notas.
+
+    Con la IA encendida, esas mismas dan el logo de Bitcoin, el de JPMorgan y
+    ninguna portada. **El buscador no estaba roto: lo que estaba roto es que se
+    siguiera adelante cuando no se le podía preguntar.** Ahora
+    `entidad.nombres_del_titular` devuelve `None` ante una avería (y `[]` solo
+    cuando el modelo sí contestó que no hay nadie), y `foto.para()` se niega a
+    buscar por texto en ese caso.
+
+    La del derrame es la que explica por qué no es cuestión de estética:
+    ilustrar la firma de un acuerdo energético con un derrame **es una opinión
+    editorial que no escribió nadie**.
+37. **Wikimedia contesta 200 con una PÁGINA HTML cuando el thumb no existe**,
     no un 404 (comprobado el 21/09/2026: 231 KB con `Content-Type: text/html`).
     Sin comprobar el tipo, esos bytes se guardaban con nombre `.jpg`, Chrome no
     podía dibujarlos y la lámina salía con el fondo en negro **sin que nada
     dijera por qué**. `lamina.bajar()` exige `image/`.
-37. **Un SVG no tiene medidas** y Commons fecha banderas y logos por cuando se
+38. **Un SVG no tiene medidas** y Commons fecha banderas y logos por cuando se
     adoptó el diseño (la del Reino Unido consta como de 1801). Las reglas de
     tamaño y antigüedad no se les aplican; a las fotografías sí, enteras.
 

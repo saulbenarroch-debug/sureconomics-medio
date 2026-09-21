@@ -313,6 +313,40 @@ def para(titulo, lugares, tema, explicar=False, resumen=""):
               "portada" % ", ".join(conocidas))
         return None
 
+    # SI NO SE PUDO PREGUNTAR A LA IA, TAMPOCO SE BUSCA POR TEXTO.
+    #
+    # El camino de la entidad necesita al modelo (entidad.nombres_del_titular)
+    # para saber de quien habla el titular. Cuando Gemini se queda sin cuota
+    # ese paso no falla con estrepito: devuelve vacio, y hasta el 21/09/2026
+    # eso era indistinguible de «este titular no nombra a nadie». La nota caia
+    # aqui abajo, a la busqueda por texto en Commons, y el resultado se veia en
+    # el sitio sin que nada avisara. Medido con la IA apagada sobre las diez
+    # peticiones guardadas, siete recibieron portada y las siete estaban mal:
+    #
+    #   "El bitcoin se estabiliza tras el giro de la Fed"  -> servidores de la
+    #                                        Fuerza Aerea de Estados Unidos
+    #   "La deuda publica de EE. UU. supera los 40 billones" -> un grafico de
+    #                                        la deuda HUNGARA
+    #   "EE. UU. y Venezuela firman un acuerdo energetico" -> un DERRAME
+    #                                        petrolero en Morrocoy
+    #
+    # Con la IA encendida las mismas tres dan el logo de Bitcoin, el de
+    # JPMorgan y ninguna portada. O sea que el buscador no esta roto: lo que
+    # estaba roto es que se siguiera adelante cuando no se le podia preguntar.
+    #
+    # La del derrame es la que explica por que esto no es cuestion de estetica:
+    # ilustrar la firma de un acuerdo energetico con un derrame es una opinion
+    # editorial que no escribio nadie. Y la cuota de Gemini se agota a menudo,
+    # asi que esto no era un caso raro.
+    #
+    # Es la misma regla de tres lineas mas arriba: cuando no se puede saber de
+    # que habla la nota, no se pone portada. Una pieza sin foto la arregla
+    # Edicion en un minuto.
+    if conocidas is None:
+        print("   [foto] no pude preguntar de quién habla (sin IA): sin "
+              "portada, y no busco por texto")
+        return None
+
     # Que se tiene que ver, en ingles. Si el modelo no responde, vuelve vacio y
     # la busqueda sigue con las palabras del titular, como antes.
     describir = que_fotografiar(titulo, resumen)
