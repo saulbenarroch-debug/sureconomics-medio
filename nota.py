@@ -833,15 +833,33 @@ def _por_que_fallo(salida):
     inventar un motivo es peor que admitir que no se sabe.
     """
     texto = salida or ""
-    if "prepayment credits" in texto or "credits are depleted" in texto:
+
+    # "CUOTA AGOTADA" NO ES UN FALLO: ES EL EMBUDO FUNCIONANDO.
+    #
+    # Cada vez que gemini-3.5-flash se queda sin cuota del dia, motor/ia.py
+    # imprime "cuota agotada, paso al siguiente" y sigue con flash-lite. Esa
+    # linea aparece en corridas que acaban PERFECTAS.
+    #
+    # Buscarla en toda la salida hacia que cualquier fallo posterior se
+    # reportara como falta de cuota. El 19/09/2026 Edicion vio "se agotó la
+    # cuota" en una pieza donde flash-lite habia respondido y el redactor habia
+    # escrito: el fallo era otro y se fue a buscar donde no era.
+    #
+    # La prueba de que NO hubo IA es que ningun modelo contesto. motor/ia.py
+    # imprime "[etiqueta] modelo" por cada respuesta buena, y solo dice
+    # "Gemini no disponible" / "tampoco Groq" cuando se quedo sin nadie.
+    sin_ia = ("Gemini no disponible" in texto or "tampoco Groq" in texto
+              or "no AI available" in texto)
+
+    if sin_ia and ("prepayment credits" in texto or "credits are depleted" in texto):
         return ("Nos quedamos sin crédito de Gemini, así que no hay con qué "
                 "redactar. Reintentar no va a servir: hay que recargar. "
                 "Avísale a Saúl.")
-    if "cuota agotada" in texto or "RESOURCE_EXHAUSTED" in texto:
-        return ("Se agotó la cuota de IA del día. Reintentar ahora no sirve; "
-                "la cuota entra de nuevo mañana. Si hace falta hoy, avísale "
-                "a Saúl para que mire el plan.")
-    if "Request too large" in texto or "Rate limit reached" in texto:
+    if sin_ia and ("cuota agotada" in texto or "RESOURCE_EXHAUSTED" in texto):
+        return ("Se agotó la cuota de IA del día en todas las cuentas. "
+                "Reintentar ahora no sirve; entra de nuevo mañana. Si hace "
+                "falta hoy, avísale a Saúl para que mire el plan.")
+    if sin_ia and ("Request too large" in texto or "Rate limit reached" in texto):
         return ("La IA principal falló y el respaldo rechazó el expediente por "
                 "tamaño. Reintentar no va a servir. Avísale a Saúl: está "
                 "apuntado en el CLAUDE.md del motor.")
