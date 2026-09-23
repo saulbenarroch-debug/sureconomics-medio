@@ -867,6 +867,28 @@ def _por_que_fallo(salida):
             "Vuelve a pedírmela; si insiste, hay que mirar el log.")
 
 
+def _botones_ya_publicada(ya):
+    """Los dos botones del aviso «esa ya está publicada», y no son lo mismo.
+
+    «Escribirla igual» rehace la pieza entera: minutos, cuota de redactor y un
+    segundo borrador en el panel. Durante semanas fue el UNICO boton, y por eso
+    quien solo queria la lamina de Instagram tenia que encargar una nota
+    duplicada para conseguirla.
+
+    «Solo el post» no escribe nada: lee la pieza que ya esta publicada y dibuja.
+    Va PRIMERO porque es lo barato y lo que se pide mas a menudo; el mismo
+    criterio que pone «Subirla igual» antes de «Escribirla otra vez».
+
+    Viaja el id y no el slug: en callback_data caben 64 bytes y los slugs del
+    sitio llegan a 89 caracteres.
+    """
+    botones = []
+    if ya.get("id"):
+        botones.append(("🖼️ Solo el post", "post:%s" % ya["id"]))
+    botones.append(("🔁 Escribirla igual", "forzar:1"))
+    return botones
+
+
 def _avisar_descartadas(chat, carpeta, peticion=""):
     """Avisa de lo que armar_carga.py dejo fuera por repetido.
 
@@ -1513,7 +1535,7 @@ def main():
                         '<a href="%s">la que me pediste</a>'
                         % (_escapar(ya["titulo"]), ya["slug"],
                            _escapar(peticion)),
-                        [("🔁 Escribirla igual", "forzar:1")])
+                        _botones_ya_publicada(ya))
                 except Exception as exc:  # noqa: BLE001
                     print("  [chat] no pude avisar (%s)" % str(exc)[:70])
             return 0

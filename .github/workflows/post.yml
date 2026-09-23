@@ -1,0 +1,86 @@
+name: Solo el post de Instagram
+
+# Dibuja la lamina de una pieza YA PUBLICADA, sin escribir nada.
+#
+# Lo dispara /post del bot, y tambien el boton "Solo el post" del aviso de
+# «esa ya esta publicada». Ese aviso es el que lo pidio: cuando alguien pedia
+# /nota de algo ya publicado, el motor contestaba bien pero el unico boton era
+# «Escribirla igual», que rehace la pieza entera y deja un borrador duplicado
+# que nadie queria, solo para conseguir la lamina.
+#
+# ES BARATO Y POR ESO ES OTRO WORKFLOW. No redacta, no audita, no sube nada al
+# panel y no gasta cuota de redactor: lee la pieza publicada, acorta el titular
+# con una llamada pequeña -o ni eso, si Edicion escribe los textos a mano- y
+# dibuja. Iterar un titular aqui son segundos; por nota.yml eran minutos y una
+# pieza reescrita.
+on:
+  workflow_dispatch:
+    inputs:
+      enlace:
+        description: "Direccion de la pieza publicada (o su slug)"
+        required: true
+      foto:
+        description: "file_id de una imagen mandada al bot (manda sobre la portada)"
+        default: ""
+      chat:
+        description: "Chat de Telegram al que devolver la lamina"
+        default: ""
+      encargo:
+        description: "El pie de foto: puede traer titular:, bajada: y categoria:"
+        default: ""
+
+# Solo lectura: a diferencia de nota.yml, aqui no se publica ninguna imagen en
+# el repositorio. La lamina se manda por Telegram y se queda en el artefacto.
+permissions:
+  contents: read
+
+jobs:
+  dibujar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Dibujar la lamina
+        env:
+          # Para acortar el titular. Si Edicion manda titular: y bajada: en el
+          # pie, post.py no llama al modelo y esto no hace falta.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_RESERVA: ${{ secrets.GEMINI_API_KEY_RESERVA }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          # Para leer la pieza publicada del panel.
+          SURECONOMICS_API: ${{ secrets.SURECONOMICS_API }}
+          SURECONOMICS_USUARIO: ${{ secrets.SURECONOMICS_USUARIO }}
+          SURECONOMICS_CLAVE: ${{ secrets.SURECONOMICS_CLAVE }}
+          # Para devolver la lamina, y para bajarse la imagen adjunta.
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          # LO QUE ESCRIBE LA GENTE VIAJA POR EL ENTORNO, NO POR LA LINEA DE
+          # COMANDOS. Con ${{ ... }} incrustado en el `run`, Actions sustituye
+          # el texto ANTES de que exista el shell: unas comillas o un `$(...)`
+          # en lo que alguien mande por Telegram se ejecutarian en el runner,
+          # que es donde viven las claves del panel. Aqui el encargo es texto
+          # libre -lo escribe una persona en el pie de foto- asi que aplica
+          # igual que en nota.yml. Ver el comentario largo de aquel.
+          ENLACE: ${{ github.event.inputs.enlace }}
+          FOTO: ${{ github.event.inputs.foto }}
+          CHAT: ${{ github.event.inputs.chat }}
+          ENCARGO: ${{ github.event.inputs.encargo }}
+        run: |
+          python post.py "$ENLACE" --foto "$FOTO" --chat "$CHAT" --encargo "$ENCARGO"
+
+      - name: Guardar la lamina
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: post
+          path: post-*.png
+          retention-days: 14
+          if-no-files-found: ignore

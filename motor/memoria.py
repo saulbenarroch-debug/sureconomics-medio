@@ -168,7 +168,12 @@ def publicadas(limite=None, tiempo_espera=40):
         lista = datos.get("data") or datos.get("items") or datos
         if not isinstance(lista, list):
             break
+        # EL id SE GUARDA PARA EL BOTON «Solo el post». En callback_data de
+        # Telegram caben 64 bytes y los slugs del sitio pasan de 89 («la-can-y-
+        # el-mercosur-declaran-el-estado-de-emergencia-hidrica-en-la-cuenca-de-
+        # la-amazonia»). Un id son tres digitos.
         fuera += [{"titulo": p.get("title") or "", "slug": p.get("slug") or "",
+                   "id": p.get("id"),
                    "formato": p.get("format") or "",
                    "fecha": p.get("published_at") or ""}
                   for p in lista]

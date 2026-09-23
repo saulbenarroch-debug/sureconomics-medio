@@ -164,6 +164,61 @@ Guyana. En el sitio una portada floja se nota; en Instagram la imagen **es** la
 pieza. Antes de confiar en el camino 2 para publicar sin mirar, ver «De las
 portadas» en las trampas.
 
+## `/post`: la lámina de algo ya publicado
+
+**La lámina no necesita el motor.** Para dibujarla hacen falta cuatro cosas
+—titular corto, bajada, categoría e imagen— y para una pieza publicada las
+cuatro **ya están en el panel**: `/posts/<slug>` devuelve `title`, `excerpt` y
+`places`. Así que `post.py` lee, acorta el titular con una llamada pequeña y
+dibuja: **no redacta, no audita, no crea borrador y no gasta cuota de
+redactor**.
+
+Por eso es un archivo aparte y no una bandera de `nota.py`: meterlo dentro
+obligaría a atravesar toda la cadena para saltársela entera al final.
+
+**El caso que lo pidió.** Edición pedía `/nota` de algo ya publicado, el motor
+contestaba «esa ya está publicada» —que es lo correcto— y ahí se acababa: el
+único botón era «Escribirla igual», que rehace la pieza entera y deja un
+borrador duplicado que nadie quería, **solo para conseguir el post**. Ahora el
+aviso lleva «🖼️ Solo el post» delante, por el mismo criterio que pone «Subirla
+igual» antes de «Escribirla otra vez»: primero lo barato y lo que más se pide.
+
+**El botón manda el `id`, no el `slug`.** En `callback_data` caben 64 bytes y
+los slugs del sitio llegan a 89 caracteres
+(`la-can-y-el-mercosur-declaran-el-estado-de-emergencia-hidrica-en-la-cuenca-de-la-amazonia`).
+Por eso `memoria.publicadas()` guarda también el `id` y `post.py` acepta las dos
+formas.
+
+### Lo que Edición puede imponer a mano
+
+| | dónde |
+|---|---|
+| la imagen | adjuntándola en el mismo mensaje |
+| `titular:` | en el pie, un renglón |
+| `bajada:` | en el pie, un renglón |
+| `categoría:` | en el pie, un renglón |
+
+Hasta el 23/09/2026 **solo se podía imponer la categoría**. Acortar un titular
+es criterio de redes, no un dato que haya que auditar: el modelo propone porque
+suele acertar y ahorra trabajo, no porque decida él.
+
+**Con `titular:` y `bajada:` puestos los dos, no se llama al modelo.** No es
+solo ahorro de cuota: preguntarle para luego tirar su respuesta es una llamada
+que solo puede fallar, y esta cadena se queda sin cuota a menudo.
+
+**`titular:` no se corta por el punto, al revés que `categoría:`.** Un titular
+lleva puntos dentro («EE. UU.», «US$2.000») y cortar ahí los destrozaba. Se
+corta por salto de línea, que es como se escriben en el pie, uno por renglón.
+
+**El verdadero motivo de todo esto es iterar.** Probar un titular por `/nota`
+reescribe la nota entera: minutos y cuota. Por `/post` son segundos y no toca
+el panel.
+
+**Ojo con las piezas viejas:** medido el 21/09/2026, solo **30 de 379**
+publicadas tienen portada (8 %). Es herencia de que `/nota` no buscaba foto
+hasta el 21/09. En casi todas hay que adjuntar la imagen, y `post.py` lo dice
+en vez de fallar callado.
+
 ## La portada de `/nota` se enseña antes de publicarse
 
 `armar_carga.py` **no busca foto por defecto**, y su comentario explica por qué:
@@ -698,6 +753,7 @@ nadie (ver trampa 9), y para el bloqueo ya existe salida con
 python orquestar.py --tanda manana --piezas 6 --con-foto   # la tanda completa
 python nota.py "<enlace o tema>" --tipo Análisis            # una pieza
 python nota.py "<tema>" --tipo Opinión --autor "Nombre"     # una columna
+python post.py <enlace publicado> --chat 123                # solo la lámina
 python armar_carga.py <carpeta>                             # carga.json
 python subir.py <carga.json> --subir-bloqueadas             # al panel
 python reauditar.py <nombre-sin-extension>                  # volver a auditar

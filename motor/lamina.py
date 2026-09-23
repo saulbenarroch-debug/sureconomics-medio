@@ -143,6 +143,28 @@ def categoria_pedida(pie):
     m = re.search(r"categor[ií]a\s*:\s*([^\n,.;]{2,28})", pie or "", re.I)
     return m.group(1).strip().upper() if m else ""
 
+# LO QUE EDICION PUEDE IMPONER A MANO, Y POR QUE SE PARECEN TANTO LOS TRES.
+#
+# Hasta el 23/09/2026 solo se podia imponer la categoria: el titular corto y la
+# bajada los escribia siempre el modelo. Es lo primero que pidio quien usa la
+# lamina a diario, y tiene razon: acortar un titular es criterio de redes, no
+# un dato que haya que auditar. El modelo propone porque suele acertar y ahorra
+# trabajo, no porque decida el.
+#
+# NO SE CORTA POR EL PUNTO, al reves que la categoria: un titular lleva puntos
+# dentro («EE. UU.», «US$2.000») y cortar ahi los destrozaba. Se corta por
+# salto de linea, que es como se escriben en el pie de foto, uno por renglon.
+def titular_pedido(pie):
+    """El titular corto escrito a mano: «titular: Trump aprieta a México»."""
+    m = re.search(r"titular\s*:\s*([^\n]{2,90})", pie or "", re.I)
+    return m.group(1).strip() if m else ""
+
+
+def bajada_pedida(pie):
+    """La bajada escrita a mano: «bajada: exige arrestos por corrupción»."""
+    m = re.search(r"bajada\s*:\s*([^\n]{2,120})", pie or "", re.I)
+    return m.group(1).strip() if m else ""
+
 
 
 def bajar(url, destino):
@@ -187,7 +209,7 @@ def bajar(url, destino):
     return ruta
 
 def hacer(foto, titulo, resumen, lugares, salida, categoria="", region="",
-          credito=""):
+          credito="", titular="", bajada=""):
     """Dibuja la lámina y devuelve la ruta, o None si no se pudo."""
     import pathlib
     import sys
@@ -195,7 +217,18 @@ def hacer(foto, titulo, resumen, lugares, salida, categoria="", region="",
     sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent))
     from plantillas import post
 
-    corto, bajada = textos_para(titulo, resumen)
+    # CON LOS DOS PUESTOS NO SE LLAMA AL MODELO. No es solo ahorro de cuota:
+    # si Edicion ya escribio las dos lineas, preguntarle para luego tirar su
+    # respuesta es una llamada que solo puede fallar, y esta cadena se queda
+    # sin cuota a menudo. Con uno solo si se llama, para que el otro salga
+    # escrito y no vacio.
+    if titular and bajada:
+        corto = titular
+        print("  [lámina] titular y bajada puestos a mano")
+    else:
+        corto, auto = textos_para(titulo, resumen)
+        corto = titular or corto
+        bajada = bajada or auto
     etiqueta = categoria or categoria_de(lugares, region)
     print("  [lámina] %s · %s" % (etiqueta, corto))
     if bajada:
