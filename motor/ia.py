@@ -50,6 +50,28 @@ _TEMPORAL = ("503", "500", "UNAVAILABLE", "overloaded",
              "timed out", "timeout", "RemoteProtocol", "Broken pipe")
 
 
+# UNA SEGUNDA VUELTA AL EMBUDO CUANDO LO QUE FALLO FUE SATURACION, NO CUOTA.
+#
+# El 24/09/2026 a las 13:56 UTC una /nota murio con las dos cuentas: flash de la
+# principal sin cuota y los otros tres modelos con 503 «This model is currently
+# experiencing high demand». La reserva TENIA cuota; lo que estaba era Google
+# saturado. Con dos intentos y 5 s de espera por modelo el embudo entero se
+# rendia en unos 15 s de espera, y un pico de demanda dura mas que eso: la
+# corrida de un minuto antes habia salido bien.
+#
+# Asi que si al terminar la vuelta hubo algun fallo pasajero, se espera y se
+# vuelve a empezar, saltandose lo que ya se sabe sin cuota (eso no se recupera
+# en un minuto). Si todo fue cuota, no se espera: no serviria de nada.
+PAUSA_SEGUNDA_RONDA = 45
+
+# Y SOLO SE ESPERA UNA VEZ POR PROCESO SI LA SEGUNDA VUELTA TAMBIEN FALLA. Una
+# tanda hace unas treinta llamadas: si Google esta caido de verdad, esperar 45 s
+# en cada una se comeria el limite de 60 minutos del job y se perderian tambien
+# las piezas que si habrian salido al volver el servicio. Con la segunda vuelta
+# ya fallida una vez, las llamadas siguientes dan una sola vuelta, como antes.
+_segunda_ronda_fallida = False
+
+
 def claves_gemini():
     """Las claves configuradas, en orden. Lista de (nombre, clave)."""
     return [(nombre, os.environ.get(var, "").strip())
@@ -70,61 +92,85 @@ def _gemini(prompt, temperatura, reintentos=2, imagen=None):
         datos, mime = imagen
         contenido = [types.Part.from_bytes(data=datos, mime_type=mime), prompt]
 
+    global _segunda_ronda_fallida
     ultimo = None
-    for nombre, clave in claves:
-        cliente = genai.Client(api_key=clave)
-        # El nombre de la clave solo se pone en la etiqueta cuando hay mas de
-        # una: con una sola, "gemini-3.5-flash (principal)" es ruido.
-        sello = ("%s (%s)" % ("%s", nombre)) if len(claves) > 1 else "%s"
-        clave_inservible = False
-        for modelo in MODELOS_GEMINI:
-            if clave_inservible:
-                break
-            espera = 5
-            for intento in range(1, reintentos + 1):
-                try:
-                    r = cliente.models.generate_content(
-                        model=modelo, contents=contenido,
-                        config={"response_mime_type": "application/json",
-                                "temperature": temperatura})
-                    return r.text, sello % modelo
-                except Exception as exc:  # noqa: BLE001
-                    msg, ultimo = str(exc), exc
-                    if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
-                        print("[aviso] %s: cuota agotada, paso al siguiente"
-                              % (sello % modelo))
-                        break
-                    if any(s in msg for s in _CLAVE_MALA):
-                        # No se prueban los demas modelos con una clave que no
-                        # sirve: fallarian todos igual y solo se gasta tiempo.
-                        print("[aviso] la clave '%s' no vale (%s); paso a la "
-                              "siguiente cuenta" % (nombre, msg[:60]))
-                        clave_inservible = True
-                        break
-                    if any(s in msg for s in _TEMPORAL):
-                        if intento < reintentos:
-                            print("[aviso] %s caido, reintento en %ss"
-                                  % (sello % modelo, espera))
-                            time.sleep(espera)
-                            espera *= 2
-                            continue
-                        break
-                    # CUALQUIER OTRO ERROR TAMBIEN PASA AL SIGUIENTE, Y ESTO
-                    # ANTES ERA UN 'raise' QUE SE CARGABA EL EMBUDO ENTERO.
-                    #
-                    # El 17/09/2026 la principal contesto "Server disconnected
-                    # without sending a response", un corte de red que no es
-                    # ninguno de los casos de arriba. El raise aborto la cadena
-                    # antes de tocar la reserva, que estaba intacta: se perdio
-                    # la pieza teniendo una cuenta entera sin usar.
-                    #
-                    # El sentido de una cadena de respaldo es SOBREVIVIR a lo
-                    # que no se previo. Si se previera todo no haria falta
-                    # cadena. El error no se pierde: queda en 'ultimo' y se
-                    # lanza al final si no responde nadie.
-                    print("[aviso] %s fallo con algo no previsto (%s); sigo con "
-                          "el siguiente" % (sello % modelo, msg[:90]))
+    # Lo que ya se sabe que no sirve no se vuelve a probar en la segunda vuelta:
+    # una cuota agotada no vuelve en 45 s y una clave mala tampoco.
+    agotados, inservibles = set(), set()
+    rondas = 1 if _segunda_ronda_fallida else 2
+    for ronda in range(1, rondas + 1):
+        hubo_pasajero = False
+        if ronda == 2:
+            print("[aviso] Gemini saturado (no es cuota); espero %ss y lo "
+                  "intento otra vez" % PAUSA_SEGUNDA_RONDA)
+            time.sleep(PAUSA_SEGUNDA_RONDA)
+        for nombre, clave in claves:
+            if nombre in inservibles:
+                continue
+            cliente = genai.Client(api_key=clave)
+            # El nombre de la clave solo se pone en la etiqueta cuando hay mas
+            # de una: con una sola, "gemini-3.5-flash (principal)" es ruido.
+            sello = ("%s (%s)" % ("%s", nombre)) if len(claves) > 1 else "%s"
+            for modelo in MODELOS_GEMINI:
+                if nombre in inservibles:
                     break
+                if (nombre, modelo) in agotados:
+                    continue
+                espera = 5
+                for intento in range(1, reintentos + 1):
+                    try:
+                        r = cliente.models.generate_content(
+                            model=modelo, contents=contenido,
+                            config={"response_mime_type": "application/json",
+                                    "temperature": temperatura})
+                        return r.text, sello % modelo
+                    except Exception as exc:  # noqa: BLE001
+                        msg, ultimo = str(exc), exc
+                        if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                            print("[aviso] %s: cuota agotada, paso al siguiente"
+                                  % (sello % modelo))
+                            agotados.add((nombre, modelo))
+                            break
+                        if any(s in msg for s in _CLAVE_MALA):
+                            # No se prueban los demas modelos con una clave que
+                            # no sirve: fallarian todos igual.
+                            print("[aviso] la clave '%s' no vale (%s); paso a la "
+                                  "siguiente cuenta" % (nombre, msg[:60]))
+                            inservibles.add(nombre)
+                            break
+                        if any(s in msg for s in _TEMPORAL):
+                            if intento < reintentos:
+                                print("[aviso] %s caido, reintento en %ss"
+                                      % (sello % modelo, espera))
+                                time.sleep(espera)
+                                espera *= 2
+                                continue
+                            hubo_pasajero = True
+                            break
+                        # CUALQUIER OTRO ERROR TAMBIEN PASA AL SIGUIENTE, Y
+                        # ESTO ANTES ERA UN 'raise' QUE SE CARGABA EL EMBUDO.
+                        #
+                        # El 17/09/2026 la principal contesto "Server
+                        # disconnected without sending a response", un corte de
+                        # red que no era ninguno de los casos de arriba. El
+                        # raise aborto la cadena antes de tocar la reserva, que
+                        # estaba intacta: se perdio la pieza teniendo una
+                        # cuenta entera sin usar.
+                        #
+                        # El sentido de una cadena de respaldo es SOBREVIVIR a
+                        # lo que no se previo. El error no se pierde: queda en
+                        # 'ultimo' y se lanza al final si no responde nadie.
+                        # No cuenta como pasajero: sin saber que es, esperar
+                        # 45 s por el seria adivinar.
+                        print("[aviso] %s fallo con algo no previsto (%s); sigo "
+                              "con el siguiente" % (sello % modelo, msg[:90]))
+                        break
+        if not hubo_pasajero:
+            # Todo lo que fallo fue cuota, clave o algo desconocido: esperar no
+            # cambia nada, asi que no se hace esperar a nadie.
+            break
+    if rondas == 2 and hubo_pasajero:
+        _segunda_ronda_fallida = True
     raise ultimo
 
 

@@ -851,11 +851,39 @@ def _por_que_fallo(salida):
     sin_ia = ("Gemini no disponible" in texto or "tampoco Groq" in texto
               or "no AI available" in texto)
 
+    # Y LA CAUSA ES LA RAZON FINAL, NO CUALQUIER LINEA SUELTA. La correccion
+    # del 19/09 se quedo a medias: exigia que no hubiera IA, pero seguia
+    # buscando "cuota agotada" en TODA la salida. El 24/09/2026 a las 13:56 UTC
+    # esa linea la dejo solo el primer modelo (flash de la principal), y los
+    # otros tres murieron con 503 «high demand»: Google saturado un momento, con
+    # la reserva llena de cuota. El chat dijo «se agotó la cuota del día en
+    # todas las cuentas; entra de nuevo mañana», que es lo peor que se le puede
+    # decir a alguien a quien le bastaba reintentar: la corrida de un minuto
+    # antes habia salido bien.
+    #
+    # motor/ia.py imprime «Gemini no disponible (<lo ultimo que fallo>)» cuando
+    # se rinde. Esa ultima razon es la que mato la pieza, y es la que se mira.
+    # Se coge la ultima de esas lineas porque producir.py hace varias llamadas
+    # y una anterior pudo fallar y salvarse por Groq.
+    final = ""
+    for linea in texto.splitlines():
+        if "Gemini no disponible" in linea:
+            final = linea
+    saturado = any(s in final for s in ("503", "UNAVAILABLE", "high demand",
+                                        "overloaded", "Server disconnected",
+                                        "timed out"))
+
+    # Va PRIMERO porque es el unico de estos en que reintentar si funciona, y
+    # decir otra cosa es perder la pieza por consejo nuestro.
+    if sin_ia and saturado:
+        return ("Google está saturado ahora mismo, y no es la cuota: probé las "
+                "dos cuentas, esperé y volví a probar, y seguía sin responder. "
+                "Suele durar unos minutos: mándame lo mismo otra vez en un rato.")
     if sin_ia and ("prepayment credits" in texto or "credits are depleted" in texto):
         return ("Nos quedamos sin crédito de Gemini, así que no hay con qué "
                 "redactar. Reintentar no va a servir: hay que recargar. "
                 "Avísale a Saúl.")
-    if sin_ia and ("cuota agotada" in texto or "RESOURCE_EXHAUSTED" in texto):
+    if sin_ia and ("RESOURCE_EXHAUSTED" in final or "429" in final):
         return ("Se agotó la cuota de IA del día en todas las cuentas. "
                 "Reintentar ahora no sirve; entra de nuevo mañana. Si hace "
                 "falta hoy, avísale a Saúl para que mire el plan.")

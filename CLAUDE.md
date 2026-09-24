@@ -804,6 +804,25 @@ Sin Python global en Windows: hay un runtime portátil en
   **cuando no queda ninguna**. Mirando solo la principal, el motor se quedaría
   parado con la reserva intacta.
 
+  **SATURADO NO ES LO MISMO QUE SIN CUOTA, y confundirlos pierde piezas.** El
+  24/09/2026 una `/nota` murió con flash de la principal sin cuota y los otros
+  tres modelos con **503 «high demand»**: Google saturado un momento, con la
+  reserva llena. El chat dijo *«se agotó la cuota del día; entra de nuevo
+  mañana»*, justo cuando reintentar bastaba — la corrida de un minuto antes
+  había salido bien. Dos fallos, dos arreglos:
+
+  - **`_gemini()` da una segunda vuelta** si algo de la primera fue pasajero:
+    espera `PAUSA_SEGUNDA_RONDA = 45` s y vuelve a probar, **saltándose lo que
+    ya sabe sin cuota**. Si todo fue cuota no espera nada. Y si la segunda
+    vuelta también falla, **las llamadas siguientes del mismo proceso ya no
+    esperan**: una tanda hace ~30 llamadas y 45 s en cada una se comería el
+    límite de 60 minutos del job.
+  - **`nota._por_que_fallo()` decide por la razón FINAL**, la de la última línea
+    `Gemini no disponible (…)`, y no por cualquier «cuota agotada» suelta: esa
+    la deja el primer modelo aunque los demás fallen por otra cosa. Es la
+    segunda vez que esta función culpaba a la cuota sin serlo (la primera, el
+    19/09). `pruebas_por_que_fallo.py` guarda los dos logs literales.
+
   **El Worker NO tiene el embudo**: `worker.js` es otra implementación, en JS,
   con su propio binding de una sola clave. El newsletter y el asistente del chat
   gastan de la cuenta principal y, cuando se agota, ahí sí se caen.
