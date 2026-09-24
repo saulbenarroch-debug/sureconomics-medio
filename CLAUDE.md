@@ -827,6 +827,23 @@ Sin Python global en Windows: hay un runtime portátil en
   con su propio binding de una sola clave. El newsletter y el asistente del chat
   gastan de la cuenta principal y, cuando se agota, ahí sí se caen.
 
+- **Este repo es PRIVADO, y eso cuesta minutos de Actions.** Al revés que el del
+  bot (que es público justo por esto, trampa 13 de su CLAUDE.md), aquí cada
+  corrida gasta de los **2.000 minutos gratis al mes** de la cuenta; el exceso
+  cuesta $0,006 el minuto. Medido el 24/09/2026, con el mes al 90 %:
+
+  | workflow | minutos al mes |
+  |---|---|
+  | vigilancia cada 15 min | ~1.600 |
+  | tandas diarias | ~770 |
+  | `/nota` | ~700 (según uso) |
+
+  Cada corrida cobra **como mínimo un minuto** aunque tarde diez segundos, así
+  que lo que pesa es la frecuencia, no lo que haga cada una. Por eso la
+  vigilancia pasó a **cada media hora** (~800 al mes): decisión del dueño «por
+  ahora». Volver al cuarto de hora son unos $6 al mes pagando el exceso. El
+  reloj vive en el Worker del bot (`VIGILANCIA_CRON`).
+
 - **Groq sigue de respaldo, pero no para el redactor.** Ver la regla de oro #4:
   su límite por petición no admite los ~30 KB del prompt. Sirve para las
   llamadas pequeñas.
