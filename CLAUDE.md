@@ -779,9 +779,13 @@ Sin Python global en Windows: hay un runtime portátil en
   agota devuelve **432** y la búsqueda desaparece en silencio salvo por el aviso.
   Sin ella quedan los feeds. Pago por uso a $0,008 el crédito.
 - **Gemini, con DOS CUENTAS en embudo.** `motor.claves_gemini()` las lee en
-  orden y `_gemini()` las recorre: si la primera se queda sin cuota, la segunda
-  escribe la pieza. Cada modelo tiene además su cuota diaria propia, así que la
-  cadena real es cuatro combinaciones.
+  orden y `_gemini()` las recorre **primero por modelo y luego por cuenta**:
+  flash principal → flash reserva → flash-lite principal → flash-lite reserva.
+  Hasta el 25/09/2026 iba cuenta por cuenta, y en cuanto la principal agotaba
+  flash se escribía con flash-lite teniendo intacto el flash de la reserva.
+  Decisión del dueño: se gasta todo el flash antes de bajar un escalón. **Las
+  mismas dos cuentas las usa el Worker del bot** (Entorno en Viñetas y chat),
+  así que la cuota diaria es compartida.
 
   | variable | quién | papel |
   |---|---|---|

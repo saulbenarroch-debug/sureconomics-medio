@@ -97,6 +97,7 @@ def _gemini(prompt, temperatura, reintentos=2, imagen=None):
     # Lo que ya se sabe que no sirve no se vuelve a probar en la segunda vuelta:
     # una cuota agotada no vuelve en 45 s y una clave mala tampoco.
     agotados, inservibles = set(), set()
+    clientes = {}
     rondas = 1 if _segunda_ronda_fallida else 2
     for ronda in range(1, rondas + 1):
         hubo_pasajero = False
@@ -104,18 +105,25 @@ def _gemini(prompt, temperatura, reintentos=2, imagen=None):
             print("[aviso] Gemini saturado (no es cuota); espero %ss y lo "
                   "intento otra vez" % PAUSA_SEGUNDA_RONDA)
             time.sleep(PAUSA_SEGUNDA_RONDA)
-        for nombre, clave in claves:
-            if nombre in inservibles:
-                continue
-            cliente = genai.Client(api_key=clave)
-            # El nombre de la clave solo se pone en la etiqueta cuando hay mas
-            # de una: con una sola, "gemini-3.5-flash (principal)" es ruido.
-            sello = ("%s (%s)" % ("%s", nombre)) if len(claves) > 1 else "%s"
-            for modelo in MODELOS_GEMINI:
-                if nombre in inservibles:
-                    break
-                if (nombre, modelo) in agotados:
+        # PRIMERO EL MODELO, LUEGO LA CUENTA: flash de la principal, flash de la
+        # reserva, flash-lite de la principal, flash-lite de la reserva. Hasta
+        # el 25/09/2026 era al reves (cuenta por cuenta), y en cuanto la
+        # principal agotaba flash se escribia con flash-lite TENIENDO INTACTO el
+        # flash de la reserva: peor texto sin ninguna necesidad. Decision del
+        # dueño: se gasta todo el flash que haya, de las dos cuentas, antes de
+        # bajar un escalon. Cada modelo tiene su cuota diaria por cuenta, asi
+        # que el orden no gasta mas: solo decide que se gasta primero.
+        for modelo in MODELOS_GEMINI:
+            for nombre, clave in claves:
+                if nombre in inservibles or (nombre, modelo) in agotados:
                     continue
+                if nombre not in clientes:
+                    clientes[nombre] = genai.Client(api_key=clave)
+                cliente = clientes[nombre]
+                # El nombre de la clave solo se pone en la etiqueta cuando hay
+                # mas de una: con una sola, "gemini-3.5-flash (principal)" es
+                # ruido.
+                sello = ("%s (%s)" % ("%s", nombre)) if len(claves) > 1 else "%s"
                 espera = 5
                 for intento in range(1, reintentos + 1):
                     try:
