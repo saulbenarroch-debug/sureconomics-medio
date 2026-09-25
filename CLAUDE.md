@@ -869,9 +869,12 @@ Sin Python global en Windows: hay un runtime portátil en
   feeds, y un tuit de un medio cuyo feed no cubre esa sección no se encuentra por
   ningún otro camino. De 534 candidatos del respaldo, el más parecido puntuó
   0.000 y era de otro tema.
-- No hay endpoint de subida de imágenes en el panel (`POST /admin/media` da 405):
-  solo se puede adjuntar por dirección web. `motor/imagen_publica.py` es un apaño
-  hasta que los desarrolladores lo añadan con la migración a R2.
+- **El panel SÍ acepta archivos, en `POST /admin/media/image`** (multipart,
+  campo `file`, hasta 10 MB). Se descubrió el 25/09/2026 leyendo el propio panel
+  para el boletín: `POST /admin/media` daba 405 porque la ruta buena era otra.
+  `motor/imagen_publica.py`, que sube las portadas del chat a este repo para
+  tener una dirección web, se puede sustituir por esa llamada. El bot ya la usa
+  (`entorno/subir_boletin.py`, en el otro repo).
 - **Paraguay sigue sin ningún medio.** Se probaron ABC Color (cuatro
   direcciones), Última Hora (dos) y La Nación PY (dos): todas devuelven vacío.
   Hace falta buscar por otra vía, no insistir con esas.
