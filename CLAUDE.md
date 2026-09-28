@@ -826,6 +826,13 @@ Sin Python global en Windows: hay un runtime portátil en
     la deja el primer modelo aunque los demás fallen por otra cosa. Es la
     segunda vez que esta función culpaba a la cuota sin serlo (la primera, el
     19/09). `pruebas_por_que_fallo.py` guarda los dos logs literales.
+  - **Cuánto gasta cada llamada se mide desde el 28/09/2026.** Con
+    facturación activada, 20 $ no llegaban a una semana y no se sabía por qué.
+    `pedir_json()` imprime una línea `[tokens]` por llamada (entrada, caché,
+    razonamiento, salida); `orquestar.py` las suma por agente al final de la
+    tanda (`--- TOKENS DE LA TANDA ---`) y `nota.py` las muestra en su log.
+    **El razonamiento se cobra como salida** y `ia.py` no le pone límite: es lo
+    primero que hay que mirar antes de volver a pagar.
   - **`comprobar.py` tenía el mismo fallo, y tumbó una tanda entera.** El
     28/09/2026 los cuatro modelos daban 503 y escribió `CUOTA AGOTADA`, que es
     lo que lee `orquestar.hay_con_que()` para rendirse hasta el día siguiente.
