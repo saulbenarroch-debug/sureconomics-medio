@@ -854,6 +854,14 @@ Sin Python global en Windows: hay un runtime portátil en
   ahora». Volver al cuarto de hora son unos $6 al mes pagando el exceso. El
   reloj vive en el Worker del bot (`VIGILANCIA_CRON`).
 
+  **El 28/09/2026 el repo pasó a PÚBLICO** (estrategia del dueño: privado a
+  principio de mes hasta gastar los minutos, público el resto) y la vigilancia
+  volvió a **cada cuarto de hora**. Público, Actions no cobra. **Si el repo
+  vuelve a privado, hay que devolver `VIGILANCIA_CRON` a `0,30 …`** y
+  redesplegar el Worker, o se comen los 2.000 minutos en tres semanas. Lo que
+  queda a la vista estando público: prompts, perfiles, el documento de Óscar en
+  `documentos/`, los logs de Actions y los artefactos con los borradores.
+
 - **Groq sigue de respaldo, pero no para el redactor.** Ver la regla de oro #4:
   su límite por petición no admite los ~30 KB del prompt. Sirve para las
   llamadas pequeñas.
