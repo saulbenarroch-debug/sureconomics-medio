@@ -245,11 +245,26 @@ def con_tope_por_pais(temas):
 
 
 def correr(argumentos, minutos=25):
+    """Corre un paso. SI SE PASA DE TIEMPO, DEVUELVE UN FALLO; NO REVIENTA.
+
+    Hasta el 28/09/2026 el TimeoutExpired subia sin capturar y tumbaba la tanda
+    entera: con Google saturado, la tercera pieza agoto sus 25 minutos
+    reintentando y la corrida murio sin llegar a las otras tres, justo lo que
+    promete evitar el comentario de «2. PRODUCIR» (si una revienta, las demas
+    siguen). Ahora cuenta como una pieza fallida mas, con el codigo 124 de
+    timeout(1) y lo que el paso llegara a imprimir.
+    """
     print("  $ " + " ".join(str(a) for a in argumentos[1:]))
-    r = subprocess.run([str(a) for a in argumentos], capture_output=True,
-                       text=True, encoding="utf-8", errors="replace",
-                       timeout=minutos * 60)
-    return r
+    try:
+        return subprocess.run([str(a) for a in argumentos], capture_output=True,
+                              text=True, encoding="utf-8", errors="replace",
+                              timeout=minutos * 60)
+    except subprocess.TimeoutExpired as exc:
+        def texto(x):
+            return x.decode("utf-8", "replace") if isinstance(x, bytes) else (x or "")
+        print("  [aviso] se paso de %d min; lo doy por fallido y sigo" % minutos)
+        return subprocess.CompletedProcess(argumentos, 124, texto(exc.stdout),
+                                           texto(exc.stderr) + "\nTIMEOUT tras %d min" % minutos)
 
 
 # Si Gemini esta saturado al arrancar, se espera y se vuelve a mirar. Tres
