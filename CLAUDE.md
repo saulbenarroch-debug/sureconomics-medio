@@ -791,6 +791,7 @@ Sin Python global en Windows: hay un runtime portátil en
   |---|---|---|
   | `GEMINI_API_KEY` | cuenta de **servicios** de la empresa | principal |
   | `GEMINI_API_KEY_RESERVA` | cuenta de trabajo personal | desahogo |
+  | `GEMINI_API_KEY_RESERVA_2` | tercer proyecto (28/09/2026) | segundo desahogo |
 
   **La institucional va primera a propósito.** El medio es un producto de la
   empresa: si la clave que lo sostiene cuelga de la cuenta personal de alguien,

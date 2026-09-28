@@ -31,8 +31,12 @@ MODELO_GROQ = "openai/gpt-oss-120b"
 # de la empresa: si la clave que lo sostiene cuelga de la cuenta personal de
 # alguien, el dia que esa cuenta cambie se cae la produccion con ella. La
 # personal va de reserva, que es el papel que aguanta un cambio sin avisar.
+# La tercera (reserva-2) entro el 28/09/2026, el dia que Google estuvo saturado
+# y los reintentos se comieron el flash de las otras dos antes de las 10 de la
+# manana. Es de un proyecto aparte, como las otras: si no, no suma cuota.
 CLAVES_GEMINI = (("principal", "GEMINI_API_KEY"),
-                 ("reserva", "GEMINI_API_KEY_RESERVA"))
+                 ("reserva", "GEMINI_API_KEY_RESERVA"),
+                 ("reserva-2", "GEMINI_API_KEY_RESERVA_2"))
 
 # Errores que dicen "esta clave no vale" y no "el modelo fallo". Con una sola
 # clave daba igual -se moria igual-, pero con dos hay que distinguirlos: si la

@@ -2,6 +2,7 @@ r"""Copia los secretos que ya existen en local a los Secrets del repositorio.
 
     .pyruntime\python.exe poner_secretos.py --ver
     .pyruntime\python.exe poner_secretos.py --poner
+    .pyruntime\python.exe poner_secretos.py --poner --solo GEMINI_API_KEY_RESERVA_2
 
 NUNCA imprime un valor. Solo el nombre, la longitud y una huella de 8 caracteres,
 que es lo justo para saber si el secreto de GitHub y el de tu maquina son el
@@ -44,7 +45,7 @@ ORIGENES = {
         # si no esta en el .env, este script la salta y el motor sigue con una
         # sola (ver motor.claves_gemini). Tienen que ser de PROYECTOS distintos
         # o comparten cuota y el embudo no sirve de nada.
-        ["GEMINI_API_KEY", "GEMINI_API_KEY_RESERVA",
+        ["GEMINI_API_KEY", "GEMINI_API_KEY_RESERVA", "GEMINI_API_KEY_RESERVA_2",
          "GROQ_API_KEY", "TAVILY_API_KEY",
          "TELEGRAM_TOKEN", "CHAT_ID",
          # Cuenta de servicio del panel. Sin esto, las tandas escriben y mandan
@@ -114,7 +115,9 @@ def ver():
     return 0
 
 
-def poner():
+def poner(solo=None):
+    """solo: lista de nombres. Sin ella se suben TODOS, y eso vuelve a fijar
+    tambien DESTINATARIOS y compania: para añadir un secreto nuevo, --solo."""
     import nacl.encoding
     import nacl.public
 
@@ -130,6 +133,8 @@ def poner():
 
     fallos = 0
     for nombre, valor in reunir().items():
+        if solo and nombre not in solo:
+            continue
         cifrado = base64.b64encode(caja.encrypt(valor.encode())).decode()
         r, _ = _llamar("/repos/%s/actions/secrets/%s" % (REPO, nombre), "PUT",
                        {"encrypted_value": cifrado, "key_id": llave["key_id"]})
@@ -147,5 +152,6 @@ def poner():
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--poner", action="store_true")
+    ap.add_argument("--solo", nargs="+", help="con --poner: solo estos secretos")
     a = ap.parse_args()
-    sys.exit(poner() if a.poner else ver())
+    sys.exit(poner(a.solo) if a.poner else ver())

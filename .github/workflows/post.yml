@@ -55,6 +55,8 @@ jobs:
           # pie, post.py no llama al modelo y esto no hace falta.
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_API_KEY_RESERVA: ${{ secrets.GEMINI_API_KEY_RESERVA }}
+          # La tercera cuenta (28/09/2026). Opcional como la segunda.
+          GEMINI_API_KEY_RESERVA_2: ${{ secrets.GEMINI_API_KEY_RESERVA_2 }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           # Para leer la pieza publicada del panel.
           SURECONOMICS_API: ${{ secrets.SURECONOMICS_API }}
