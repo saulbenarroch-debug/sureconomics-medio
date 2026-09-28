@@ -207,7 +207,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: borradores-${{ needs.guardia.outputs.tanda }}
+          # borradores/ desde el 28/09/2026: es donde producir.py deja cada
+          # pieza, y si el job muere antes de RECOGER (paso 3) es el unico
+          # sitio donde estan. Ese dia se perdieron cinco por no guardarlo.
           path: |
             corrida-*/
             carga-*.json
+            borradores/
           retention-days: 14

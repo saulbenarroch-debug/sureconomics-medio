@@ -308,6 +308,16 @@ def correr(argumentos, minutos=25):
 # intentos a cinco minutos: una saturacion de Google suele durar minutos, y un
 # job tiene 75 de limite (diario.yml) con ~40 de trabajo, asi que no caben mas.
 ESPERAS_SATURADO = 3
+
+# CUANTO SE PUEDE TARDAR EN ESCRIBIR, contado desde que arranca la corrida. El
+# job de diario.yml muere a los 75 minutos, y lo que hay detras de escribir
+# -armar la carga con fotos, subir al panel y mandar el correo- necesita su
+# rato. El 28/09/2026 una tanda escribio 5 de 6 piezas con Google medio
+# saturado, el job llego a los 75 minutos en la sexta y GitHub lo mato: ni
+# panel, ni correo, y las cinco piezas se perdieron (borradores/ no estaba en el
+# artefacto). Ahora, pasado este tiempo, no se empieza otra pieza y la que este
+# en marcha se corta a lo que quede: se sube lo escrito.
+MINUTOS_PARA_ESCRIBIR = 52
 PAUSA_SATURADO = 300
 
 
@@ -459,6 +469,13 @@ def main():
     print("\n--- 2. PRODUCIR ---")
     for i, tema in enumerate(temas, 1):
         hecho = str(tema.get("hecho", ""))
+        # PRESUPUESTO DE TIEMPO: lo que no quepa se deja, lo escrito se sube.
+        # Ver MINUTOS_PARA_ESCRIBIR arriba.
+        restante = MINUTOS_PARA_ESCRIBIR - (__import__("time").time() - arranque) / 60
+        if restante < 3:
+            print("\n  [aviso] se acabo el tiempo para escribir: quedan %d pieza(s) sin "
+                  "hacer; subo y mando las %d que hay" % (len(temas) - i + 1, i - 1))
+            break
         print("\n  [%d/%d] %s" % (i, len(temas), hecho[:70]))
         # Se le pasa EL candidato, por su posicion en el archivo. Antes se le
         # daba el medio y unas palabras y volvia a buscar: en tres de seis
@@ -467,7 +484,8 @@ def main():
         # motor/producir.py.
         r = correr([PYTHON, AQUI / "motor" / "producir.py",
                     "--tipo", "Noticia",
-                    "--paquete", candidatos, "--indice", i - 1])
+                    "--paquete", candidatos, "--indice", i - 1],
+                   minutos=min(25, restante))
         # QUE MODELO Y QUE CUENTA ESCRIBIERON CADA PIEZA. Esto imprimia solo los
         # ultimos 260 caracteres, y con eso el consumo de IA era INVISIBLE: una
         # tanda de seis piezas mostraba dos llamadas, que son las de
