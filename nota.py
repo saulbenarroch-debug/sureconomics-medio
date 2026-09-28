@@ -1012,6 +1012,11 @@ def producir_y_entregar(nombre, tipo, encargo, autor, args,
         capture_output=True, text=True, encoding="utf-8", errors="replace",
         timeout=25 * 60)
     print((r.stdout or "")[-1500:])
+    # Lo que gasto cada llamada (ver _ultimo_uso en motor/ia.py). Aparte de la
+    # cola de arriba, que corta a 1.500 caracteres y se las dejaria fuera.
+    gasto = [l.strip() for l in (r.stdout or "").splitlines() if l.strip().startswith("[tokens]")]
+    if gasto:
+        print("  --- tokens ---\n  " + "\n  ".join(gasto))
     if r.returncode != 0 and (r.stderr or "").strip():
         print("  FALLO:")
         for l in (r.stderr or "").strip().splitlines()[-6:]:

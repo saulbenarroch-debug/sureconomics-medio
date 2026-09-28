@@ -71,6 +71,23 @@ PAUSA_SEGUNDA_RONDA = 45
 # ya fallida una vez, las llamadas siguientes dan una sola vuelta, como antes.
 _segunda_ronda_fallida = False
 
+# LO QUE GASTO LA ULTIMA LLAMADA, PARA SABER EN QUE SE VA EL DINERO. Desde el
+# 28/09/2026. Con facturacion activada, 20 $ no llegaban a una semana y no habia
+# forma de decir por que: ni cuanto pesa el prompt, ni cuanto «piensa» el modelo
+# antes de contestar (el razonamiento se cobra como texto de SALIDA, la tarifa
+# cara, y ia.py no le pone ningun limite). pedir_json() lo imprime en una linea
+# [tokens] y orquestar.py lo suma por agente al final de la tanda.
+_ultimo_uso = {}
+
+
+def _uso(respuesta):
+    """Los contadores de usage_metadata, con 0 donde Google no ponga nada."""
+    u = getattr(respuesta, "usage_metadata", None)
+    def n(campo):
+        return int(getattr(u, campo, 0) or 0) if u is not None else 0
+    return {"entrada": n("prompt_token_count"), "cache": n("cached_content_token_count"),
+            "razonamiento": n("thoughts_token_count"), "salida": n("candidates_token_count")}
+
 
 def claves_gemini():
     """Las claves configuradas, en orden. Lista de (nombre, clave)."""
@@ -92,7 +109,7 @@ def _gemini(prompt, temperatura, reintentos=2, imagen=None):
         datos, mime = imagen
         contenido = [types.Part.from_bytes(data=datos, mime_type=mime), prompt]
 
-    global _segunda_ronda_fallida
+    global _segunda_ronda_fallida, _ultimo_uso
     ultimo = None
     # Lo que ya se sabe que no sirve no se vuelve a probar en la segunda vuelta:
     # una cuota agotada no vuelve en 45 s y una clave mala tampoco.
@@ -131,6 +148,7 @@ def _gemini(prompt, temperatura, reintentos=2, imagen=None):
                             model=modelo, contents=contenido,
                             config={"response_mime_type": "application/json",
                                     "temperature": temperatura})
+                        _ultimo_uso = _uso(r)
                         return r.text, sello % modelo
                     except Exception as exc:  # noqa: BLE001
                         msg, ultimo = str(exc), exc
@@ -234,8 +252,17 @@ def pedir_json(prompt, etiqueta="ia", temperatura=0.4, imagen=None):
     imagen no hay respaldo. Se dice y se devuelve None en vez de mandarle el
     prompt a ciegas, que es como se acaba describiendo una foto que nadie miro.
     """
+    global _ultimo_uso
+    _ultimo_uso = {}
     try:
         crudo, modelo = _gemini(prompt, temperatura, imagen=imagen)
+        u = _ultimo_uso
+        # Linea aparte y no pegada a la de marca ([etiqueta] modelo), que
+        # nota.py y las pruebas leen tal cual. Lleva el nombre del modelo para
+        # que el filtro de orquestar.py la deje pasar al log.
+        print("[tokens] %s · %s · entrada %d (caché %d) · razonamiento %d · salida %d"
+              % (etiqueta, modelo, u.get("entrada", 0), u.get("cache", 0),
+                 u.get("razonamiento", 0), u.get("salida", 0)))
     except Exception as exc:  # noqa: BLE001
         if imagen:
             print(f"[error] Gemini no disponible ({str(exc)[:220]}) y Groq no ve "

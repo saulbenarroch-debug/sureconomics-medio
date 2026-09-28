@@ -41,6 +41,7 @@ import datetime
 import io
 import json
 import pathlib
+import re
 import subprocess
 import sys
 
@@ -244,6 +245,39 @@ def con_tope_por_pais(temas):
     return salida
 
 
+# Los tokens de toda la tanda, por agente y modelo. Ver _ultimo_uso en
+# motor/ia.py: sin esto no habia forma de decir en que se iba el credito.
+TOKENS = {}
+_LINEA_TOKENS = re.compile(r"^\[tokens\] (.+?) · (.+?) · entrada (\d+) \(caché (\d+)\) · "
+                           r"razonamiento (\d+) · salida (\d+)")
+
+
+def sumar_tokens(salida):
+    for linea in (salida or "").splitlines():
+        m = _LINEA_TOKENS.match(linea.strip())
+        if m:
+            clave = (m.group(1), m.group(2).split(" (")[0])
+            t = TOKENS.setdefault(clave, [0, 0, 0, 0, 0])
+            t[0] += 1
+            for i in range(4):
+                t[i + 1] += int(m.group(i + 3))
+
+
+def resumen_tokens():
+    """Al final de la tanda: cuanto gasto cada agente. El razonamiento se cobra
+    como salida, asi que la columna que manda en la factura es razon.+salida."""
+    if not TOKENS:
+        return
+    print("\n--- TOKENS DE LA TANDA ---")
+    print("  %-26s %-22s %6s %9s %8s %9s %8s" % ("agente", "modelo", "llam.", "entrada",
+                                               "caché", "razon.", "salida"))
+    total = [0, 0, 0, 0, 0]
+    for (agente, modelo), t in sorted(TOKENS.items()):
+        print("  %-26s %-22s %6d %9d %8d %9d %8d" % ((agente[:26], modelo[:22]) + tuple(t)))
+        total = [a + b for a, b in zip(total, t)]
+    print("  %-26s %-22s %6d %9d %8d %9d %8d" % (("TOTAL", "") + tuple(total)))
+
+
 def correr(argumentos, minutos=25):
     """Corre un paso. SI SE PASA DE TIEMPO, DEVUELVE UN FALLO; NO REVIENTA.
 
@@ -256,13 +290,16 @@ def correr(argumentos, minutos=25):
     """
     print("  $ " + " ".join(str(a) for a in argumentos[1:]))
     try:
-        return subprocess.run([str(a) for a in argumentos], capture_output=True,
-                              text=True, encoding="utf-8", errors="replace",
-                              timeout=minutos * 60)
+        r = subprocess.run([str(a) for a in argumentos], capture_output=True,
+                           text=True, encoding="utf-8", errors="replace",
+                           timeout=minutos * 60)
+        sumar_tokens(r.stdout)
+        return r
     except subprocess.TimeoutExpired as exc:
         def texto(x):
             return x.decode("utf-8", "replace") if isinstance(x, bytes) else (x or "")
         print("  [aviso] se paso de %d min; lo doy por fallido y sigo" % minutos)
+        sumar_tokens(texto(exc.stdout))
         return subprocess.CompletedProcess(argumentos, 124, texto(exc.stdout),
                                            texto(exc.stderr) + "\nTIMEOUT tras %d min" % minutos)
 
@@ -508,4 +545,10 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        codigo = main()
+    finally:
+        # Tambien cuando la tanda se para a medias: lo gastado hasta ahi se paga
+        # igual, y es justo cuando mas interesa saberlo.
+        resumen_tokens()
+    sys.exit(codigo)
