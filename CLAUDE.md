@@ -826,6 +826,12 @@ Sin Python global en Windows: hay un runtime portátil en
     la deja el primer modelo aunque los demás fallen por otra cosa. Es la
     segunda vez que esta función culpaba a la cuota sin serlo (la primera, el
     19/09). `pruebas_por_que_fallo.py` guarda los dos logs literales.
+  - **`comprobar.py` tenía el mismo fallo, y tumbó una tanda entera.** El
+    28/09/2026 los cuatro modelos daban 503 y escribió `CUOTA AGOTADA`, que es
+    lo que lee `orquestar.hay_con_que()` para rendirse hasta el día siguiente.
+    Ahora un 503 escribe `SATURADO`, y con eso la tanda **espera 5 min y vuelve
+    a mirar, hasta tres veces** (`ESPERAS_SATURADO`); `diario.yml` pasó de 60 a
+    75 min de límite para que quepa la espera.
 
   **El Worker NO tiene el embudo**: `worker.js` es otra implementación, en JS,
   con su propio binding de una sola clave. El newsletter y el asistente del chat

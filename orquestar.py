@@ -252,10 +252,34 @@ def correr(argumentos, minutos=25):
     return r
 
 
+# Si Gemini esta saturado al arrancar, se espera y se vuelve a mirar. Tres
+# intentos a cinco minutos: una saturacion de Google suele durar minutos, y un
+# job tiene 75 de limite (diario.yml) con ~40 de trabajo, asi que no caben mas.
+ESPERAS_SATURADO = 3
+PAUSA_SATURADO = 300
+
+
 def hay_con_que():
-    """Cuota antes de arrancar. Ver punto 1 de la cabecera."""
-    r = correr([PYTHON, AQUI / "comprobar.py"], minutos=10)
-    salida = (r.stdout or "") + (r.stderr or "")
+    """Cuota antes de arrancar. Ver punto 1 de la cabecera.
+
+    SATURADO SE ESPERA; SIN CUOTA, NO. Ver comprobar.modelos_de_ia(): el
+    28/09/2026 la tanda se rindio por «sin cuota» con Google saturado y la cuota
+    entera. Sin cuota no hay nada que esperar hasta el dia siguiente; saturado
+    se arregla solo en minutos.
+    """
+    for intento in range(ESPERAS_SATURADO + 1):
+        r = correr([PYTHON, AQUI / "comprobar.py"], minutos=10)
+        salida = (r.stdout or "") + (r.stderr or "")
+        if "SATURADO" not in salida:
+            break
+        print(salida[-600:])
+        if intento == ESPERAS_SATURADO:
+            print("\nGemini sigue saturado tras %d intentos (la cuota está). "
+                  "No se arranca: hay que relanzar la tanda a mano." % (intento + 1))
+            return False
+        print("\nGemini saturado (no es la cuota). Espero %d min y vuelvo a mirar."
+              % (PAUSA_SATURADO // 60))
+        __import__("time").sleep(PAUSA_SATURADO)
     print(salida[-1200:])
     if "CUOTA AGOTADA" in salida:
         print("\nGemini sin cuota hoy. No se arranca.")

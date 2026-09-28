@@ -127,8 +127,10 @@ jobs:
     if: needs.guardia.outputs.seguir == 'si'
     runs-on: ubuntu-latest
     # Escribir seis piezas con auditoria lleva su tiempo. El limite existe para
-    # que una corrida colgada no se coma la cuota de Actions del mes.
-    timeout-minutes: 60
+    # que una corrida colgada no se coma la cuota de Actions del mes. Paso de 60
+    # a 75 el 28/09/2026: orquestar.py puede esperar hasta 15 min a que Gemini
+    # deje de estar saturado antes de empezar.
+    timeout-minutes: 75
 
     steps:
       - uses: actions/checkout@v4

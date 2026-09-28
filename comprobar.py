@@ -80,7 +80,7 @@ def modelos_de_ia():
         # nombre duplicado, el centinela daba 404 mientras el motor ya estaba
         # corregido, y parecia una caida de Gemini que no existia.
         modelo = MODELOS_GEMINI[-1]  # el mas barato de la cadena
-        con_cuota, fallos = [], []
+        con_cuota, fallos, saturadas = [], [], []
         for nombre, clave in cuentas:
             print(f"        huella de la clave '{nombre}': {huella(clave)}")
             try:
@@ -95,11 +95,26 @@ def modelos_de_ia():
                 msg = str(exc)
                 if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
                     linea("aviso", f"Gemini ({nombre})", "sin cuota")
+                elif "503" in msg or "UNAVAILABLE" in msg or "overloaded" in msg.lower():
+                    linea("aviso", f"Gemini ({nombre})", "saturado (503), con cuota")
+                    saturadas.append(nombre)
                 else:
                     linea("aviso", f"Gemini ({nombre})", msg[:60])
                     fallos.append(nombre)
-        if not con_cuota:
-            # La frase que lee orquestar.py. Solo aqui, y solo si no queda nada.
+        # SATURADO NO ES SIN CUOTA. El 28/09/2026 la tanda de la mañana no
+        # arranco con «Gemini sin cuota hoy» teniendo la cuota entera en las dos
+        # cuentas: los cuatro modelos daban 503 «high demand». Esta funcion
+        # escribia CUOTA AGOTADA siempre que ninguna respondiera, fuera por lo
+        # que fuera, y orquestar.py se rendia hasta el dia siguiente por algo
+        # que se arregla solo en minutos. Es el mismo error que tuvo
+        # nota._por_que_fallo() el 24/09.
+        if not con_cuota and saturadas:
+            # La frase que lee orquestar.py para esperar y reintentar.
+            linea("mal", "Gemini", "SATURADO en todas las cuentas; la cuota está",
+                  critico=True)
+        elif not con_cuota:
+            # La frase que lee orquestar.py para no arrancar. Solo aqui, y solo
+            # si no queda nada.
             linea("mal", "Gemini", "CUOTA AGOTADA hoy en todas las cuentas",
                   critico=len(fallos) == len(cuentas))
 
