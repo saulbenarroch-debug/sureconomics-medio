@@ -155,5 +155,6 @@ Extensión máxima: dos páginas.
 ## Campos de salida
 
 - `autor`: `null` (la firma la redacción del medio).
-- `bloque_sureconomics`: obligatorio, no puede ir vacío.
+- `bloque_sureconomics`: **vacío** (`""`). Ver «La noticia NO lleva bloque
+  `SurEconomics:`» arriba: si lo rellenas, el auditor bloquea la pieza.
 - `tipo`: `Noticia`.

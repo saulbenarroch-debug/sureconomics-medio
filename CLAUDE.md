@@ -686,6 +686,23 @@ nadie (ver trampa 9), y para el bloqueo ya existe salida con
     decodificándolo: 437 bytes, sin URL dentro). `titulares_google()` **nunca
     devuelve enlaces** a propósito, para que ninguno pueda colar un redirector en
     el expediente. Sirve para decir «esto existe, pásame el enlace».
+    (Sí se puede resolver por el endpoint interno `batchexecute`: el bot lo hace
+    desde el 25/09/2026 para las fotos del Entorno, `resolver_google_news` en
+    `entorno/render.py` del otro repo. Aquí sigue sin usarse para el texto.)
+29b. **En una `/nota`, el hecho era la PRIMERA FRASE DE LA PÁGINA, no el
+    titular.** `nota.py` escribía la fuente sin `titulo:` en la cabecera y
+    `agregar_fuente.py`, sin titular, toma la primera frase del cuerpo. Medido el
+    28/09/2026 sobre las 93 `/nota` de dos semanas: **en 50 el hecho era basura**
+    (el menú «Nacionales Internacionales Política…», la URL de una foto,
+    «¡Enlace copiado!», el clima de Caracas, avisos de cookies y de JavaScript).
+    Casi siempre el modelo encontraba la nota más abajo, pero no siempre: la
+    visita del Papa a Francia salió como «inversiones en IA en América Latina»
+    (el documentalista buscó contexto para el aviso de JavaScript y trajo una de
+    DW), un acuerdo EE. UU.-China como «India restringe la comida chatarra» y
+    una nota sobre Nicaragua como «Rusia confisca activos de Nestlé». El
+    titular (og:title) siempre se había leído bien: se tiraba al guardar. Ahora
+    va en la cabecera, y `leer_enlace()` descarta además los avisos de la web
+    (`_AVISO_DE_LA_WEB`).
 
 ### De las redes sociales
 

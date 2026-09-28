@@ -148,6 +148,19 @@ def _apodo(texto):
     return (s[:38].strip("-") or "peticion")
 
 
+# Avisos que las webs ponen dentro de un <p> y no son texto de la nota. Solo
+# frases que ningun articulo de economia escribiria: una nota SOBRE las cookies
+# o sobre JavaScript no empieza asi.
+_AVISO_DE_LA_WEB = re.compile(
+    r"activ(e|a|ar|es) (el )?javascript|javascript (est[aá] )?(desactivado|deshabilitado)|"
+    r"enable javascript|javascript is disabled|"
+    r"(utilizamos|usamos) cookies|this (web)?site uses cookies|"
+    r"suscr[ií]bete (para|a nuestro)|reg[ií]strate (gratis )?para (seguir|continuar)|"
+    r"contenido (exclusivo )?para suscriptores|"
+    r"has alcanzado el l[ií]mite de|you have reached (your|the) (article )?limit",
+    re.I)
+
+
 def leer_enlace(url):
     """Trae titular, texto y nombre del medio. Sin IA: solo limpieza de etiquetas.
 
@@ -180,7 +193,11 @@ def leer_enlace(url):
         t = re.sub(r"&amp;", "&", t)
         t = re.sub(r"\s+", " ", t).strip()
         # Los parrafos cortos de una web son pies, menus y avisos de cookies.
-        if len(t) > 90:
+        # Y los largos tambien pueden ser avisos: «Para disfrutar los contenidos
+        # de Clarin es necesario que actives JavaScript en tu navegador» pasa de
+        # 90 caracteres y era el PRIMER parrafo de la pagina (ver el titular en
+        # la cabecera, mas abajo, para lo que eso provoco).
+        if len(t) > 90 and not _AVISO_DE_LA_WEB.search(t):
             parrafos.append(t)
     sitio = ""
     m = re.search(r'<meta[^>]+property=["\']og:site_name["\'][^>]+content=["\']([^"\']+)',
@@ -1721,9 +1738,18 @@ def main():
         if apodo in nombres:                      # dos titulares casi iguales
             apodo = "%s-%d" % (apodo[:34], i + 1)
         archivo = AQUI / "fuentes_manuales" / (apodo + ".txt")
+        # EL TITULAR VA EN LA CABECERA. Sin el, agregar_fuente.py toma como
+        # hecho la PRIMERA FRASE DEL TEXTO, y eso no tiene por que ser la
+        # noticia. El 26/09/2026 una /nota de Clarin sobre la visita del Papa a
+        # Francia llego con el hecho «Para disfrutar los contenidos de Clarin es
+        # necesario que actives JavaScript»: el documentalista busco contexto
+        # para ese aviso, trajo una nota de DW sobre inteligencia artificial y
+        # la pieza salio sobre inversiones en IA. El titular estaba bien leido
+        # (og:title) y se tiraba aqui.
         archivo.write_text(
-            "url: %s\nmedio: %s\nfecha: %s\n\n%s\n" % (
+            "url: %s\nmedio: %s\nfecha: %s\n%s\n%s\n" % (
                 f["url"], f["medio"], date.today().isoformat(),
+                ("titulo: %s\n" % f["titulo"]) if f.get("titulo") else "",
                 "\n\n".join(f["parrafos"])),
             encoding="utf-8")
 
