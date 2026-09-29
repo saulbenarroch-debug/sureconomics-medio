@@ -309,17 +309,18 @@ def main():
                 fallos.append((pieza["titulo"][:50],
                                "la memoria la da por publicada, no se sube"))
                 continue
-            choca = pieza.get("choca_con") or ""
-            pieza = dict(pieza)
-            pieza["cuerpo_html"] = (
-                '<p><strong>⚠️ SE PARECE A UNA PIEZA YA PUBLICADA.</strong> '
-                "Sube al panel a petición de la redacción, que la revisó y dijo "
-                "que no es la misma noticia." +
-                ("<br><em>Se parecía a: " + choca[:200] + "</em>" if choca
-                 else "") +
-                "</p>" + pieza.get("cuerpo_html", ""))
-            print("  [aviso] %s va como REPETIDA y marcada"
-                  % pieza["titulo"][:44])
+            # SIN AVISO EN EL TEXTO, AL REVES QUE LAS BLOQUEADAS. Hasta el
+            # 29/09/2026 se le metia al principio del cuerpo «⚠️ SE PARECE A UNA
+            # PIEZA YA PUBLICADA», y la #620 se publico asi, con el aviso a la
+            # vista del lector: conto como error publicado por automatizacion.
+            # Aqui solo se llega con el boton «Subirla igual», o sea, cuando la
+            # redaccion YA leyo la pieza y dijo que no es la misma noticia: el
+            # aviso no le dice nada a nadie y solo puede colarse en el sitio.
+            # Una bloqueada si lo lleva, porque tiene una cifra sin rastrear que
+            # alguien tiene que mirar antes de publicar.
+            print("  [aviso] %s se parecia a «%s»; sube porque la redaccion dijo "
+                  "que no es la misma" % (pieza["titulo"][:44],
+                                          (pieza.get("choca_con") or "")[:60]))
         if pieza.get("bloqueada"):
             if not forzar:
                 # SE DICE, NO SE CALLA. Este era el unico descarte que no
