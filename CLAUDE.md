@@ -257,6 +257,11 @@ del medio, y eso dejó huellas que conviene conocer:
   borradores, usa `borrador.titular_de()`**: buscar la línea en mayúsculas ya no
   encuentra nada.
 - Lo ya publicado antes de esa fecha sigue en mayúsculas en el sitio.
+- **PDVSA va siempre entero en mayúsculas** (Saúl, 09/10/2026), aunque la
+  fuente o el modelo escriban «Pdvsa». No se le confía al prompt: lo impone
+  `borrador.estilo_casa()` en todos los campos de la pieza (redactor), en
+  `desde_mayusculas()` y en la lámina. Otro nombre con forma fija se añade a
+  `SIEMPRE_ASI`.
 
 ## Tipos de pieza
 
