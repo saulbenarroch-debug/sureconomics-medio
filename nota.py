@@ -795,8 +795,10 @@ def mandar_al_chat(borrador, chat, quien=""):
     lineas = [l for l in borrador.read_text(encoding="utf-8").split("\n")]
     # El archivo trae [Noticia] [tags], titulo, [Fecha] y luego el cuerpo.
     utiles = [l.strip() for l in lineas if l.strip()]
-    titulo = next((l for l in utiles[:4] if l.isupper() and len(l) > 25), "(sin titulo)")
-    desde = utiles.index(titulo) + 1
+    from motor.borrador import titular_de
+    linea_t = next((l for l in utiles[:4] if titular_de(l)), "")
+    titulo = titular_de(linea_t) or "(sin titulo)"
+    desde = utiles.index(linea_t) + 1 if linea_t else 0
     cuerpo = [l for l in utiles[desde:]
               if not l.startswith(("[Fecha]", "Perecedero", "[Autor]"))]
 

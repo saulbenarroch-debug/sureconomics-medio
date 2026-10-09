@@ -24,6 +24,7 @@ sys.path.insert(0, str(AQUI))
 sys.path.insert(0, str(AQUI / ".libs"))
 
 from dotenv import load_dotenv  # noqa: E402
+from motor.borrador import titular_de
 from motor import auditor  # noqa: E402
 from motor.fuentes import banco_mundial, manual  # noqa: E402
 from motor.paquete import Cifra, Fuente, Paquete  # noqa: E402
@@ -46,8 +47,8 @@ def _pieza_desde_texto(ruta_txt, pieza):
         s = linea.strip()
         if s.startswith("[Autor]") or s.startswith("[Fecha]"):
             continue
-        if s.isupper() and len(s) > 25 and not cuerpo:
-            pieza["titulo"] = s
+        if titular_de(s) and not cuerpo:
+            pieza["titulo"] = titular_de(s)
             continue
         if s.startswith("SurEconomics:"):
             donde = "bloque"

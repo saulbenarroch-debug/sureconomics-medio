@@ -50,7 +50,8 @@ def texto_legible(pieza):
     etiquetas = " ".join(f"[{v}]" for v in
                          [pieza.get("tipo"), e.get("region"), e.get("subregion"),
                           e.get("pais"), e.get("topico")] if v)
-    lineas = [etiquetas, "", (pieza.get("titulo") or "").upper(), ""]
+    from motor.borrador import linea_de_titular
+    lineas = [etiquetas, "", linea_de_titular(pieza.get("titulo")), ""]
     if pieza.get("autor"):
         lineas.append(f"[Autor] {pieza['autor']}")
     if pieza.get("fecha_publicacion"):

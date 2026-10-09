@@ -124,8 +124,8 @@ escrito tú con la puntuación correcta desde el principio.
 
 ## Tildes: la pieza va acentuada
 
-Se escribe en español con sus tildes, todas, también en el título y aunque el
-título vaya en mayúsculas: MÉXICO, CORRUPCIÓN, AUTONOMÍA.
+Se escribe en español con sus tildes, todas, también en el título: México,
+corrupción, autonomía.
 
 No copies la ortografía de la fuente. Hay medios que titulan sin acentos y hay
 teclados que no los ponen; eso es problema de quien lo escribió, no norma que
@@ -167,6 +167,15 @@ Eliges **exactamente uno** de cada eje. Si ninguno encaja, no inventes: dilo en
 
 **Un hecho, hasta 70 caracteres.** No un resumen de la pieza: el hecho.
 
+**Bien escrito, NUNCA entero en mayúsculas.** Ortografía normal de una frase:
+mayúscula en la primera letra y en los nombres propios, el resto en minúscula,
+con sus tildes. Siglas como se escriben (FMI, BCV, OPEP, EE. UU.) y marcas como
+se llaman (Pdvsa, iPhone).
+
+> ❌ EL FMI ABRIRÁ UNA OFICINA EN CARACAS EN EL PRIMER SEMESTRE DE 2027
+> ❌ el fmi abrirá una oficina en caracas en el primer semestre de 2027
+> ✅ El FMI abrirá una oficina en Caracas en el primer semestre de 2027
+
 **No afirma nada que el cuerpo no sostenga con una cifra del paquete.** Un
 titular que promete más que el cuerpo es un error publicado.
 
@@ -176,8 +185,8 @@ titular que promete más que el cuerpo es un error publicado.
 titulares publicados: la mediana eran 85 caracteres y la mitad pasaban de 80,
 casi siempre por llevar el hecho *más* su circunstancia.
 
-> ❌ EL RIESGO PAÍS DE VENEZUELA SE REDUCE A LA MITAD EN 2026 **EN MEDIO DE
-> CAMBIOS POLÍTICOS Y NUEVOS ACUERDOS PETROLEROS**
+> ❌ El riesgo país de Venezuela se reduce a la mitad en 2026 **en medio de
+> cambios políticos y nuevos acuerdos petroleros**
 > ✅ El riesgo país de Venezuela se reduce a la mitad en 2026
 
 Lo tachado no sobra por largo: sobra porque **es la entradilla**. Ahí va bien.
@@ -186,8 +195,8 @@ Fuera «en medio de», «tras», «mientras», «de cara a», «en el marco de»
 **El país cuando ya se sabe.** Esta instrucción decía antes «dice de qué trata
 y a qué país se refiere», y por eso salía esto:
 
-> ❌ WALL STREET CIERRA EN ROJO TRAS LA PRIMERA SUBIDA DE TASAS DE LA RESERVA
-> FEDERAL EN TRES AÑOS **EN EE. UU.**
+> ❌ Wall Street cierra en rojo tras la primera subida de tasas de la Reserva
+> Federal en tres años **en EE. UU.**
 
 El país va **solo si no se deduce del sujeto**. Con la Reserva Federal, el BCV
 o Pemex delante, nombrarlo es gastar caracteres en lo que el lector ya sabe.

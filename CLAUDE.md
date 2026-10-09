@@ -119,8 +119,8 @@ Detecta «post», «instagram», «lámina», «placa», «plantilla» o «para 
 (`motor/lamina.la_piden`). Sin esa palabra, la imagen se usa solo como portada
 del sitio, que es como funcionaba antes.
 
-**El titular del panel NO sirve para la lámina.** En el sitio va en mayúsculas y
-largo; en la lámina caben ocho o nueve palabras en caja mixta. Así que la lámina
+**El titular del panel NO sirve para la lámina.** En el sitio va largo; en la
+lámina caben ocho o nueve palabras. Así que la lámina
 lleva su propio par —titular corto y bajada— que escribe el modelo a partir del
 titular y la entradilla **ya auditados**: acorta, no inventa. Si no responde, se
 recorta por código y la lámina sale igual.
@@ -239,6 +239,24 @@ un bloqueo por repetida se trata distinto en la tanda y en `/nota`.
 
 Si la persona mandó su propia portada, no se busca: se pisaría igualmente unas
 líneas más abajo.
+
+## Los titulares van bien escritos (desde el 09/10/2026)
+
+Ortografía normal de frase: mayúscula inicial y en nombres propios, siglas como
+se escriben. **Del 26/08 al 09/10/2026 iban enteros en MAYÚSCULAS** por norma
+del medio, y eso dejó huellas que conviene conocer:
+
+- `redactor.py` ya no hace `upper()`: pone la mayúscula inicial y, si el modelo
+  devuelve el titular en mayúsculas por costumbre, lo rehace con
+  `borrador.desde_mayusculas()`, que toma la forma de cada palabra del cuerpo de
+  la pieza (FMI sigue FMI, Caracas lleva mayúscula, oficina no).
+- **El titular del borrador `.txt` se reconocía POR ESTAR EN MAYÚSCULAS**
+  (`isupper()`) en el armado de la carga, el correo, el chat y la reauditoría.
+  Ahora va marcado: `[Titular] El FMI abrirá…` (`motor/borrador.py`). Los
+  borradores viejos, en mayúsculas, se siguen leyendo. **Si añades un lector de
+  borradores, usa `borrador.titular_de()`**: buscar la línea en mayúsculas ya no
+  encuentra nada.
+- Lo ya publicado antes de esa fecha sigue en mayúsculas en el sitio.
 
 ## Tipos de pieza
 

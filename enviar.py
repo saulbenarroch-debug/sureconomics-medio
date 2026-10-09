@@ -83,17 +83,18 @@ TINTA, GRIS, VERDE, ROJO = "#1a2331", "#5a636e", "#2c6a4e", "#b22f26"
 
 
 def _pieza_html(texto, veredicto, hallazgos):
+    from motor.borrador import titular_de
     partes = []
     for linea in texto.strip().split("\n"):
         if not linea.strip():
             continue
         e = _html.escape(linea)
-        if linea.startswith("["):
+        if titular_de(linea):
+            partes.append(f'<p style="margin:0 0 10px;font:bold 17px Georgia,serif;'
+                          f'color:{TINTA};line-height:1.25">{_html.escape(titular_de(linea))}</p>')
+        elif linea.startswith("["):
             partes.append(f'<p style="margin:0 0 6px;font:bold 11px Arial;'
                           f'color:{GRIS};letter-spacing:.4px">{e}</p>')
-        elif linea.isupper() and len(linea) > 25:
-            partes.append(f'<p style="margin:0 0 10px;font:bold 17px Georgia,serif;'
-                          f'color:{TINTA};line-height:1.25">{e}</p>')
         elif linea.startswith("SurEconomics:"):
             partes.append(f'<p style="margin:14px 0 4px;font:bold 13px Arial;'
                           f'color:{VERDE}">{e}</p>')

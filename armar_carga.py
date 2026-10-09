@@ -74,6 +74,7 @@ sys.path.insert(0, str(AQUI / ".libs"))
 # archivo. Paso tres veces el 28/08/2026. reconfigure cambia el que ya hay.
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+from motor.borrador import titular_de
 from motor import clasificar, foto as buscador, memoria  # noqa: E402
 
 # Nuestro formato -> el del sitio. No son equivalentes uno a uno: nuestra
@@ -114,10 +115,11 @@ def desmontar(ruta, con_intertitulos):
         if s.startswith("[Autor]"):
             firma = s.replace("[Autor]", "").strip()
             continue
-        if s.startswith("[") or s.startswith("Perecedero") or s.startswith("Permanente"):
+        # El titular, marcado o (borradores viejos) en mayusculas: motor/borrador.py.
+        if not titulo and titular_de(s):
+            titulo = titular_de(s)
             continue
-        if s.isupper() and len(s) > 25 and not titulo:
-            titulo = s
+        if s.startswith("[") or s.startswith("Perecedero") or s.startswith("Permanente"):
             continue
         if s.startswith("Sacado de:"):
             resto = s.replace("Sacado de:", "").strip()

@@ -199,13 +199,19 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
     if pieza.get("tipo") == "Noticia":
         pieza["bloque_sureconomics"] = ""
 
-    # EL TITULAR VA EN MAYUSCULAS. Norma del medio, decidida el 26/08/2026. Se
-    # aplica AQUI y no al maquetar: hasta ahora solo se veia en mayusculas en el
-    # correo y en el Word, porque quien lo ponia asi era la funcion que arma el
-    # texto legible. Al cargar las piezas en el panel del sitio, el titulo
-    # llegaba en minusculas, que es donde de verdad importa.
+    # EL TITULAR VA BIEN ESCRITO: ortografia normal de frase, mayuscula inicial y
+    # en los nombres propios. Norma del medio desde el 09/10/2026; del 26/08 a
+    # esa fecha iba entero en MAYUSCULAS y se forzaba aqui con upper(). Ahora lo
+    # que se fuerza es solo la primera letra: el resto lo escribe el modelo,
+    # porque solo el sabe que «Pdvsa» o «Delcy Rodríguez» llevan mayuscula. Si
+    # aun asi lo devuelve todo en mayusculas (la costumbre de agosto y septiembre),
+    # se rehace con la ortografia que esas palabras tienen en el cuerpo.
     if pieza.get("titulo"):
-        pieza["titulo"] = pieza["titulo"].strip().upper()
+        from motor.borrador import desde_mayusculas, mayuscula_inicial
+        t = pieza["titulo"].strip()
+        if t.isupper():
+            t = desde_mayusculas(t, pieza.get("cuerpo", ""))
+        pieza["titulo"] = mayuscula_inicial(t)
 
     # Ultimo paso, sobre TODO lo que sale publicado: fuera los guiones largos.
     for campo, valor in list(pieza.items()):
