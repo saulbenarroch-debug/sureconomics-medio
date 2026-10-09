@@ -214,11 +214,13 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
         pieza["titulo"] = mayuscula_inicial(t)
 
     # Ultimo paso, sobre TODO lo que sale publicado: fuera los guiones largos.
+    # Y los nombres que van siempre igual (PDVSA): motor/borrador.SIEMPRE_ASI.
+    from motor.borrador import estilo_casa
     for campo, valor in list(pieza.items()):
         if isinstance(valor, str):
-            pieza[campo] = sin_guiones_largos(valor)
+            pieza[campo] = estilo_casa(sin_guiones_largos(valor))
         elif isinstance(valor, list):
-            pieza[campo] = [sin_guiones_largos(v) if isinstance(v, str) else v
+            pieza[campo] = [estilo_casa(sin_guiones_largos(v)) if isinstance(v, str) else v
                             for v in valor]
 
     return pieza

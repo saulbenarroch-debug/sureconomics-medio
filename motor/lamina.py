@@ -96,7 +96,8 @@ def textos_para(titulo, resumen=""):
     # Sin punto final: ninguna de las laminas que publica el medio lo lleva. Se
     # quita solo el ultimo, para no destrozar un "EE. UU." ni un "US$2.000".
     bajada = _mayuscula_inicial(str(r.get("bajada") or "").strip()).rstrip(".")
-    return _mayuscula_inicial(str(r["titular"]).strip()).rstrip("."), bajada
+    from motor.borrador import estilo_casa
+    return estilo_casa(_mayuscula_inicial(str(r["titular"]).strip()).rstrip(".")), estilo_casa(bajada)
 
 
 def _mayuscula_inicial(texto):

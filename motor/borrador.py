@@ -52,6 +52,8 @@ def desde_mayusculas(titulo, cuerpo):
         formas.setdefault(w.lower(), []).append((w, inicio_de_frase))
 
     def forma(palabra):
+        if palabra.lower() in SIEMPRE_ASI:
+            return SIEMPRE_ASI[palabra.lower()]
         lista = formas.get(palabra.lower())
         if not lista:
             return palabra.lower()
@@ -63,6 +65,20 @@ def desde_mayusculas(titulo, cuerpo):
         return dentro[0] if dentro else palabra.lower()
 
     return re.sub(r"[\wÁÉÍÓÚÜÑáéíóúüñ]+", lambda m: forma(m.group(0)), titulo or "")
+
+
+# NOMBRES QUE VAN SIEMPRE ASI, digan lo que digan el modelo o la fuente. PDVSA
+# entero en mayusculas: norma de la casa, decidida por Saul el 09/10/2026 (la
+# fuente y el modelo escriben «Pdvsa» la mitad de las veces).
+SIEMPRE_ASI = {"pdvsa": "PDVSA"}
+
+
+def estilo_casa(texto):
+    """Los nombres de SIEMPRE_ASI con su forma fija, en cualquier texto."""
+    import re
+    for k, v in SIEMPRE_ASI.items():
+        texto = re.sub(r"\b%s\b" % k, v, texto or "", flags=re.I)
+    return texto
 
 
 def mayuscula_inicial(texto):

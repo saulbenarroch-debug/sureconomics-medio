@@ -170,7 +170,8 @@ Eliges **exactamente uno** de cada eje. Si ninguno encaja, no inventes: dilo en
 **Bien escrito, NUNCA entero en mayúsculas.** Ortografía normal de una frase:
 mayúscula en la primera letra y en los nombres propios, el resto en minúscula,
 con sus tildes. Siglas como se escriben (FMI, BCV, OPEP, EE. UU.) y marcas como
-se llaman (Pdvsa, iPhone).
+se llaman (iPhone). **PDVSA va siempre entero en mayúsculas**, en el título y en
+el cuerpo.
 
 > ❌ EL FMI ABRIRÁ UNA OFICINA EN CARACAS EN EL PRIMER SEMESTRE DE 2027
 > ❌ el fmi abrirá una oficina en caracas en el primer semestre de 2027
