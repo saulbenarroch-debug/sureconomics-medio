@@ -56,6 +56,10 @@ def texto_legible(pieza):
         lineas.append(f"[Autor] {pieza['autor']}")
     if pieza.get("fecha_publicacion"):
         lineas.append(f"[Fecha] {pieza['fecha_publicacion']}")
+    # La bajada va bajo el rótulo «Resumen»: armar_carga lo reconoce y la sube
+    # al campo resumen del panel, no al cuerpo.
+    if pieza.get("bajada"):
+        lineas += ["", "Resumen", pieza["bajada"]]
     lineas += ["", pieza.get("cuerpo", "")]
     bloque = (pieza.get("bloque_sureconomics") or "").strip()
     if bloque:
@@ -69,6 +73,14 @@ def texto_legible(pieza):
     extra = [f"{e.get('vigencia', '?')} · {e.get('idioma', '?')}"]
     # Sin guion largo al frente: norma del medio (ver redactor.py).
     lineas += ["", " · ".join(extra)]
+    # Lo que no se publica y sí se revisa: motor/borrador.bloque_de_revision.
+    from motor import clasificar
+    from motor.borrador import bloque_de_revision
+    seccion = " · ".join(clasificar.temas(pieza.get("titulo") or "",
+                                          pieza.get("cuerpo") or ""))
+    revision = bloque_de_revision(pieza, seccion)
+    if revision:
+        lineas += [""] + revision
     return "\n".join(lineas)
 
 
@@ -138,6 +150,9 @@ def main():
                     help="salta la revision del economista (para comparar)")
     ap.add_argument("--sin-expediente", action="store_true",
                     help="salta al documentalista (mas rapido, menos fundamentado)")
+    ap.add_argument("--web", action="store_true",
+                    help="busca información complementaria en la web (Tavily, "
+                         "1 crédito). La pide /nota: ver documentalista.py")
     ap.add_argument("--sin-contexto", action="store_true",
                     help="no anadir contexto de datos, ni a mano ni por economista")
     args = ap.parse_args()
@@ -208,6 +223,15 @@ def main():
         if expediente:
             paquete = componer(paquete, *expediente)
             print(f"   -> expediente de {len(expediente)} nota(s) añadido")
+
+    if args.web and not args.sin_expediente:
+        print("\n1c. DOCUMENTALISTA — información complementaria en la web")
+        web, informe = documentalista.complementar_en_la_web(paquete)
+        for linea in informe:
+            print(f"   {linea}")
+        if web:
+            paquete = componer(paquete, *web)
+            print(f"   -> {len(web)} fuente(s) complementaria(s) añadida(s)")
 
     # El economista elige el contexto POR DEFECTO. Elegirlo a mano reproduce el
     # error de pegarle el riesgo pais de Venezuela a una noticia de aranceles

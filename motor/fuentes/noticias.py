@@ -600,6 +600,9 @@ def extraer(medios=None, horas=24, limite=6, tema=None, por_medio=POR_MEDIO):
                 institucion=medio["nombre"],
                 documento=titular,
                 url=enlace,
+                # Su propia fecha: cuando esta nota entra como expediente de
+                # otra, el pie «Sacado de» la acreditaba con la fecha de aquella.
+                fecha=fecha,
             )
             paquete = Paquete(
                 hecho=titular,

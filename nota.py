@@ -800,7 +800,40 @@ def mandar_al_chat(borrador, chat, quien=""):
     titulo = titular_de(linea_t) or "(sin titulo)"
     desde = utiles.index(linea_t) + 1 if linea_t else 0
     cuerpo = [l for l in utiles[desde:]
-              if not l.startswith(("[Fecha]", "Perecedero", "[Autor]"))]
+              if not l.startswith(("[Fecha]", "Perecedero", "Permanente", "[Autor]"))]
+
+    # El bloque «Para revisar» (motor/borrador.bloque_de_revision) va aparte y
+    # con rótulos, al final: es lo que Comunicación revisa antes de publicar.
+    from motor.borrador import REVISION
+    revision = []
+    if REVISION in cuerpo:
+        i = cuerpo.index(REVISION)
+        cuerpo, revision = cuerpo[:i], cuerpo[i + 1:]
+    bajada = ""
+    if "Resumen" in cuerpo[:2]:
+        i = cuerpo.index("Resumen")
+        if i + 1 < len(cuerpo):
+            bajada = cuerpo[i + 1]
+            del cuerpo[i:i + 2]
+
+    def grupo(rotulo, prefijo):
+        filas = []
+        for l in revision:
+            if not l.startswith(prefijo):
+                continue
+            # «[Opción 2] texto» -> «2. texto»; el resto, con viñeta.
+            m = re.match(r"\[Opción (\d+)\]\s*(.*)", l)
+            filas.append("%s. %s" % m.groups() if m else "• " + l[len(prefijo):].strip())
+        return ("<b>%s</b>\n%s" % (rotulo, "\n".join(_escapar(f) for f in filas))
+                if filas else "")
+
+    pie = "\n\n".join(g for g in (
+        grupo("Otras opciones de titular", "[Opción"),
+        grupo("Sección", "[Sección]"),
+        grupo("Fuentes", "[Fuente]"),
+        grupo("Datos complementarios (verificar antes de publicar)", "[Complementario]"),
+        grupo("Notas de verificación", "[Verificar]"),
+    ) if g)
 
     # Si el auditor la bloqueo hay que decirlo ARRIBA. Un borrador que llega al
     # chat sin esa marca invita a publicarlo tal cual.
@@ -815,7 +848,9 @@ def mandar_al_chat(borrador, chat, quien=""):
 
     cabecera = "📝 <b>Borrador listo</b>%s\n\n" % (" · pedido por " + _escapar(quien) if quien else "")
     texto = (cabecera + estado + "<b>" + _escapar(titulo) + "</b>\n\n"
+             + ("<i>" + _escapar(bajada) + "</i>\n\n" if bajada else "")
              + "\n\n".join(_escapar(l) for l in cuerpo)
+             + ("\n\n━━━━━━━━━━\n<b>PARA REVISAR</b>\n\n" + pie if pie else "")
              + "\n\n<i>Queda en borrador. No se publica solo.</i>")
 
     enviados = 0
@@ -1026,7 +1061,10 @@ def producir_y_entregar(nombre, tipo, encargo, autor, args,
     print("\n--- 3. ESCRIBIR Y AUDITAR ---")
     r = subprocess.run(
         [sys.executable, str(AQUI / "motor" / "producir.py"),
-         "--tipo", tipo, "--manual", nombre, "--encargo", encargo]
+         "--tipo", tipo, "--manual", nombre, "--encargo", encargo,
+         # Información complementaria de la web: pedido de Comunicación del
+         # 06/11/2026. Solo aquí, no en las tandas (ver documentalista.py).
+         "--web"]
         + (["--autor", autor] if autor else []),
         capture_output=True, text=True, encoding="utf-8", errors="replace",
         timeout=25 * 60)

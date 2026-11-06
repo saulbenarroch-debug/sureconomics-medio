@@ -43,12 +43,22 @@ def _pieza_desde_texto(ruta_txt, pieza):
     """
     lineas = ruta_txt.read_text(encoding="utf-8").split("\n")
     cuerpo, bloque, sacado, donde = [], [], [], "cuerpo"
+    bajada = False
     for linea in lineas[1:]:
         s = linea.strip()
-        if s.startswith("[Autor]") or s.startswith("[Fecha]"):
-            continue
         if titular_de(s) and not cuerpo:
             pieza["titulo"] = titular_de(s)
+            continue
+        # Toda línea con «[» es de formato o del bloque «Para revisar»
+        # (motor/borrador.py): no es texto de la pieza.
+        if s.startswith("["):
+            continue
+        # La bajada va bajo el rótulo «Resumen», antes del cuerpo.
+        if s == "Resumen" and not cuerpo:
+            bajada = True
+            continue
+        if bajada and s:
+            pieza["bajada"], bajada = s, False
             continue
         if s.startswith("SurEconomics:"):
             donde = "bloque"

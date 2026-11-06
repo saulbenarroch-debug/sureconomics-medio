@@ -141,9 +141,15 @@ class Hallazgo:
 
 
 def _texto_de(pieza):
-    """Todo el texto publicable de la pieza, para buscar cifras y enlaces."""
-    return "\n".join(str(pieza.get(c, "") or "") for c in
-                     ("titulo", "cuerpo", "bloque_sureconomics"))
+    """Todo el texto publicable de la pieza, para buscar cifras y enlaces.
+
+    Incluye la bajada y las otras opciones de titular (formato de entrega de
+    noviembre de 2026): la bajada se publica, y cualquiera de las opciones
+    puede acabar siéndolo. Una cifra inventada ahí se publicaría igual."""
+    partes = [str(pieza.get(c, "") or "") for c in
+              ("titulo", "bajada", "cuerpo", "bloque_sureconomics")]
+    partes += [t for t in pieza.get("titulos_alternativos") or [] if isinstance(t, str)]
+    return "\n".join(partes)
 
 
 def _es_anio(token):

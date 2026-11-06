@@ -90,3 +90,35 @@ def mayuscula_inicial(texto):
         if c.isalpha():
             return texto[:i] + c.upper() + texto[i + 1:]
     return texto
+
+
+# EL BLOQUE «PARA REVISAR», al final del borrador (guía editorial de
+# Comunicación, 06/11/2026). Lleva lo que pide el formato de entrega y NO se
+# publica: las otras cuatro opciones de titular, la sección, todas las fuentes
+# con su enlace, los datos complementarios con su fuente y lo que faltó.
+#
+# Cada línea empieza por «[», y eso es lo que lo deja fuera del sitio:
+# armar_carga.desmontar() salta toda línea que empieza así, y el correo las
+# pinta como rótulos. «[Opción 2]» y no «[Titular 2]»: titular_de() reconoce el
+# titular por empezar con «[Titular]».
+REVISION = "[Para revisar]"
+
+
+def bloque_de_revision(pieza, seccion=""):
+    lineas = []
+    for i, t in enumerate(pieza.get("titulos_alternativos") or [], start=2):
+        lineas.append("[Opción %d] %s" % (i, t))
+    if seccion:
+        lineas.append("[Sección] %s" % seccion)
+    # El medio con la fecha de SU nota: un dato de contexto de hace meses tiene
+    # que verse como de hace meses al revisarlo.
+    def quien(x):
+        return x["medio"] + (" (%s)" % x["fecha"] if x.get("fecha") else "")
+    for f in pieza.get("fuentes_lista") or []:
+        lineas.append("[Fuente] %s · %s" % (quien(f), f["url"]))
+    for c in pieza.get("complementarios") or []:
+        lineas.append("[Complementario] %s · %s · %s" % (c["dato"], quien(c), c["url"]))
+    for f in pieza.get("faltantes") or []:
+        if isinstance(f, str) and f.strip():
+            lineas.append("[Verificar] %s" % f.strip())
+    return ([REVISION] + lineas) if lineas else []

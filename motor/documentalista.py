@@ -251,3 +251,181 @@ def armar_expediente(paquete, max_notas=MAX_NOTAS, dias=DIAS):
                        "de la nota original. Puede ser terreno para investigación "
                        "propia, o señal de que el hecho no da para una pieza.")
     return expediente, informe
+
+
+# INFORMACIÓN COMPLEMENTARIA DE LA WEB (pedido de Comunicación, 06/11/2026).
+#
+# El barrido de arriba solo ve los feeds de la lista blanca, y de esos solo la
+# sección de economía de los últimos 21 días. Comunicación pidió que cada
+# noticia se enriquezca con antecedentes, cifras y comparaciones de fuentes
+# confiables (organismos oficiales, bancos centrales, agencias y medios
+# económicos), y que eso no salga de la memoria del modelo, que es donde
+# aparecen los datos viejos o inventados.
+#
+# Así que se busca en la web con Tavily, ACOTADO a los dominios de confianza
+# (buscador.dominios_permitidos: la lista blanca más REFERENCIA, que trae FMI,
+# Banco Mundial, CEPAL y bancos centrales), y lo encontrado entra al paquete
+# como cualquier fuente: con su medio, su enlace y sus cifras atribuidas, así
+# que el auditor lo comprueba igual que la nota original.
+#
+# UNA búsqueda por pieza, en modo «basic»: cuesta 1 crédito de Tavily y el plan
+# gratuito trae 1.000 al mes. Por eso solo la pide /nota (--web en
+# producir.py); las tandas no la usan mientras no haya un plan pagado.
+#
+# Se usa el TEXTO DE LA PÁGINA (raw_content) y nunca el resumen de Tavily
+# (`answer`), que lo escribe una IA: ver la regla 1 de motor/buscador.py.
+WEB_MAXIMO = 3
+WEB_CARACTERES = 2500
+
+
+# Los organismos de REFERENCIA no traen nombre (su valor es ""), y el nombre
+# importa: el redactor escribe «según el FMI» y la línea «Sacado de» solo
+# acredita a quien aparece NOMBRADO en el texto. Con «imf.org» no casaría nunca.
+OFICIALES = {
+    "imf.org": "FMI", "worldbank.org": "Banco Mundial", "cepal.org": "CEPAL",
+    "banxico.org.mx": "Banco de México", "banrep.gov.co": "Banco de la República",
+    "dane.gov.co": "DANE", "gob.mx": "Gobierno de México",
+}
+
+
+def _nombre_del_sitio(url):
+    from motor import buscador
+    dominio = re.sub(r"^www\.", "", re.sub(r"^https?://", "", url).split("/")[0])
+
+    def es(d):
+        return dominio == d or dominio.endswith("." + d)
+    for d, n in OFICIALES.items():
+        if es(d):
+            return n
+    for d, n in buscador.REFERENCIA.items():
+        if n and es(d):
+            return n
+    for m in noticias.MEDIOS.values():
+        host = re.sub(r"^https?://", "", m["url"]).split("/")[0]
+        host = re.sub(r"^(www|feeds)\.", "", buscador.ARTICULOS_DE.get(host, host))
+        if es(host):
+            return m["nombre"]
+    return dominio
+
+
+def _parrafos(crudo, minimo=90):
+    """Los párrafos de verdad de una página en markdown o texto: fuera menús,
+    imágenes, tablas, cabeceras y la forma de los enlaces (se queda el texto)."""
+    fuera = []
+    for p in re.split(r"\n+", crudo or ""):
+        p = re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", p).strip(" *#>|\t")
+        if len(p) > minimo and not re.match(
+                r"(Title|URL Source|Published Time|Markdown Content):", p):
+            fuera.append(p)
+    return re.sub(r"\s+", " ", " ".join(fuera)).strip()
+
+
+def _leer_pagina(url):
+    """Los párrafos de la página, sin IA. El mismo criterio que nota.leer_enlace."""
+    import urllib.request
+    try:
+        pet = urllib.request.Request(url, headers={"User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")})
+        with urllib.request.urlopen(pet, timeout=30) as r:
+            crudo = r.read().decode("utf-8", "replace")
+    except Exception:  # noqa: BLE001
+        return ""
+    crudo = re.sub(r"(?is)<(script|style|nav|header|footer|aside|form)[^>]*>.*?</\1>",
+                   " ", crudo)
+    trozos = []
+    for p in re.findall(r"(?is)<p[^>]*>(.*?)</p>", crudo):
+        p = re.sub(r"(?s)<[^>]+>", " ", p).replace("&nbsp;", " ").replace("&amp;", "&")
+        p = re.sub(r"\s+", " ", p).strip()
+        if len(p) > 90:
+            trozos.append(p)
+    return " ".join(trozos[:12])
+
+
+def complementar_en_la_web(paquete, maximo=WEB_MAXIMO):
+    """Devuelve (paquetes, informe): notas complementarias leídas de la web."""
+    import os
+
+    import requests
+
+    from motor import buscador
+    from motor.paquete import Fuente, Paquete
+
+    clave = os.environ.get("TAVILY_API_KEY", "").strip()
+    if not clave:
+        return [], ["sin TAVILY_API_KEY: no busco información complementaria"]
+    hecho = re.sub(r"\s+", " ", paquete.hecho or "").strip()[:300]
+    if not hecho:
+        return [], ["sin hecho que buscar"]
+    # Con el titular a secas, la búsqueda devuelve la MISMA noticia contada por
+    # otros tres medios. Pidiendo antecedentes y datos, trae contexto: probado
+    # el 06/11/2026 con el petróleo y Ormuz, pasó de tres copias de la nota de
+    # Goldman Sachs a notas de marzo y a ganadores y perdedores del cierre del
+    # estrecho.
+    consulta = hecho + ": antecedentes, datos oficiales y comparaciones"
+    try:
+        r = requests.post(buscador.API, timeout=60, json={
+            "api_key": clave,
+            "query": consulta,
+            "search_depth": "basic",
+            "max_results": 10,
+            "time_range": "year",
+            "include_answer": False,
+            "include_raw_content": True,
+            "include_domains": buscador.dominios_permitidos(),
+        })
+    except Exception as exc:  # noqa: BLE001
+        return [], [f"la búsqueda web no respondió ({type(exc).__name__})"]
+    if not r.ok:
+        return [], [f"la búsqueda web respondió {r.status_code}"]
+
+    originales = {f.url.rstrip("/") for f in paquete.fuentes}
+    vistos = [paquete.hecho]
+    salida, informe = [], []
+    for x in r.json().get("results", []):
+        url, titulo = x.get("url", ""), buscador._limpio(x.get("title"))
+        if not url or url.rstrip("/") in originales or buscador._es_indice(titulo, url):
+            continue
+        # La misma nota que ya tenemos, contada por otro medio, no complementa:
+        # repite. Se buscan antecedentes y contexto, no copias.
+        if any(_parecidas(titulo, v) for v in vistos):
+            continue
+        # El texto, por orden de preferencia: el de la página que trae Tavily,
+        # la página leída por nosotros (gratis; en modo «basic» Tavily la
+        # devuelve vacía la mitad de las veces) y, si nada, su extracto.
+        texto = _parrafos(x.get("raw_content") or "")
+        if len(texto) < 300:
+            texto = _leer_pagina(url)
+        if len(texto) < 300:
+            texto = _parrafos(x.get("content") or "", minimo=0)
+        if len(texto) < 200:
+            continue
+        texto = texto[:WEB_CARACTERES]
+        medio = _nombre_del_sitio(url)
+        m = re.search(r"/(20\d\d)[/-](\d\d)[/-](\d\d)(?:/|-|$)", url)
+        fecha = ((x.get("published_date") or "")[:10]
+                 or ("%s-%s-%s" % m.groups() if m else ""))
+        fid = f"web{len(salida) + 1}"
+        salida.append(Paquete(
+            hecho=titulo,
+            fecha_hecho=fecha,
+            cifras=noticias.cifras_del_texto(texto, fid, medio),
+            citas=[{"texto": texto, "autor": medio, "fuente_id": fid}],
+            entidades=[medio],
+            fuentes=[Fuente(id=fid, institucion=medio, documento=titulo, url=url,
+                            fecha=fecha)],
+            advertencias=[
+                f"INFORMACIÓN COMPLEMENTARIA de {medio}"
+                + (f", publicada el {fecha}" if fecha else ", sin fecha conocida")
+                + f": «{titulo[:90]}». No es el hecho de la noticia: úsala solo "
+                f"para antecedentes, cifras o comparaciones, nombra a {medio} en "
+                f"el cuerpo y anótala en `complementarios`."
+            ],
+        ))
+        vistos.append(titulo)
+        informe.append(f"· [{medio}] {titulo[:70]}")
+        if len(salida) >= maximo:
+            break
+    if not salida:
+        informe.append("la web no trajo nada que complemente, más allá de la nota original")
+    return salida, informe

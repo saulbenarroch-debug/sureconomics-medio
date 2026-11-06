@@ -59,6 +59,11 @@ class Fuente:
     # vive en bcv.org.ve y en ningun otro sitio. Se marca a mano, fuente por
     # fuente, para que siga siendo una excepcion y no un agujero.
     portada_es_la_fuente: bool = False
+    # La fecha de ESTE documento, cuando no es la del hecho. Hace falta desde
+    # la información complementaria de la web (noviembre de 2026): una nota de
+    # marzo que da contexto a una noticia de hoy no puede acreditarse con la
+    # fecha de hoy. Vacía = la del paquete, como siempre.
+    fecha: str = ""
 
     def problemas(self):
         p = []

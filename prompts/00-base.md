@@ -114,9 +114,12 @@ Usa la puntuación normal del español, que para eso está:
 - Inciso o aclaración: **paréntesis** o dos comas.
   - Mal: *"el bono samurái —el primero desde 2024— se coloca esta semana"*
   - Bien: *"el bono samurái (el primero desde 2024) se coloca esta semana"*
-- Palabras compuestas o pares de países: **guion corto**, sin espacios.
-  - Mal: *"aranceles Canadá–EE. UU."*
-  - Bien: *"aranceles Canadá-EE. UU."*
+- Pares de países o rangos: **sin guion de ningún tipo** (guía editorial de
+  noviembre de 2026).
+  - Mal: *"aranceles Canadá–EE. UU."*, *"entre 3-5 %"*
+  - Bien: *"aranceles entre Canadá y EE. UU."*, *"de 3 a 5 %"*
+  - Solo se conserva el guion que es parte de un nombre o sigla oficial
+    (T-MEC, COVID-19).
 
 Si aun así se te escapa uno, el código lo sustituye antes de publicar. Pero
 lo que sale de esa sustitución nunca queda tan bien como la frase que habrías
@@ -325,9 +328,15 @@ Devuelves **solo** este objeto, sin texto alrededor:
   "fuentes_usadas": ["f1"],
   "cifras_hipoteticas": [],
   "cifras_de_definicion": [],
-  "faltantes": []
+  "faltantes": [],
+  "titulos_alternativos": [],
+  "bajada": "",
+  "complementarios": []
 }
 ```
+
+`titulos_alternativos`, `bajada` y `complementarios` los usa la noticia (ver
+`10-noticia.md`); en los demás tipos van vacíos salvo que tu prompt los pida.
 
 `cifras_usadas` lista las **claves** del paquete que aparecen en tu texto. El
 auditor comprueba que todo número del cuerpo corresponda a una clave declarada:

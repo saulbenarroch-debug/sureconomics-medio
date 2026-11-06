@@ -139,7 +139,16 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
         # de Peru, con dos enlaces que la pieza jamas uso. "El Comercio" con
         # mayusculas solo aparece cuando de verdad se nombra al diario.
         lineas, acreditadas = [], set()
-        for f in paquete.fuentes:
+        # PRIMERO LAS QUE LA PIEZA DICE HABER USADO. Con dos notas del mismo
+        # medio, el «una vez por medio» de abajo acreditaba la primera que
+        # apareciera en el paquete, usada o no: el 06/11/2026 el pie enlazó la
+        # nota de Infobae sobre un derrame cuando los datos eran de otra nota
+        # de Infobae, de marzo. La original sigue yendo delante de todo.
+        usadas = {str(c.get("fuente_id")) for c in pieza.get("complementarios") or []
+                  if isinstance(c, dict)} | set(pieza.get("fuentes_usadas") or [])
+        orden = paquete.fuentes[:1] + sorted(paquete.fuentes[1:],
+                                             key=lambda f: f.id not in usadas)
+        for f in orden:
             nombrada = re.search(r"\b" + re.escape(f.institucion) + r"\b",
                                  texto_pieza)
             # Un medio se acredita una vez. Si el paquete trae tres notas del
@@ -149,7 +158,8 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
                 continue
             if nombrada or not lineas:
                 acreditadas.add(f.institucion)
-                lineas.append(f"{f.institucion}, {paquete.fecha_hecho or 's/f'} · {f.url}")
+                lineas.append(f"{f.institucion}, "
+                              f"{getattr(f, 'fecha', '') or paquete.fecha_hecho or 's/f'} · {f.url}")
         pieza["sacado_de"] = "Sacado de: " + "\nSacado de: ".join(lineas)
         # El modelo tambien la escribe aunque el prompt ya no se la pida, y
         # entonces sale dos veces. La linea es del codigo: se limpia del cuerpo.
@@ -213,6 +223,8 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
             t = desde_mayusculas(t, pieza.get("cuerpo", ""))
         pieza["titulo"] = mayuscula_inicial(t)
 
+    _formato_de_entrega(pieza, paquete)
+
     # Ultimo paso, sobre TODO lo que sale publicado: fuera los guiones largos.
     # Y los nombres que van siempre igual (PDVSA): motor/borrador.SIEMPRE_ASI.
     from motor.borrador import estilo_casa
@@ -235,6 +247,63 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
 # traian guiones largos sin que nadie los hubiera pedido. La norma la aplica el
 # codigo; el prompt solo evita que haya que arreglar tanto despues.
 GUIONES_LARGOS = "—–"
+
+
+def _formato_de_entrega(pieza, paquete):
+    """Los campos del formato de entrega de la guía editorial de Comunicación
+    (06/11/2026): cinco opciones de titular, bajada, fuentes y lo que hay que
+    verificar. Solo el titular, la bajada y el cuerpo se publican; lo demás es
+    para quien revisa el borrador (ver motor/borrador.bloque_de_revision).
+
+    LOS ENLACES LOS PONE EL CÓDIGO. El modelo solo dice de qué fuente_id sale
+    cada dato complementario; medio y URL se buscan en el paquete. Un dato que
+    apunta a una fuente que no está en el paquete se descarta: es la forma de
+    que no aparezca nunca un enlace inventado en la lista que se revisa.
+    """
+    from motor.borrador import desde_mayusculas, estilo_casa, mayuscula_inicial
+
+    # Las otras cuatro opciones de titular, con las mismas normas que el titular.
+    principal = (pieza.get("titulo") or "").strip().lower()
+    otros, vistos = [], {principal}
+    for t in pieza.get("titulos_alternativos") or []:
+        if not isinstance(t, str) or not t.strip():
+            continue
+        t = t.strip()
+        if t.isupper():
+            t = desde_mayusculas(t, pieza.get("cuerpo", ""))
+        t = estilo_casa(sin_guiones_largos(mayuscula_inicial(t))).rstrip(".")
+        if t.lower() not in vistos:
+            vistos.add(t.lower())
+            otros.append(t)
+    pieza["titulos_alternativos"] = otros[:4]
+
+    pieza["bajada"] = estilo_casa(sin_guiones_largos(
+        re.sub(r"\s+", " ", str(pieza.get("bajada") or "")).strip()))
+
+    por_id = {f.id: f for f in paquete.fuentes}
+    datos = []
+    for c in pieza.get("complementarios") or []:
+        if not isinstance(c, dict):
+            continue
+        f = por_id.get(str(c.get("fuente_id") or "").strip())
+        dato = estilo_casa(sin_guiones_largos(str(c.get("dato") or "").strip()))
+        if f and dato:
+            datos.append({"dato": dato, "medio": f.institucion, "url": f.url,
+                          "fecha": getattr(f, "fecha", "") or ""})
+    pieza["complementarios"] = datos
+
+    # Todas las fuentes que la pieza dice usar, la original primero, sin repetir.
+    ids = [paquete.fuentes[0].id] if paquete.fuentes else []
+    ids += [i for i in pieza.get("fuentes_usadas") or [] if i in por_id]
+    lista, medios = [], set()
+    for i in ids:
+        f = por_id[i]
+        if (f.institucion, f.url) in medios:
+            continue
+        medios.add((f.institucion, f.url))
+        lista.append({"medio": f.institucion, "url": f.url,
+                      "fecha": getattr(f, "fecha", "") or (paquete.fecha_hecho if i == ids[0] else "")})
+    pieza["fuentes_lista"] = lista
 
 
 def sin_guiones_largos(texto):

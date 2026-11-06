@@ -263,6 +263,56 @@ del medio, y eso dejó huellas que conviene conocer:
   `desde_mayusculas()` y en la lámina. Otro nombre con forma fija se añade a
   `SIEMPRE_ASI`.
 
+## La guía editorial de Comunicación (desde el 06/11/2026)
+
+Comunicación mandó una guía para las noticias: principio editorial («informar
+primero, contextualizar después, opinar nunca»), las cinco preguntas, las cuatro
+partes (titular, entrada, desarrollo, cierre), ocho reglas, cero guiones y un
+formato de entrega fijo. Pidió reemplazar el prompt; **se integró en
+`prompts/10-noticia.md` en vez de reemplazarlo**, porque el suyo no traía el
+formato JSON que leen el auditor y el panel, ni las reglas que ya costaron
+errores (cifras solo del paquete, no completar nombres, titulares en minúscula,
+PDVSA). En el fondo decían lo mismo.
+
+**El formato de entrega**, campo a campo:
+
+| Pide la guía | Dónde sale | ¿Se publica? |
+|---|---|---|
+| 5 opciones de titular | `titulo` + `titulos_alternativos` (4) | solo `titulo` |
+| Bajada | `bajada` → rótulo «Resumen» del .txt → campo resumen del panel | sí |
+| Noticia | `cuerpo` | sí |
+| Sección | `clasificar.temas()` (código) | la pone armar_carga |
+| Fuentes con enlace | `fuentes_lista` (código, desde el paquete) | el pie «Sacado de» sí |
+| Datos complementarios | `complementarios`: el modelo da el `fuente_id`, el código pone medio, fecha y URL | no: se revisan |
+| Notas de verificación | `faltantes` | no |
+
+Lo que no se publica va al final del .txt en el bloque **`[Para revisar]`**
+(`borrador.bloque_de_revision`), con cada línea empezando por «[» para que
+`armar_carga.desmontar()` la salte. Telegram lo pinta aparte, con rótulos
+(`nota.mandar_al_chat`). **Si añades un lector de borradores, salta las líneas
+con «[»** o publicarás la lista de revisión.
+
+**Los enlaces de la lista los pone el código, nunca el modelo**: un dato
+complementario cuyo `fuente_id` no está en el paquete se descarta.
+
+### Información complementaria de la web
+
+`documentalista.complementar_en_la_web()`: una búsqueda de Tavily acotada a
+`buscador.dominios_permitidos()` (lista blanca + organismos de REFERENCIA), con
+«antecedentes, datos oficiales y comparaciones» pegado al hecho para que no
+devuelva la misma noticia contada por otros. Hasta 3 notas, cada una con su
+texto real (el de Tavily, o la página leída por nosotros), sus cifras atribuidas
+y su **fecha** (`Fuente.fecha`), y entran al paquete como cualquier fuente: el
+auditor las comprueba igual.
+
+- **Solo la pide `/nota` (`--web`)**, no las tandas: cuesta 1 crédito de Tavily y
+  el plan gratuito trae 1.000 al mes (el 06/11/2026 iban 743). Para las tandas
+  harían falta unos 360 más al mes.
+- **`Fuente.fecha` existe por esto**: una nota de marzo que da contexto no puede
+  acreditarse con la fecha de la noticia de hoy. Y el pie «Sacado de» acredita
+  primero las fuentes que la pieza dice haber usado: con dos notas del mismo
+  medio enlazaba la que no era.
+
 ## Tipos de pieza
 
 Seis, cada uno con su prompt en `prompts/`. `armar_carga.FORMATOS` los traduce a
