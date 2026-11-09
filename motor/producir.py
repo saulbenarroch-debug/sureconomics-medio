@@ -120,6 +120,102 @@ def _leer_candidato(ruta, indice):
     return paquete
 
 
+# Mas bajo que memoria.UMBRAL a proposito: aqui no se bloquea nada, se le dice
+# al redactor que es lo que ya contamos. Un titulo de mas en esa lista cuesta
+# unos tokens; uno de menos es como se vuelve a escribir la noticia vieja.
+UMBRAL_RELACIONADAS = 0.35
+
+
+def _ya_publicado(hecho, maximo=4):
+    """Las piezas publicadas que tratan el mismo asunto que 'hecho'.
+
+    POR QUE EXISTE. El 08/11/2026 se pidio una nota del Washington Post (via
+    AlbertoNews) sobre Alejandro Betancourt, el dueño de NABEP. La comprobacion
+    de duplicados la paro -el acuerdo petrolero ya estaba publicado-, la
+    redaccion pidio «igual» porque lo nuevo era otra cosa, y el bot escribio
+    OTRA VEZ el acuerdo: «EE. UU. obtiene el 35 % de la petrolera NABEP». Con
+    «igual» se salta la comprobacion y el redactor no sabia que eso ya estaba
+    contado, asi que abrio con la cifra mas llamativa del paquete, que era la
+    vieja. Pasa tambien sin forzar: una noticia que se parece pero no llega al
+    umbral de repetida es justo un seguimiento.
+
+    Devuelve (previas, catalogo). Si el sitio no responde, ([], []) y se sigue:
+    escribir sin esta ayuda es lo que se hacia hasta hoy.
+    """
+    try:
+        from motor import memoria
+        catalogo = memoria.publicadas()
+    except Exception as exc:  # noqa: BLE001
+        print(f"[aviso] no pude consultar lo publicado ({str(exc)[:60]})")
+        return [], []
+    if not catalogo or not hecho:
+        return [], catalogo or []
+    peso = memoria.pesos(catalogo)
+    puntuadas = sorted(((memoria.parecido(hecho, c["titulo"], peso), c)
+                        for c in catalogo), key=lambda x: -x[0])
+    return ([c for p, c in puntuadas[:maximo] if p >= UMBRAL_RELACIONADAS],
+            catalogo)
+
+
+def _aviso_seguimiento(previas):
+    lista = "\n".join(f"  · «{p['titulo']}» ({p['fecha'][:10]})" for p in previas)
+    return (
+        "YA PUBLICADO EN SURECONOMICS. Estos títulos ya salieron en el sitio:\n"
+        f"{lista}\n"
+        "Si la fuente principal trata el mismo asunto que alguno de ellos, esta "
+        "pieza es un SEGUIMIENTO: el titular, la bajada y el primer párrafo "
+        "cuentan SOLO lo nuevo que trae la fuente principal (lo que dijo alguien, "
+        "un dato nuevo, un hecho posterior, un actor que no salía). Lo ya "
+        "publicado entra como contexto en un solo párrafo, resumido, nunca como "
+        "titular ni como entrada. Las fuentes complementarias suelen contar lo "
+        "viejo: no las conviertas en el hecho. Si la fuente principal no trae "
+        "nada nuevo respecto a esos títulos, escríbelo en `faltantes` como "
+        "«sin novedad respecto a lo ya publicado»."
+    )
+
+
+def _repite_lo_publicado(pieza, previas):
+    """¿El titular nuevo cuenta lo mismo que algo ya publicado?
+
+    LO DECIDE LA IA, NO EL PARECIDO DE PALABRAS. Un seguimiento nombra a los
+    mismos actores por fuerza: «Revolut prevé lanzar su banco en Argentina en
+    2027» puntua 0.41 contra «Revolut obtiene el aval para operar como banco en
+    Argentina» y es otra noticia. Medir palabras habria mandado a reescribir
+    justo los seguimientos bien hechos. Una pregunta corta cuesta unos cientos
+    de tokens; una reescritura a ciegas, veinte mil.
+    """
+    from motor import ia
+    lista = "\n".join(f"- {p['titulo']} ({p['fecha'][:10]})" for p in previas)
+    r = ia.pedir_json(
+        "Eres editor de un medio. Ya publicamos estas noticias:\n" + lista +
+        "\n\nNueva pieza:\nTitular: " + (pieza.get("titulo") or "") +
+        "\nBajada: " + (pieza.get("bajada") or "") +
+        "\n\n¿El titular nuevo cuenta el MISMO hecho que alguna ya publicada "
+        "(aunque con otras palabras), en vez de un hecho nuevo? Un seguimiento "
+        "con un dato, una declaración o un hecho posterior NO es repetir.\n"
+        'Responde solo JSON: {"repite": true|false, "cual": "título publicado '
+        'que repite, o vacío", "lo_nuevo": "en una frase, qué trae de nuevo la '
+        'pieza, o vacío"}',
+        etiqueta="seguimiento", temperatura=0.0)
+    if not r or not r.get("repite"):
+        return None
+    return {"titulo": r.get("cual") or previas[0]["titulo"]}
+
+
+def _critica_repetida(pieza, choca):
+    """La segunda pasada, con el formato que ya entiende el redactor."""
+    return {"observaciones": [{
+        "gravedad": "alta",
+        "que": f"El titular «{pieza.get('titulo', '')}» repite una noticia que "
+               f"ya publicamos: «{choca['titulo']}».",
+        "por_que": "El lector ya leyó eso en SureConomics. Esta pieza solo se "
+                   "justifica por lo que trae de nuevo la fuente principal.",
+        "sugerencia": "Titula, resume y abre con lo nuevo de la fuente principal. "
+                      "Lo ya publicado, en un solo párrafo de contexto. Si no hay "
+                      "nada nuevo, decláralo en 'faltantes'.",
+    }]}
+
+
 def main():
     ap = argparse.ArgumentParser(description="Cadena completa de produccion")
     ap.add_argument("--diarios", help="claves de la lista blanca separadas por coma, "
@@ -273,6 +369,14 @@ def main():
     for a in paquete.advertencias:
         print(f"   ! {a}")
 
+    # LO QUE YA PUBLICAMOS SOBRE ESTO, AL REDACTOR. Ver _ya_publicado().
+    previas, catalogo = _ya_publicado(paquete.hecho)
+    if previas:
+        print("\n1d. MEMORIA — ya publicamos sobre esto; se escribe lo nuevo")
+        for p in previas:
+            print(f"   · {p['fecha'][:10]} {p['titulo'][:80]}")
+        paquete.advertencias.append(_aviso_seguimiento(previas))
+
     print("\n2. REDACTOR — escribo la prosa")
     pieza = redactor.redactar(args.tipo, paquete, args.autor, args.encargo)
     if not pieza:
@@ -295,6 +399,26 @@ def main():
                 print("[aviso] la segunda pasada falló; me quedo con el borrador")
         else:
             print("   el economista no pide cambios")
+
+    # Y SI AUN ASI TITULA CON LO VIEJO, UNA PASADA MAS. La advertencia se pide,
+    # no se garantiza: el modelo tiende a abrir con la cifra mas llamativa del
+    # paquete, y en un seguimiento esa suele ser la de la noticia anterior.
+    if previas:
+        choca = _repite_lo_publicado(pieza, previas)
+        if choca:
+            print(f"\n2d. REDACTOR — el titular repite «{choca['titulo'][:60]}»; "
+                  "lo rehago con lo nuevo")
+            otra = redactor.redactar(args.tipo, paquete, args.autor, args.encargo,
+                                     critica=_critica_repetida(pieza, choca))
+            if otra:
+                pieza = otra
+                if _repite_lo_publicado(pieza, previas):
+                    # Se entrega igual y se dice: la redaccion decide. Lo marca
+                    # el bloque [Para revisar], que es lo que se lee en Telegram.
+                    print("[aviso] el titular sigue repitiendo lo ya publicado")
+                    pieza.setdefault("faltantes", []).append(
+                        "el titular sigue contando lo ya publicado («%s»); "
+                        "puede que la fuente no traiga nada nuevo" % choca["titulo"])
 
     print("\n3. AUDITOR — verifico contra el paquete")
     hallazgos = auditor.auditar(pieza, paquete, args.encargo)

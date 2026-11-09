@@ -158,8 +158,14 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
                 continue
             if nombrada or not lineas:
                 acreditadas.add(f.institucion)
-                lineas.append(f"{f.institucion}, "
-                              f"{getattr(f, 'fecha', '') or paquete.fecha_hecho or 's/f'} · {f.url}")
+                # LA FECHA DEL HECHO ES SOLO DE LA ORIGINAL. Se le ponia a
+                # cualquier fuente sin fecha, y el 08/11/2026 el pie dio por
+                # publicadas ese dia dos notas de Semana y La República que eran
+                # de septiembre. Sin fecha conocida, mejor ninguna que una falsa.
+                fecha = getattr(f, "fecha", "") or (
+                    paquete.fecha_hecho if f is paquete.fuentes[0] else "")
+                lineas.append(f"{f.institucion}, {fecha} · {f.url}" if fecha
+                              else f"{f.institucion} · {f.url}")
         pieza["sacado_de"] = "Sacado de: " + "\nSacado de: ".join(lineas)
         # El modelo tambien la escribe aunque el prompt ya no se la pida, y
         # entonces sale dos veces. La linea es del codigo: se limpia del cuerpo.
@@ -195,7 +201,8 @@ def redactar(tipo, paquete, autor=None, encargo="", critica=None):
                          ("titulo", "cuerpo", "bloque_sureconomics"))
         vivas = []
         for i, linea in enumerate(pieza["sacado_de"].split("\nSacado de: ")):
-            nombre = linea.replace("Sacado de: ", "").split(",")[0].strip()
+            # «Medio, fecha · url» o, sin fecha conocida, «Medio · url».
+            nombre = re.split(r",| · ", linea.replace("Sacado de: ", ""))[0].strip()
             # La primera se conserva siempre: es la fuente de la que sale la
             # pieza, se la nombre o no en la prosa.
             if i == 0 or re.search(r"\b" + re.escape(nombre) + r"\b", final):

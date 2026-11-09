@@ -263,6 +263,29 @@ del medio, y eso dejó huellas que conviene conocer:
   `desde_mayusculas()` y en la lámina. Otro nombre con forma fija se añade a
   `SIEMPRE_ASI`.
 
+## Seguimientos: lo ya publicado va al redactor (09/11/2026)
+
+El 08/11/2026 se pidió con «igual» una nota del Washington Post (vía
+AlbertoNews) sobre Alejandro Betancourt, dueño de NABEP. La comprobación de
+duplicados la había parado por el acuerdo petrolero, con razón a medias: lo
+nuevo era otra cosa. Pero con «igual» se salta la comprobación, el redactor no
+sabía qué estaba ya contado y tituló con lo viejo: «EE. UU. obtiene el 35 % de
+la petrolera NABEP». La web complementaria, que trae justo los antecedentes,
+lo empujó más.
+
+Ahora `producir.py`, antes de redactar y **siempre** (con «igual» o sin él, en
+`/nota` y en las tandas), busca en el catálogo hasta 4 piezas con parecido
+≥ 0,35 (`_ya_publicado`) y se las pasa como advertencia obligatoria: titular,
+bajada y primer párrafo con lo nuevo; lo ya publicado, un solo párrafo de
+contexto. Después, **la IA** (no el parecido de palabras, que confunde
+seguimientos con repetidas: Revolut aval vs. Revolut lanzamiento puntúa 0,41)
+juzga si el titular repite algo publicado; si sí, una pasada más del redactor,
+y si sigue, se avisa en `[Para revisar]`. Probado con la misma nota: abrió con
+la gira de Betancourt por el lago y dejó el 35 % como contexto.
+
+La fecha del hecho en «Sacado de» es solo de la fuente original; las demás
+sin fecha conocida van sin fecha (antes salían con la del día, falsamente).
+
 ## Medios que no se dejan leer (09/11/2026)
 
 Medido ese día con notas reales: **Reuters da 401; Bloomberg, FT y AP, 403**, a
