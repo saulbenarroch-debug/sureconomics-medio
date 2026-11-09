@@ -262,6 +262,98 @@ def _habla_de(candidato, consulta):
     return any(p in ficha for p in palabras)
 
 
+from motor.buscador import NO_SE_LEEN  # noqa: E402  (ver su comentario)
+
+
+def _misma_noticia_en_otro_medio(url, maximo=3):
+    """Candidatos de la lista blanca que cuentan lo mismo que un enlace que no
+    se deja leer. [] si no hay. Cuesta 1 crédito de Tavily.
+
+    Lo único que se sabe de la nota es su DIRECCIÓN: no se lee la página (ese
+    es el problema) ni se pide a terceros que la lean. Reuters, AP y casi todos
+    ponen el titular en la dirección («venezuela-expects-nearly-76-billion-oil-
+    investment…»), y con esas palabras se busca.
+
+    DOS COSAS APRENDIDAS EN LA PRUEBA DEL 09/11/2026, con la nota de Reuters
+    sobre el primer crudo de NABEP que llega a Texas:
+      - buscando en inglés, Tavily solo trae medios en inglés (World Oil) y no
+        la misma noticia en El Nacional, que la tenía. Así que la consulta se
+        pasa al español con una llamada corta al modelo;
+      - con «dos palabras en común» entraron tres notas de World Oil sobre
+        NABEP que no eran ese hecho. Lo que cruza el idioma son los NOMBRES
+        PROPIOS y las CIFRAS (NABEP, Texas, Exxon, Citgo), y se exigen tres.
+    """
+    from motor import buscador, ia
+
+    ruta = urllib.parse.urlparse(url).path
+    ruta = re.sub(r"\d{4}[-/]\d{1,2}[-/]\d{1,2}", " ", ruta)
+    trozos = re.split(r"[-_/.\s]+", _plano(ruta))
+    palabras = [t for t in trozos
+                if (len(t) >= 4 or t.isdigit()) and not re.fullmatch(r"\d{4,}|[0-9a-f]{12,}", t)
+                and t not in ("html", "news", "article", "articles", "business",
+                              "world", "story", "amp", "index", "energy", "markets",
+                              "legal", "litigation", "economy")]
+    if len(palabras) < 3:
+        return []
+    r = ia.pedir_json(
+        "Esta es la dirección de una noticia que no se puede abrir: «%s».\n"
+        "Devuelve solo este JSON: {\"consulta\": \"el titular probable, en "
+        "español, para buscar la misma noticia en medios en español\", "
+        "\"claves\": [\"los nombres propios, siglas y cifras de la dirección "
+        "(empresas, personas, lugares, números), escritos como saldrían en una "
+        "nota en español; sin gentilicios ni palabras comunes\"]}" % " ".join(palabras),
+        etiqueta="misma-noticia", temperatura=0.1) or {}
+    consulta = (r.get("consulta") or " ".join(palabras)).strip()
+    claves = [_plano(c) for c in r.get("claves") or [] if str(c).strip()] or palabras
+    hacen_falta = 6
+    bloqueado = re.sub(r"^www\.", "", urllib.parse.urlparse(url).netloc)
+    print("  busco la misma noticia en otro medio: %s" % consulta[:90])
+    print("    claves: %s (hacen falta %d puntos)" % (", ".join(claves)[:80], hacen_falta))
+    # Sin los que no se dejan leer: si no, la búsqueda devuelve casi solo la
+    # misma nota de Reuters (probado el 09/11/2026: 8 de 10 resultados).
+    legibles = [d for d in buscador.dominios_permitidos()
+                if d != bloqueado and not any(n in d for n in NO_SE_LEEN)]
+    # LA PUNTUACIÓN: dos puntos por clave (nombre propio o cifra) y uno por
+    # palabra de cinco letras o más que comparta con el titular en español.
+    # Hacen falta 6. Medido el 09/11/2026: la misma noticia en Clarín sacaba 7
+    # y la nota de Bloomberg Línea sobre la central eléctrica 9; las de World
+    # Oil sobre NABEP que no eran ese hecho, y otras de petróleo venezolano de
+    # esa semana, 2. Solo con las claves no bastaba: el modelo dio
+    # «venezuelan» en inglés, y Tavily devuelve los titulares cortados.
+    del hacen_falta
+    de_la_consulta = {p for p in re.findall(r"\w{5,}", _plano(consulta))
+                      if p not in _VACIAS_CONSULTA}
+
+    def puntuar(candidatos):
+        fuera = []
+        for c in candidatos:
+            if re.search(r"/(feed|rss|outboundfeeds)\b", c.get("url", "")):
+                continue                              # un feed no es una nota
+            ficha = _plano("%s %s" % (c.get("titular", ""), c.get("extracto", "")))
+            palabras_ficha = set(re.findall(r"\w+", ficha))
+            puntos = (2 * sum(1 for k in claves if k and k in ficha)
+                      + len(de_la_consulta & palabras_ficha))
+            if puntos >= 6:
+                fuera.append((puntos, c))
+        return fuera
+
+    # DOS INTENTOS, porque Tavily no es determinista: el 09/11/2026 la MISMA
+    # consulta trajo una vez Clarín, Infobae y El Nacional con la noticia, y la
+    # siguiente seis notas de OilPrice. Si el titular en español no da nada,
+    # se prueba con las palabras de la dirección tal cual.
+    puntuados = []
+    for q in (consulta, " ".join(palabras)):
+        puntuados = puntuar(buscador.buscar(q, dias=30, maximo=10,
+                                            dominios=legibles, ordenar=False))
+        if puntuados:
+            break
+    puntuados.sort(key=lambda x: -x[0])
+    for n, c in puntuados[:maximo]:
+        print("    · %s (%d puntos): %s" % (c.get("medio", "")[:22], n,
+                                           c.get("titular", "")[:66]))
+    return [c for _, c in puntuados[:maximo]]
+
+
 # Palabras que no distinguen nada aunque midan mas de tres letras.
 _VACIAS_CONSULTA = {
     "sobre", "para", "como", "desde", "hasta", "entre", "esta", "este",
@@ -1719,29 +1811,50 @@ def main():
     por_probar = [peticion] + [c["url"] for c in (alternativas or [])
                                if c.get("url") and c["url"] != peticion]
     leidas, fallos, dominios = [], [], set()
-    for url in por_probar:
-        if len(leidas) >= MAX_FUENTES:
-            break
-        # UN MEDIO UNA VEZ. El buscador devuelve la misma nota de La Nacion dos
-        # veces, con y sin "www", y meter dos copias del mismo texto en el
-        # expediente no contrasta nada: solo duplica sus errores.
-        dom = re.sub(r"^www\.", "", urllib.parse.urlparse(url).netloc)
-        if dom in dominios:
-            continue
-        try:
-            t, p, s = leer_enlace(url)
-        except Exception as exc:  # noqa: BLE001
-            fallos.append((url, str(exc)[:70]))
-            print("  no se pudo leer %s (%s)" % (dom[:32], str(exc)[:46]))
-            continue
-        if not p:
-            fallos.append((url, "responde pero no trae texto de nota"))
-            print("  sin texto de nota: %s" % dom[:40])
-            continue
-        dominios.add(dom)
-        leidas.append({"url": url, "titulo": t, "parrafos": p,
-                       "medio": s or medio_de(url)})
-        print("  leído: %-24s %d parrafos" % (dom[:24], len(p)))
+
+    def leer_todas(urls):
+        for url in urls:
+            if len(leidas) >= MAX_FUENTES:
+                break
+            # UN MEDIO UNA VEZ. El buscador devuelve la misma nota de La Nacion
+            # dos veces, con y sin "www", y meter dos copias del mismo texto en
+            # el expediente no contrasta nada: solo duplica sus errores.
+            dom = re.sub(r"^www\.", "", urllib.parse.urlparse(url).netloc)
+            if dom in dominios:
+                continue
+            try:
+                t, p, s = leer_enlace(url)
+            except Exception as exc:  # noqa: BLE001
+                fallos.append((url, str(exc)[:70]))
+                print("  no se pudo leer %s (%s)" % (dom[:32], str(exc)[:46]))
+                continue
+            if not p:
+                fallos.append((url, "responde pero no trae texto de nota"))
+                print("  sin texto de nota: %s" % dom[:40])
+                continue
+            dominios.add(dom)
+            leidas.append({"url": url, "titulo": t, "parrafos": p,
+                           "medio": s or medio_de(url)})
+            print("  leído: %-24s %d parrafos" % (dom[:24], len(p)))
+
+    leer_todas(por_probar)
+
+    # EL ENLACE PEDIDO NO SE DEJA LEER: LA MISMA NOTICIA EN OTRO MEDIO. Medido
+    # el 09/11/2026: Reuters da 401 y Bloomberg, FT y AP dan 403 a cualquier
+    # lector automático, y NYT tiene muro de pago. No se esquiva el bloqueo,
+    # que es decisión de cada medio: se busca el mismo hecho en la lista blanca
+    # (Yahoo Finanzas publica los cables de Reuters, AP y EFE en español con
+    # licencia; Bloomberg Línea es el socio de Bloomberg) y se escribe desde
+    # ahí, citando a quien se leyó. Antes, aquí se rendía y pedía otro enlace.
+    reemplazo = ""
+    if not leidas and not alternativas and peticion.lower().startswith("http"):
+        otras = _misma_noticia_en_otro_medio(peticion)
+        if otras:
+            leer_todas([c["url"] for c in otras])
+            if leidas:
+                reemplazo = medio_de(peticion)
+                print("  %s no se deja leer: escribo desde %s"
+                      % (reemplazo, ", ".join(l["medio"] for l in leidas)))
 
     if leidas:
         # La primera manda: da el titular y el hecho. Las demas entran como
@@ -1767,6 +1880,17 @@ def main():
         return 0
     print("  %s" % titulo[:90])
     print("  %d parrafos, %d caracteres" % (len(parrafos), sum(len(p) for p in parrafos)))
+    if reemplazo:
+        # Se dice ANTES del borrador: quien lo pidió tiene que saber que el
+        # texto sale de otro medio y comprobar que es la misma noticia.
+        _mensaje_telegram(
+            args.chat,
+            "ℹ️ <b>%s no deja leer sus notas a programas</b>, así que la escribo "
+            "desde %s, que cuenta la misma noticia:\n«%s»\n\nRevisa que sea la "
+            "misma antes de publicarla." % (
+                _escapar(reemplazo),
+                _escapar(", ".join(l["medio"] for l in leidas)),
+                _escapar(titulo[:140])))
 
     # SE REGISTRAN TODAS LAS QUE SE PUDIERON LEER. Dos o tres medios contando el
     # mismo hecho no es comodidad: si uno se equivoca en una cifra, el otro no

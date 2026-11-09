@@ -123,6 +123,12 @@ _MEDIOS_OK = [
     # "montevideo" a secas, que son palabras corrientes y premiarian cualquier
     # titular que las lleve.
     r"expreso\.ec", r"montevideo\.com\.uy",
+    # Ampliación del 09/11/2026, también POR DOMINIO: «el mundo», «cinco días»
+    # o «el colombiano» son frases corrientes y premiarían cualquier titular
+    # que las lleve. 2001 entra en la lista blanca pero no aquí: puede ser
+    # fuente, pero no compite con ventaja por entrar en la tanda.
+    r"finanzas\.yahoo", r"elmundo\.es", r"abc\.es", r"cincodias",
+    r"eldiario\.(es|com)", r"elcolombiano\.com", r"prensa\.com",
 ]
 
 MEDIOS_OK = re.compile(

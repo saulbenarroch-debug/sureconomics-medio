@@ -107,6 +107,34 @@ ARTICULOS_DE = {
 }
 
 
+# MEDIOS QUE NO DEJAN LEER SUS NOTAS A UN PROGRAMA, medido el 09/11/2026:
+# Reuters (401), Bloomberg, FT y AP (403), y NYT y WSJ con muro de pago. Siguen
+# en la lista porque sus titulares sirven (y una captura puede ser suya), pero
+# su TEXTO no se toma por ninguna vía: ni leyendo la página, ni del índice de
+# Tavily, ni a través de lectores de terceros. Es su decisión. Lo que se hace es
+# buscar el mismo hecho en un medio que sí se lee (nota.py) y no usarlos como
+# información complementaria (documentalista.py).
+NO_SE_LEEN = ("reuters.com", "bloomberg.com", "ft.com", "wsj.com", "nytimes.com",
+              "apnews.com")
+
+
+def dominio_de_articulos(m):
+    """Donde viven las NOTAS de un medio de MEDIOS, que no siempre es donde vive
+    su feed. Manda el campo 'dominio' si lo tiene; si no, el host del feed sin
+    «feeds.» y pasado por ARTICULOS_DE.
+
+    Antes cada sitio lo deducía a su manera y ninguno miraba 'dominio': el feed
+    de Expansión (España) está en uecdn.es y sus notas en expansion.com, así
+    que una búsqueda acotada a la lista blanca no podía encontrar jamás una
+    nota suya. Se vio el 09/11/2026 al añadir El Mundo, que tiene el mismo CDN.
+    """
+    if m.get("dominio"):
+        return m["dominio"]
+    host = urlparse(m["url"]).netloc.replace("www.", "")
+    host = ARTICULOS_DE.get(host, host)
+    return host[len("feeds."):] if host.startswith("feeds.") else host
+
+
 def _sin_tildes(s):
     """Minusculas y sin acentos, conservando espacios."""
     s = unicodedata.normalize("NFKD", str(s or "").lower())
@@ -199,8 +227,9 @@ def _encajes(nombre):
             continue
         host = urlparse(url).netloc.replace("www.", "")
         fuera.append((clave, ARTICULOS_DE.get(host, host), url))
-        if host.startswith("feeds."):
-            fuera.append((clave, host[len("feeds."):], url))
+        propio = dominio_de_articulos(MEDIOS[clave])
+        if propio != fuera[-1][1]:
+            fuera.append((clave, propio, url))
     return fuera
 
 
@@ -279,14 +308,10 @@ def titulares_google(consulta, dominios=None, maximo=4):
 def dominios_permitidos():
     de_la_lista = set()
     for m in MEDIOS.values():
-        host = urlparse(m["url"]).netloc.replace("www.", "")
-        de_la_lista.add(host)
-        if host in ARTICULOS_DE:
-            de_la_lista.add(ARTICULOS_DE[host])
-        # Caso general: feeds.elpais.com -> elpais.com. El prefijo "feeds." es
-        # del servidor de RSS, no del medio.
-        elif host.startswith("feeds."):
-            de_la_lista.add(host[len("feeds."):])
+        # El host del feed también, como siempre (hay medios que publican notas
+        # en el mismo sitio), y donde viven sus notas: dominio_de_articulos().
+        de_la_lista.add(urlparse(m["url"]).netloc.replace("www.", ""))
+        de_la_lista.add(dominio_de_articulos(m))
     return sorted(de_la_lista | set(REFERENCIA))
 
 

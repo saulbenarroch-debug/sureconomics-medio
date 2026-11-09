@@ -301,9 +301,7 @@ def _nombre_del_sitio(url):
         if n and es(d):
             return n
     for m in noticias.MEDIOS.values():
-        host = re.sub(r"^https?://", "", m["url"]).split("/")[0]
-        host = re.sub(r"^(www|feeds)\.", "", buscador.ARTICULOS_DE.get(host, host))
-        if es(host):
+        if es(buscador.dominio_de_articulos(m)):
             return m["nombre"]
     return dominio
 
@@ -372,7 +370,8 @@ def complementar_en_la_web(paquete, maximo=WEB_MAXIMO):
             "time_range": "year",
             "include_answer": False,
             "include_raw_content": True,
-            "include_domains": buscador.dominios_permitidos(),
+            "include_domains": [d for d in buscador.dominios_permitidos()
+                                if not any(n in d for n in buscador.NO_SE_LEEN)],
         })
     except Exception as exc:  # noqa: BLE001
         return [], [f"la búsqueda web no respondió ({type(exc).__name__})"]

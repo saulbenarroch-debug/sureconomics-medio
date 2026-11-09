@@ -263,6 +263,36 @@ del medio, y eso dejó huellas que conviene conocer:
   `desde_mayusculas()` y en la lámina. Otro nombre con forma fija se añade a
   `SIEMPRE_ASI`.
 
+## Medios que no se dejan leer (09/11/2026)
+
+Medido ese día con notas reales: **Reuters da 401; Bloomberg, FT y AP, 403**, a
+cualquier lector automático; NYT y WSJ tienen muro de pago. Están en
+`buscador.NO_SE_LEEN`. **No se esquiva el bloqueo por ninguna vía**: ni leyendo
+la página, ni del texto que guarda Tavily, ni a través de lectores de terceros.
+Es decisión de cada medio, y saltársela es esquivar un muro de pago.
+
+Lo que se hace en su lugar:
+
+- **`/nota` con un enlace que no se lee busca la misma noticia en otro medio**
+  (`nota._misma_noticia_en_otro_medio`). Solo se usa la DIRECCIÓN del enlace:
+  el modelo la pasa a un titular en español y da sus nombres propios y cifras,
+  se busca en la lista blanca sin los medios cerrados y se puntúa (2 por clave,
+  1 por palabra del titular en español; hacen falta 6). Dos intentos, porque
+  Tavily no es determinista. Quien lo pidió recibe un aviso: «Reuters no deja
+  leer sus notas; la escribo desde X», para que compruebe que es la misma.
+  Probado: Reuters sobre NABEP en Texas → El Comercio e Infobae; Bloomberg
+  sobre la central eléctrica con China → La República.
+- **La información complementaria tampoco los usa** (documentalista).
+- **Diez medios nuevos que sí se leen**, probados en las dos mitades: Yahoo
+  Finanzas (publica cables de Reuters, AP y EFE con licencia; su feed casi no
+  se actualiza, vale por la búsqueda), El Mundo, ABC, Cinco Días, elDiario.es,
+  El Diario (VE), 2001, El Colombiano, La Prensa (Panamá) y Diario Financiero.
+  EFE, Banca y Negocios (feed), Petroguía y El Universal siguen sin responder.
+
+**`buscador.dominio_de_articulos()`** es ahora el único sitio que dice dónde viven
+las notas de un medio. Antes nadie miraba el campo `dominio`, y Expansión
+(España), cuyo feed está en `uecdn.es`, era invisible para cualquier búsqueda.
+
 ## La guía editorial de Comunicación (desde el 06/11/2026)
 
 Comunicación mandó una guía para las noticias: principio editorial («informar

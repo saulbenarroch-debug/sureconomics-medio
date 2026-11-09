@@ -273,6 +273,51 @@ MEDIOS = {
     "bbgmercados": dict(nombre="Bloomberg", pais="EE. UU.", economia=True,
                         idioma="en", muro_de_pago=True,
                         url="https://feeds.bloomberg.com/markets/news.rss"),
+
+    # AMPLIACION DEL 09/11/2026, pedida por Saúl: «Reuters no se lee, NYT
+    # tampoco». Medido ese día: Reuters da 401, Bloomberg, FT y AP dan 403 a
+    # cualquier lector automático, y NYT tiene muro de pago. No se esquivan: es
+    # su decisión. Lo que se hizo fue sumar medios que SÍ se leen, probados en
+    # las dos mitades (feed y artículo), y que nota.py busque la misma noticia
+    # en ellos cuando el enlace pedido no se deja leer.
+    #
+    # YAHOO FINANZAS es el más útil de todos para eso: publica en español los
+    # cables de Reuters, AP y EFE con licencia, así que es la vía legítima de
+    # leer a esas agencias. Se cita a Yahoo y a la agencia que firma el cable.
+    # Su feed casi no se actualiza (el 09/11/2026 traía una nota del día y el
+    # resto de octubre): aporta poco a las tandas. Lo que vale es la BÚSQUEDA,
+    # y los cables salen en es-us.noticias.yahoo.com, no en finanzas: por eso
+    # el dominio es yahoo.com entero.
+    "yahoofin":    dict(nombre="Yahoo Finanzas", pais="EE. UU.", economia=True,
+                        dominio="yahoo.com",
+                        url="https://es-us.finanzas.yahoo.com/rss/"),
+    # El feed va por el CDN de Unidad Editorial, como Expansión.
+    "elmundo":     dict(nombre="El Mundo", pais="España", economia=True,
+                        dominio="elmundo.es",
+                        url="https://e00-elmundo.uecdn.es/elmundo/rss/economia.xml"),
+    "abc":         dict(nombre="ABC", pais="España", economia=True,
+                        url="https://www.abc.es/rss/2.0/economia/"),
+    # Cinco Días publica en cincodias.elpais.com: sale bien de quitar «feeds.»
+    # y del mapa ARTICULOS_DE de buscador.py, que ya resuelve El País.
+    "cincodias":   dict(nombre="Cinco Días", pais="España", economia=True,
+                        dominio="cincodias.elpais.com",
+                        url="https://feeds.elpais.com/mrss-s/pages/ep/site/"
+                            "cincodias.elpais.com/portada"),
+    "eldiarioes":  dict(nombre="elDiario.es", pais="España", economia=True,
+                        url="https://www.eldiario.es/rss/economia/"),
+    # Venezuela: El Diario (eldiario.com, no el español) y 2001.
+    "eldiariove":  dict(nombre="El Diario", pais="Venezuela", economia=False,
+                        url="https://eldiario.com/feed/"),
+    "2001":        dict(nombre="2001", pais="Venezuela", economia=False,
+                        url="https://2001online.com/feed/"),
+    "elcolombiano": dict(nombre="El Colombiano", pais="Colombia", economia=True,
+                         url="https://www.elcolombiano.com/rss/negocios.xml"),
+    # Panamá y Chile: Centroamérica no tenía ninguno; Chile solo La Tercera.
+    "prensapa":    dict(nombre="La Prensa (Panamá)", pais="Panamá", economia=True,
+                        url="https://www.prensa.com/arc/outboundfeeds/rss/"
+                            "category/economia/?outputType=xml"),
+    "dfchile":     dict(nombre="Diario Financiero", pais="Chile", economia=True,
+                        url="https://www.df.cl/noticias/site/list/port/rss.xml"),
 }
 
 # OJO CON BLOOMBERG (bloomberg.com, no Bloomberg Línea):
