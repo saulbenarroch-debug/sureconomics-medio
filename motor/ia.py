@@ -280,14 +280,47 @@ def pedir_json(prompt, etiqueta="ia", temperatura=0.4, imagen=None):
             return None
     print(f"[{etiqueta}] {modelo}")
 
-    try:
-        return json.loads(crudo)
-    except json.JSONDecodeError:
-        # A veces el modelo envuelve el JSON en ```json ... ```
-        limpio = (crudo.strip().removeprefix("```json").removeprefix("```")
-                  .removesuffix("```"))
+    objeto = _a_json(crudo)
+    if objeto is not None:
+        return objeto
+
+    # UN JSON ROTO NO ES MOTIVO PARA RENDIRSE. El 11/11/2026 una nota de Delcy
+    # Rodriguez en la COP31 se perdio entera porque flash-lite, el ultimo
+    # escalon cuando flash agota cuota, devolvio un JSON que no se podia leer.
+    # La respuesta cambia de una llamada a otra: se pide otra vez, mas frio, y
+    # si tampoco, a Groq. Cuesta una llamada; perder la pieza costaba todas.
+    print(f"[aviso] {etiqueta}: la IA no devolvio JSON valido; lo pido otra vez")
+    for nombre, llamar in (("Gemini", lambda: _gemini(prompt, 0.1, imagen=imagen)),
+                           ("Groq", lambda: _groq(prompt, 0.1))):
+        if nombre == "Groq" and imagen:
+            break
         try:
-            return json.loads(limpio)
+            crudo, modelo = llamar()
+        except Exception as exc:  # noqa: BLE001
+            print(f"[aviso] reintento con {nombre} fallido ({str(exc)[:90]})")
+            continue
+        objeto = _a_json(crudo)
+        if objeto is not None:
+            print(f"[{etiqueta}] {modelo} (reintento)")
+            return objeto
+    print(f"[error] {etiqueta}: la IA no devolvio JSON valido.")
+    return None
+
+
+def _a_json(crudo):
+    """El JSON de la respuesta, tolerando los fallos habituales, o None."""
+    crudo = (crudo or "").strip()
+    # A veces el modelo envuelve el JSON en ```json ... ```
+    limpio = crudo.removeprefix("```json").removeprefix("```").removesuffix("```")
+    # o pone texto antes o despues del objeto.
+    caja = crudo[crudo.find("{"):crudo.rfind("}") + 1] if "{" in crudo else ""
+    for texto in (crudo, limpio, caja):
+        if not texto:
+            continue
+        try:
+            # strict=False admite saltos de linea literales dentro de las
+            # cadenas, que es lo que mas rompe el JSON del cuerpo de una nota.
+            return json.loads(texto, strict=False)
         except json.JSONDecodeError:
-            print(f"[error] {etiqueta}: la IA no devolvio JSON valido.")
-            return None
+            continue
+    return None
