@@ -1687,8 +1687,10 @@ def main():
         post = leer_publicacion(peticion)
         if post is not None:
             titulo_previo = (post.get("texto") or "")[:200]
+            entrada_previa = ""
         else:
-            titulo_previo, _, _ = leer_enlace(peticion)
+            titulo_previo, parrafos_previos, _ = leer_enlace(peticion)
+            entrada_previa = " ".join((parrafos_previos or [])[:2])
         # Se compara contra las piezas DE SU MISMO FORMATO: una columna sobre lo
         # que ya se reporto no es un duplicado. Ver memoria.ya_cubierto().
         from armar_carga import FORMATOS
@@ -1696,6 +1698,11 @@ def main():
         ya = (None if forzar else
               (memoria.ya_cubierto(titulo_previo, formato=formato)
                if titulo_previo else None))
+        # LAS PALABRAS PROPONEN, LA IA CONFIRMA. Ver memoria.mismo_hecho().
+        if ya and memoria.mismo_hecho(titulo_previo, ya, entrada_previa) is False:
+            print("  se parece a «%s», pero es otro hecho: sigue"
+                  % ya["titulo"][:70])
+            ya = None
         if ya:
             print("  SI. Coincide con: %s" % ya["titulo"])
             print("  https://www.sureconomics.com/%s" % ya["slug"])

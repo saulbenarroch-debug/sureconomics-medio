@@ -270,6 +270,39 @@ def ya_cubierto(titular, catalogo=None, umbral=UMBRAL, peso=None,
     return mejor if puntos >= umbral else None
 
 
+def mismo_hecho(titular, publicada, texto=""):
+    """¿'titular' cuenta el mismo hecho que la pieza 'publicada'? True/False/None.
+
+    LA SEGUNDA OPINION DE ya_cubierto(). El parecido de palabras no distingue un
+    hecho de otro cuando comparten protagonista: el 11/11/2026 frenó «Delcy
+    Rodríguez llegó a Antalya para la COP31» por «Delcy Rodríguez llegó al Foro
+    Mundial de la FAO en Roma», y la pausa de la inflación en Colombia por una
+    nota de El Niño y la inflación en Colombia. La redaccion tenia que pedirlas
+    «igual» a mano. Por eso, cuando las palabras dicen «repetida», una pregunta
+    corta a la IA lo confirma.
+
+    None si la IA no contesta: entonces manda el parecido de palabras, que es
+    lo que habia antes. Ante la duda se frena, y la redaccion puede forzar.
+    """
+    from motor import ia
+    r = ia.pedir_json(
+        "Eres editor de un medio. Ya publicamos esta noticia:\n"
+        f"«{publicada.get('titulo', '')}» ({(publicada.get('fecha') or '')[:10]})\n\n"
+        f"Nos piden esta otra:\n«{titular}»\n"
+        + (f"Empieza así: {texto[:600]}\n" if texto else "") +
+        "\n¿Cuentan el MISMO hecho (el mismo suceso, anuncio o dato, aunque con "
+        "otras palabras o de otro medio)? Si es otro suceso con los mismos "
+        "protagonistas, un dato nuevo, otra fecha, otro lugar o un seguimiento, "
+        "NO es el mismo.\n"
+        'Responde solo JSON: {"mismo": true|false, "por_que": "una frase"}',
+        etiqueta="duplicado", temperatura=0.0)
+    if not isinstance(r, dict) or "mismo" not in r:
+        return None
+    print("  [duplicado] %s: %s" % ("mismo hecho" if r["mismo"] else "otro hecho",
+                                    str(r.get("por_que", ""))[:120]))
+    return bool(r["mismo"])
+
+
 def filtrar(candidatos, clave="hecho", umbral=UMBRAL):
     """Parte una lista de candidatos en (nuevos, repetidos).
 

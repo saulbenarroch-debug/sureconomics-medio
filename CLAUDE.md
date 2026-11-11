@@ -283,6 +283,16 @@ juzga si el titular repite algo publicado; si sí, una pasada más del redactor,
 y si sigue, se avisa en `[Para revisar]`. Probado con la misma nota: abrió con
 la gira de Betancourt por el lago y dejó el 35 % como contexto.
 
+**En `/nota`, la IA confirma las repetidas (11/11/2026).** El parecido de
+palabras proponía y frenaba solo: «Delcy llegó a Antalya para la COP31» chocaba
+con «Delcy llegó al Foro de la FAO en Roma». Ahora, si las palabras dicen
+«repetida», `memoria.mismo_hecho()` pregunta a la IA (unos cientos de tokens)
+con el titular y la entrada; si dice «otro hecho», sigue. Si la IA no contesta,
+manda el parecido, como antes. Probado: frena las dos de Revolut y la de
+Dinorah Figuera, deja pasar COP31 y «Oliver Blanco designado canciller» frente
+a «Rubio y el canciller Oliver Blanco se reúnen». Las tandas y la vigilancia
+siguen solo con palabras (son decenas de candidatos por corrida).
+
 La fecha del hecho en «Sacado de» es solo de la fuente original; las demás
 sin fecha conocida van sin fecha (antes salían con la del día, falsamente).
 
